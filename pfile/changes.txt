@@ -1,0 +1,14 @@
+Changes since 1.2
+1. If a parameter has the value "))cmd", then its value is replaced by 
+   the execution of cmd in a shell.
+2. pf_get_string modified to take sizeof(buf)
+
+Changes since 1.1
+1. Added PF_UINT_TYPE for unsigned ints
+2. Updated copyrights, changed few <pfile.h> to "pfile.h"
+3. Fixed bug involving access to read-only directories
+
+Changes since 1.0:
+1. Symbolic links are traced by file functions.  This is more useful for 
+   functions such as pwhich
+2. -V flag to pf_open_paramter_file turns on verbose pfile searching.

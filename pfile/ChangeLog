@@ -1,0 +1,62 @@
+2002-2-15  John E. Davis  <davis@space.mit.edu>
+
+	* src/pfile.h (PFILE_VERSION): bumped to 232
+
+	* src/pf.c (get_indirect_object): add support for SAO
+	undocumented )FILE.VALUE indirections.
+
+2002-2-12  John E. Davis  <davis@space.mit.edu>
+
+	* src/pfile.h (PFILE_VERSION): 231
+
+	* src/pfile.c (pf_open_parameter_file): new open mode flag 'L'
+	forces the library to give all parameters the "learn" mode.
+
+	* src/pfcmpt.c (ParamInfo): new function as part of the cxc
+	parameter file library emulation layer.
+
+2001-3-3  John E. Davis  <davis@space.mit.edu>
+
+	* src/parameter.h: new file to encapsulate SAO interface
+	routines (explicative deleted).
+
+2000-3-16  John E. Davis  <davis@space.mit.edu>
+
+	* src/pfile.h (PFILE_VERSION): 211
+
+	* src/pfile.c (pf_open_parameter_file): If Q is given part of
+	the open mode string, the add PF_NEVER_QUERY_MODE to file's mode.
+
+	* src/pf.c (_pf_get_effective_mode): If PF_NEVER_QUERY_MODE,
+	then remove query from parameter.  I think that this is better than
+	using SAO's hack on the mode parameter.
+
+2000-2-28  John E. Davis  <davis@space.mit.edu>
+
+	* src/pf.c (pf_get_type): new function
+
+	* src/pfile.h: pf_get_type added
+
+2000-2-25  John E. Davis  <davis@space.mit.edu>
+
+	* src/pfile.c (pf_set_output_filename): force write if this function
+	is called
+	(pf_close_parameter_file): check for PFILE_WRITE_ON_CLOSE flag
+
+	* src/_pfile.h (PFILE_WRITE_ON_CLOSE): new flag to force write
+
+	* src/pfile.h (PFILE_VERSION): updated to 210
+
+	* src/pfcmd.c (pf_learn_string): pf_learn* functions added.
+
+	* src/pfile.h: pf_learn* added
+
+2000-2-24  John E. Davis  <davis@space.mit.edu>
+
+	* src/pf.c (parse_type): allow "pset" in type file.  Until the 
+	meaning of this value is clear to me, it will be treated as "s".
+
+1999-11-23  John E. Davis  <davis@space.mit.edu>
+
+	* pfile.lis: ChangeLog added
+
