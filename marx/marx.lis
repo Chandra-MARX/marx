@@ -210,16 +210,15 @@
 @data/hrc/chromium.xray
 *data/hrc/gold.dat
 @data/hrc/gold.xray
-*data/hrc/HRC_I_csi_qe_model.dat
-*data/hrc/uvisnlr.1052.82.dat
-*data/hrc/uvisnlr.1092.82.dat
-*data/hrc/uvisnlr.1174.82.dat
-*data/hrc/uvisnlr.565.82.dat
-*data/hrc/hrcs_r2.dat
-*data/hrc/hrcs_mcpqe_030900_pr001.dat
-#*data/hrc/hrc_s_qe.dat
 @data/hrc/hrc_s_geom.txt
 @data/hrc/hrc_i_geom.txt
+*data/hrc/mcp_qe_i.v2.2.dat
+*data/hrc/mcp_qe_s.v3.dat	
+*data/hrc/uvis_i.v4.dat  	
+*data/hrc/uvis_s1.v4.dat
+*data/hrc/uvis_s2.v4.dat
+*data/hrc/uvis_s34.v4.dat
+*data/hrc/uvis_s56.v4.dat
 
 @data/hrma/README
 *data/hrma/iridium.dat
