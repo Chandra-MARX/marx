@@ -277,6 +277,16 @@ static int process_photons (Marx_Photon_Type *pt)
    return 0;
 }
 
+static time_t marx_timegm (struct tm *tms)
+{
+#ifdef HAVE_TIMEGM
+   return timegm (tms);
+#else
+   /* This is a hack.  It should be fixed. */
+   return mktime (tms);
+#endif
+}
+
 static int setup_tstart (Param_File_Type *pf)
 {
    double secs_per_year = 365.25 * 24.0 * 3600.0;
@@ -303,8 +313,8 @@ static int setup_tstart (Param_File_Type *pf)
    tm.tm_year = 98;
    tm.tm_yday = 0;
    tm.tm_isdst = 0;
-   time_t_mjdref = mktime (&tm);
    
+   time_t_mjdref = marx_timegm (&tm);
    if (tstart < 2020)
      {
 	/* asssume that tstart is in years */
@@ -888,17 +898,6 @@ static unsigned long compute_write_mask (void) /*{{{*/
 
 /*}}}*/
 
-#if 0
-static time_t marx_timegm (struct tm *tms)
-{
-#ifdef HAVE_TIMEGM
-   return timegm (tms);
-#else
-   /* This is a hack.  It should be fixed. */
-   return mktime (tms);
-#endif
-}
-#endif
 
 static double normalize_angle (double theta)
 {
