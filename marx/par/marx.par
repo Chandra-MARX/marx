@@ -436,21 +436,21 @@ ACIS-I3-FilterFile,f,h,"acis/acis_i_xray_trans_1198.dat",,,"Enter ACIS Chip 3 OB
 #
 #---------------------------------------------------------------------------
 HRC-I-BlurSigma,r,h,0.0077,0,,"Enter HRC-I pixel Blur (RMS mm)"
-HRC-I-QEFile,f,h,"hrc/HRC_I_csi_qe_model.dat",,,"Enter HRC-I QE File"
-HRC-I-UVISFile,f,h,"hrc/uvisnlr.1174.82.dat",,,"Enter HRC-I UV/IS file for region 0"
+HRC-I-QEFile,f,h,"hrc/mcp_qe_i.v2.2.dat",,,"Enter HRC-I QE File"
+HRC-I-UVISFile,f,h,"hrc/uvis_i.v4.dat",,,"Enter HRC-I UV/IS file for region 0"
 #---------------------------------------------------------------------------
 #
 # HRC-S setup
 #
 #---------------------------------------------------------------------------
 HRC-S-BlurSigma,r,h,0.0077,0,,"Enter HRC-S pixel Blur (RMS mm)"
-HRC-S-QEFile0,f,h,"hrc/hrcs_mcpqe_030900_pr001.dat",,,"Enter HRC QE File for MCP 0"
-HRC-S-QEFile1,f,h,"hrc/hrcs_mcpqe_030900_pr001.dat",,,"Enter HRC QE File for MCP 1"
-HRC-S-QEFile2,f,h,"hrc/hrcs_mcpqe_030900_pr001.dat",,,"Enter HRC QE File for MCP 2"
-HRC-S-UVISFile0,f,h,"hrc/uvisnlr.1052.82.dat",,,"Enter HRC UV/IS file for region 0"
-HRC-S-UVISFile1,f,h,"hrc/hrcs_r2.dat",,,"Enter HRC UV/IS file for region 1"
-HRC-S-UVISFile2,f,h,"hrc/uvisnlr.1092.82.dat",,,"Enter HRC UV/IS file for region 2"
-HRC-S-UVISFile3,f,h,"hrc/uvisnlr.565.82.dat",,,"Enter HRC UV/IS file for region 3"
+HRC-S-QEFile0,f,h,"hrc/mcp_qe_s.v3.dat",,,"Enter HRC QE File for MCP 0"
+HRC-S-QEFile1,f,h,"hrc/mcp_qe_s.v3.dat",,,"Enter HRC QE File for MCP 1"
+HRC-S-QEFile2,f,h,"hrc/mcp_qe_s.v3.dat",,,"Enter HRC QE File for MCP 2"
+HRC-S-UVISFile0,f,h,"hrc/uvis_s1.v4.dat",,,"Enter HRC UV/IS file for region 0"
+HRC-S-UVISFile1,f,h,"hrc/uvis_s2.v4.dat",,,"Enter HRC UV/IS file for region 1"
+HRC-S-UVISFile2,f,h,"hrc/uvis_s56.v4.dat",,,"Enter HRC UV/IS file for region 2"
+HRC-S-UVISFile3,f,h,"hrc/uvis_s34.v4.dat",,,"Enter HRC UV/IS file for region 3"
 #---------------------------------------------------------------------------
 #
 # The HESF (AKA Drake Flat)

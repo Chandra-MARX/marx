@@ -529,7 +529,9 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
 
    if (total_pos_area <= total_neg_area)
      {
+#if 0
 	marx_message ("***WARNING: Gaussian parameters appear invalid: a region with response <= 0 or absurd parameters has been detected.\n");
+#endif
 	flags |= HAS_TOTAL_NEG_AREA;
 	/* return 0; */
      }
@@ -602,6 +604,8 @@ static int process_region_rows (Row_Type *r, unsigned int num_energies,
    unsigned int i;
    int flags;
 
+   (void) region_num;
+
    f = (Fef_Type *) marx_malloc (sizeof (Fef_Type));
    if (f == NULL)
      return -1;
@@ -656,9 +660,10 @@ static int process_region_rows (Row_Type *r, unsigned int num_energies,
 	free_fef_type (f);
 	return -1;
      }
+#if 0
    if (flags & HAS_TOTAL_NEG_AREA)
      marx_message ("*** WARNING: One or more energies in region %d has an invalid response\n", region_num);
-
+#endif
    return 0;
 }
 

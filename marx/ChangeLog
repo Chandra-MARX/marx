@@ -1,3 +1,20 @@
+2005-1-12  John E. Davis  <davis@space.mit.edu>
+
+	* libsrc/acis_fef.c (normalize_gaussians): turned off acis-fef
+	warning message.
+
+2005-1-10  John E. Davis  <davis@space.mit.edu>
+
+        * data/hrc/mcp*,uvis*: Updated HRC-I/S QE and transmission
+	files.
+
+	* libsrc/hrc-s.c (_marx_hrc_read_efficiencies): commented out
+	section of code that converts to keV since new hrc cal files
+	are in keV units
+
+	* libsrc/hrc-i.c (_marx_hrc_i_init): changed "HRC-S" in a
+	string to "HRC-I".
+
 2004-12-20  John E. Davis  <davis@space.mit.edu>
 
 	* data/marxcaldb.par: updated caldb files: new letg file and acis-qe.

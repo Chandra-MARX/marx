@@ -233,7 +233,7 @@ _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
    X_Pixel_Size = hrc->x_pixel_size;
    Y_Pixel_Size = hrc->y_pixel_size;
 
-   marx_message ("Reading binary HRC-S QE/UVIS data files:\n");
+   marx_message ("Reading binary HRC-I QE/UVIS data files:\n");
 
    for (i = 0; i < _MARX_NUM_HRC_I_CHIPS; i++)
      {

@@ -107,19 +107,21 @@ static Param_Table_Type HRC_Parm_Table [] = /*{{{*/
  * title: New HRC UV/Ion Shields.   This memo shows the following figure:
  * @
  * @   +-----------------+ +-------------------+ +-------------------+
- * @   |      2          | |         0         | |      2            |
+ * @   |      2(5)       | |         0(1)      | |      2(6)         |
  * @   +-----------------+ +-----+        +----+ +-------------------+  ^
  * @   |                 | |     |        |    | |                   |  +- T
  * @   |        +        | |     |   +    |    | |         +         |  v
  * @   |                 | |     |        |    | |                   |
- * @   |     3           | | 1   |        | 1  | |       3           |
+ * @   |     3           | | 1(2)|        | 1(2) |       3(4)        |
  * @   |                 | |     |        |    | |                   |
  * @   +-----------------+ +-----+--------+----+ +-------------------+
  * @                             <-L-><-R->
  * @                       <---SL----><---SR-->
  * @                   --> <-- GapL         -->  <-- GapR
  * 
- * The labeling of the regions 0-4 is mine.  The distances L, R, S, and T
+ * The labeling of the regions 0-4 is mine.  The values in parenthesis are 
+ * what are using on the HRC web pages (mine predate theirs by about 5 years).
+ * The distances L, R, S, and T
  * correspond to distances from the geometric center of the middle 
  * facet.
  * 
@@ -336,7 +338,7 @@ int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
 	marx_free (file);
 	return -1;
      }
-   
+#if 0
    /* The energies are in eV, so scale them to KeV */
    en = dt->energies;
    en_max = en + dt->num_energies;
@@ -345,6 +347,7 @@ int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
 	*en = *en * 0.001;
 	en++;
      }
+#endif
    marx_free (file);
    return 0;
 }
