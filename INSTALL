@@ -9,6 +9,11 @@ To build marx, configure it by running the configure script, e.g.,
 
     # ./configure
 
+ [The --prefix configure argument has no effect. The executables will
+ get installed in the bin/ subdirectory of this tree.  You will have
+ to either set you path to point to the bin directory, or copy the
+ executables to somewhere on your path.]
+
 But before you perform this step, see the PROBLEMS section below to
 avoid problems on certain architectures, e.g., Ultrix.  See below for
 information about building MARX on multiple architectures.
