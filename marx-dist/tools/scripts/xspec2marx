@@ -1,7 +1,0 @@
-#!/usr/bin/awk -f
-# This script deletes the first 3 lines of the file and then
-# copies through the 1st and 3rd columns from the remaining lines.
-
-(NR > 3 && NF > 2) {
-        print $1, $3
-}
