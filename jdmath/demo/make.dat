@@ -1,0 +1,9 @@
+execs="binup integ nsort facet test"
+exec_libs="-ljdmath -lm"
+exec_incs=""
+bindir="\$(HOME)/sys/\$(ARCH)/bin"
+install_cmd="/bin/cp"
+what_to_install="binup integ nsort facet"
+what_to_clean="*~ #*"
+makefile="Makefile"
+

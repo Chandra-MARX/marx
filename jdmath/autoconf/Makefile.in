@@ -1,0 +1,39 @@
+# -*- sh -*-
+
+#This is a UNIX-only makefile.
+
+@SET_MAKE@
+SHELL = /bin/sh
+
+all:
+	cd src; $(MAKE) all
+elf:
+	cd src; $(MAKE) elf
+	@echo Use make install-elf to install it.
+install-elf:
+	cd src; $(MAKE) install-elf
+	@echo ""
+	@echo "Although not required, consider doing 'make install-links' to extra links"
+	@echo "You will also have to run ldconfig."
+	@echo ""
+demos:
+	cd demo; $(MAKE)
+clean:
+	/bin/rm -f *~
+	cd src; $(MAKE) clean
+#
+distclean:
+	/bin/rm -f *~ Makefile config.status config.log config.cache files.pck
+	cd src; $(MAKE) distclean
+#
+confclean:
+	/bin/rm -f *~ Makefile config.status config.log config.cache files.pck
+#
+install:
+	cd src; $(MAKE) install
+#
+
+# The symlinks target is for my own private use.  It simply creates the object
+# directory as a symbolic link to a local disk instead of an NFS mounted one.
+symlinks:
+	cd src; $(MAKE) symlinks

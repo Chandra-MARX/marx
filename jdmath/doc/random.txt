@@ -1,0 +1,70 @@
+The random number generator in src/random.c is based on the Marsaglia
+mran13 algorithm published in Computers in Physics and upon the
+Marsaglia MWC1616 algorithm described below (from Numerical Analysis
+FAQ):
+
+Multiply-with-carry
+-------------------
+
+Multiply-with-carry generators have the form:
+  x(n) = a*x(n-1) + carry  mod M
+
+George Marsaglia posted a net note on this in 1994,
+but says since he's retiring soon, he says he won't publish it.
+I'm including his documentation for the benefit of those who
+wish to use MWCGs.
+
+[George Marsaglia]:
+Here is a simple version, one so simple and good I predict
+it will be the system generator for many future computers:
+       x(n)=a*x(n-1)+carry mod 2^32
+With multiplier 'a' chosen from a large set of easily found
+integers, the period is a*2^31-1, around 2^60, and
+I have yet to find a test it will not pass!
+
+The 'carry' works like this, which shows how well this
+method will serve as a system RNG:
+   Have seed x and c.  Form a*x+c in 64 bits.  All modern
+   CPU's have instructions for this: sparc, intel, etc.
+   Then the new x is the bottom 32 bits.
+       the new carry is the top 32 bits.
+
+The period is the order of b=2^32 in the group of residues
+relatively prime to m=a*2^32-1.  One need only choose a's
+of some 30 bits for which m=a*2^32-1 is a safeprime:
+both m and (m-1)/2 are prime.  There are thousands of them.
+
+In general, for any choice of 'a', let m=a*2^32-1.  If both m
+and (m-1)/2 are prime then the period will be (m-1)/2.
+Even if 'a' is, say, your social security number, the
+period will most likely be on the order of 2^50 or more.
+(For mine, it is 2^54.8).
+
+For 32-bit generators, some possible values of 'a' are:
+ 1967773755 1517746329 1447497129 1655692410 1606218150
+ 2051013963 1075433238 1557985959 1781943330 1893513180
+
+Few high-level languages provide access to top and
+bottom halves of the 64-bit product of two 32-bit integers
+without a lot of tricky programming.
+So the simplest version of multiply-with-carry must come
+through an assembler routine as, of course, a system
+generator does.  But concatenating two
+16-bit versions is only slightly more complicated and
+produces results that also pass all tests.
+
+The essence of a version in C requires only [some mods by SJS below]:
+   unsigned long mwcg() {
+      static unsigned long x, y;        /* x, y are 32-bit integers */
+      /* need some initialization code: if first time, init x, y */
+      x=a*(x&65535)+(x>>16);
+      y=b*(y&65535)+(y>>16);
+      return ((x<<16)+(y&65525));       /* return 32-bit value */
+   }
+Here x and y are 32-bit integers with carry in the top and output
+in the bottom half.
+
+Some possible values for 'a' and 'b', where 'a' <> 'b', are:
+23109 23124 23163 23208 23508 23520 23553 23658 23865 24114
+24219 24660 24699 24864 24948 25023 25308 25443 26004 26088
+

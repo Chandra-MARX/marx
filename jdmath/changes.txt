@@ -1,0 +1,14 @@
+Changes since 1.62
+1. JDMread_i_int16, etc added.
+
+Changes since 1.61
+1. JDMfinite returns 1 if OS does not support finite function.
+
+Changes since 1.40
+
+1. JDMc_sqrt tweaked to return a value consistent with the branch cut
+   defined by FORTRAN.
+
+2. Added Mark Olesen's version of Singleton's mixed-radix fft.  See
+   src/fftn.c.
+

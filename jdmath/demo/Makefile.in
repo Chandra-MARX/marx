@@ -1,0 +1,20 @@
+CC = @CC@
+CFLAGS = @CFLAGS@
+SHELL = /bin/sh
+
+JDMATH_INC = ../src
+JDMATH_LIB = @OBJDIR@
+
+INCS = -I$(JDMATH_INC)
+LIBS = -L$(JDMATH_LIB) -ljdmath -lm
+
+COMPILE_CMD = $(CC) $(CFLAGS) $(INCS)
+
+APPS = binup
+
+all : $(APPS)
+
+binup : binup.c
+	$(COMPILE_CMD) $@.c -o $@ $(LIBS)
+
+	
