@@ -1,0 +1,40 @@
+The subdirectories of this directory contain instrument specific data
+files:
+
+   ./hrma
+      This directory contains HRMA specific data files
+      
+   ./ea-mirror
+      This directory contains data files need by the MARX EA-MIRROR
+      module.
+
+   ./grating
+      This directory contains data files for the HETG and LETG.
+      
+   ./hrc
+      This directory contains data files used by the HRC-S, HRC-I, and
+      the HESF (aka Drake Flat).
+
+   ./acis
+      This directory contains data files used by the ACIS-S and ACIS-I
+      detector
+      
+ 
+    ./henke
+      This directory contains some Henke optical constant
+      files that are used by the MARX pileup simulator.
+      
+   ./src
+      This directory contains the source to dump ASCII data files to a
+      from the MARX .dat binary format
+
+There are several file formats used in these directories.  The formats
+are distinguished by the filename suffix: 
+
+    .tbl : ASCII data files
+    .dat : Binary data files.  Use src/bdatdump to dump them.
+    .bin : Misc binary file formats
+
+See FORMAT.TXT for more information about the .dat format.
+
+Also see the README files in each of the subdirectories.

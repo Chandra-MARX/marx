@@ -1,0 +1,30 @@
+# -*-sh-*--------------------------------------------------------------------
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+#
+#
+# MIT MARXASP Parameter file       Flight / Version 4.0 (Feb 12 2002)
+#
+#   Creates an aspect solution file for the MARX internal dither model
+#
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+#
+# Simulation setup and control
+#
+#----------------------------------------------------------------------------
+OutputFile,s,a,"sim_asol.fits",,,"output filename"
+MarxDir,s,a,"point",,,"Simulation Output Directory"
+TimeDel,r,a,0.256,,,"Aspect Sampling interval (seconds)"
+#----------------------------------------------------------------------------
+#
+# Determine the aspect reconstruction accuracy
+#
+#----------------------------------------------------------------------------
+RA_Sigma,r,a,0.12,,,"RA Uncertainty (sigma in arcsec)"
+Dec_Sigma,r,a,0.12,,,"Dec Uncertainty (sigma in arcsec)"
+Roll_Sigma,r,a,0.12,,,"Roll Uncertainty (sigma in arcsec)"
+#
+mode,s,hl,"hl","ql|hl|q|h",,"mode for parameter file"
+
