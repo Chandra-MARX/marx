@@ -1,0 +1,27 @@
+2000-4-19  John E. Davis  <davis@space.mit.edu>
+
+	* marxrsp.c (compute_response): make sure channel[j] is
+	modified only if permitted by the filter.
+
+2000-4-18  John E. Davis  <davis@space.mit.edu>
+
+	* marxrsp.c (usage): Syntax error involving missing `;' fixed.
+
+2000-3-9  John E. Davis  <davis@space.mit.edu>
+
+	* marxrsp.c: modified usage message to reflect the renaming of
+	pha.dat to pha.bak.dat.
+
+1999-12-20  John E. Davis  <davis@space.mit.edu>
+
+	* marxrsp.c (rename_marx_file): new function: pha.dat is
+	renamed to pha.dat.BAK and rmf_pha.dat is renamed to pha.dat.
+
+1999-12-15  John E. Davis  <davis@space.mit.edu>
+
+	* Makefile: NETLIBS macro added for new versions of CFITSIO.
+
+	* marxrsp.lis: ChangeLog added
+
+	* marxrsp.c: support added for region filter
+
