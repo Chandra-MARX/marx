@@ -27,7 +27,7 @@
 #include <pfile.h>
 
 #define MARX_VERSION 40200
-#define MARX_VERSION_STRING "d4.2.0-r2"
+#define MARX_VERSION_STRING "4.2.0"
 
 #ifndef SIGNED_CHAR
 # define SIGNED_CHAR signed char
