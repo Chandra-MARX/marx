@@ -1,0 +1,19 @@
+Note:  Recently Bill Pence released a CFITSIO library.  Since this
+library still in a very early development stage, you are encouraged to
+use the official CFITSIO library.
+
+This is a C fitsio library that is still under development.  Please send all
+comments, modifications, bug reports, or bug fixes to davis@space.mit.edu so
+that they may be incorporated into the distribution.
+
+There is no documentaton on the library.  After building it, you should be
+left with a file called `jdfits.h' (and the library!) which is to be included
+into any file that uses routines from library.  Look in this file for what
+functions are available.
+
+See `makefits.c' for an example of using the library to create a fits
+file and `fitsdump.c' to read one.
+
+John E. Davis
+MIT Center for Space Research
+davis@space.mit.edu

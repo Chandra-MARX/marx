@@ -1,0 +1,126 @@
+2004-6-4  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 162
+
+	* src/fitshdr.c (jdfits_extract_double): Add support for
+	fortran formats that use 'D' for the exponent.
+
+2003-1-30  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsbin.c (jdfits_bintable_dump_data): tweaks to cause
+	column headings to line up with the data in the columns.
+
+2002-9-12  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsbin.c (jdfits_bintable_dump_data): change default
+	format from e.g., "%15.9f" to "% 15.9f".
+
+2001-8-23  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.c (jdfits_parse_key): only use the keyword type if
+	the type argument is JDFITS_ALL_TYPES.
+
+	* src/fitsbin.c (jdfits_bintable_dump_data): added some
+	support for the disgusting unsigned hack.
+
+2000-7-21  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsfmt.c (jdfits_ffmt_to_cfmt): if format is blank or
+	not, return error
+
+2000-6-21  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.c (parse_string): ugly hack to handle cards without
+	values.
+
+2000-6-8  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsbin.c (jdfits_bintable_parse_headers): permit space
+	characters at beginning of TFORM values.
+
+2000-5-11  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsdump.c (fitsdump_file): add cast to long for alpha
+
+	* src/fitsbin.c: add explict cast to long for alpha
+
+	* src/fits.c (parse_int): on 64bit systems, int32 is not a long.
+
+2000-4-14  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.c (parse_headers): if header column 9 does not
+	contain an `=', then regard it as a comment preserving that
+	character.
+
+2000-3-17  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswrite.c (format_double): special function to format
+	a double to the correct width.  sprintf is incapable of fully
+	handling this.
+
+2000-3-9  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswrite.c (jdfits_write_header_double): Use `#'
+	modifier to force a decimal point to prevent data model tools
+	from choking.
+
+2000-3-8  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsdump.c (fitsdump_file): allow -e 0 to dump primary extension.
+
+	* src/fitswbin.c (jdfits_create_btable_extension): 8X, 16X,
+	32X types added.
+
+2000-3-1  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitshdr.c (jdfits_extract_double): typecast integer
+	types if necessary.
+
+2000-2-4  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsdump.c (main): add ability to dump more than 1 file
+
+2000-2-3  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 153
+
+	* src/btread.c: (jdfits_bintable_column_exists) new function
+
+2000-1-26  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsdump.c (main): float headers dumped out using %20.16g format.
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 152
+
+	* src/fits.c (parse_number): Ugly hack added to avoid sscanf parsing
+	a number on the next card.
+
+2000-1-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 151
+
+	* src/fits.c (parse_headers): avoid integer overflow when
+	computing size field.
+
+1999-12-14  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitsdump.c: -c <ext name> may also be a number.  
+
+1999-12-10  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): v1.50
+
+	* src/btread.c (_jdfits_bintable_find_column): new function.
+	Also new read by row routines added.
+
+	* src/_jdfits.h: new file
+
+	* src/fitsbin.c (_jdfits_allocate_bytes_of_type): new function
+
+	* jdfits.lis: _jdfits.h added
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 145
+
+	* src/fitsbin.c (jdfits_bintable_dump_data): For a pointer
+	object, make sure the column headings use JDFITS_FMT_32 format.
+

@@ -1,0 +1,7 @@
+/* -*- c -*- */
+
+/* Define this if have stdlib.h */
+#undef HAVE_STDLIB_H
+
+/* Define this if you have unistd.h */
+#undef HAVE_UNISTD_H
