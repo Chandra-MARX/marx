@@ -2343,7 +2343,7 @@ static int get_marx_pfile_info (void) /*{{{*/
 	marx_error ("*** DetectorType %s not supported.\n", DetectorType);
 	return -1;
      }
-#if 0
+#if 1
    Sim_X = DetOffset_X + The_Detector->stf_stt_offset.x;
    Sim_Y = DetOffset_Y + The_Detector->stf_stt_offset.y;
    Sim_Z = DetOffset_Z + The_Detector->stf_stt_offset.z;

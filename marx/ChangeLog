@@ -1,3 +1,8 @@
+2005-11-30  John E. Davis  <davis@space.mit.edu>
+
+	* src/marx2fits.c (get_marx_pfile_info): Undo the change from
+	2003-2-6 affecting the calculation of SIM_*.
+
 2005-1-18  John E. Davis  <davis@space.mit.edu>
 
 	* src/marx.c (setup_tstart): Use timegm instead of mktime so

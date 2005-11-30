@@ -462,6 +462,7 @@ static int get_marx_pfile_info (Param_File_Type *pf)
 	return -1;
      }
 
+   /* FIXME!!!  This may not be currently what is used in marx2fits!!! */
    Sim_X = DetOffset_X + dt->stf_stt_offset.x;
    Sim_Y = DetOffset_Y + dt->stf_stt_offset.y;
    Sim_Z = DetOffset_Z + dt->stf_stt_offset.z;
