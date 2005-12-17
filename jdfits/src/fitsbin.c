@@ -505,7 +505,8 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	  continue;
 
 	/* Do not print large arrays */
-	if ((colname == NULL) && (repeat > 128))
+	if ((colname == NULL) && (repeat > 128) && (cols > 1)
+	    && (btf[i].type != JDFITS_STRING_TYPE))
 	  repeat = 16;
 
 	if (btf[i].type == JDFITS_STRING_TYPE)
@@ -539,7 +540,8 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		|| jdfits_strcasecmp (colname, btf[i].ttype)))
 	  continue;
 
-	if ((colname == NULL) && (repeat > 128))
+	if ((colname == NULL) && (repeat > 128) && (cols > 1)
+	    && (btf[i].type != JDFITS_STRING_TYPE))
 	  repeat = 16;
 
 	/* look at the format to guess the field width */
@@ -607,9 +609,9 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	     fmt = btf[i].tdisp;
 	     num_to_read = repeat;
 
-	     if ((colname == NULL) && (repeat > 128))
+	     if ((colname == NULL) && (repeat > 128) && (cols > 1)
+		 && (btf[i].type != JDFITS_STRING_TYPE))
 	       repeat = 16;
-
 	     
 #if 0
 	     has_scaling = btf[i].has_scaling;

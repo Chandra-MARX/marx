@@ -9,6 +9,7 @@
 #---------------------------------------------------------------------------
 CC = @CC@
 CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
 RANLIB = @RANLIB@
 @SET_MAKE@
 INSTALL		= @INSTALL@
@@ -70,7 +71,7 @@ $(CONFIG_H) : $(SRCDIR)/sysconf.h
 $(OBJDIR)/$(THIS_LIB)sys.h: $(THIS_LIB).h $(OBJDIR)/sysconf
 	$(OBJDIR)/sysconf > $(OBJDIR)/$(THIS_LIB)sys.h
 $(OBJDIR)/sysconf: $(OBJDIR)/sysconf.o
-	$(CC) $(OBJDIR)/sysconf.o -o $(OBJDIR)/sysconf
+	$(CC) $(LDFLAGS) $(OBJDIR)/sysconf.o -o $(OBJDIR)/sysconf
 $(OBJDIR)/sysconf.o: $(SRCDIR)/jdfits.h $(SRCDIR)/sysconf.c
 	-$(RM) $(OBJDIR)/*.o
 	cd $(OBJDIR); $(COMPILE_CMD) $(SRCDIR)/sysconf.c

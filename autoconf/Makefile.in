@@ -80,4 +80,22 @@ distclean:
 	-cd jdfits; $(MAKE) distclean
 	-cd marx; $(MAKE) distclean
 	-/bin/rm -f Makefile
+#
+configure: autoconf/configure.in
+	cd autoconf && autoconf && mv ./configure ..
+configure_all: configure
+	cd jdmath; $(MAKE) configure
+	cd pfile; $(MAKE) configure
+	cd jdfits; $(MAKE) configure
+	cd marx; $(MAKE) configure
+update: autoconf/config.sub autoconf/config.guess
+autoconf/config.guess: /usr/share/misc/config.guess
+	/bin/cp -f /usr/share/misc/config.guess autoconf/config.guess
+autoconf/config.sub: /usr/share/misc/config.sub
+	/bin/cp -f /usr/share/misc/config.sub autoconf/config.sub
+update_all: update
+	cd jdmath; $(MAKE) update
+	cd pfile; $(MAKE) update
+	cd jdfits; $(MAKE) update
+	cd marx; $(MAKE) update
 #end of file

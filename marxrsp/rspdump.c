@@ -29,7 +29,7 @@ static int dump_response_file (char *file, /*{{{*/
    
    if (dump_stats)
      {
-	fprintf (stdout, "#%9s %10s %10s %10s\n",
+	fprintf (stdout, "#%19s %10s %10s %10s\n",
 		 "Energy", "Norm", "Peak-Chan", "Mean");
      }
 
@@ -89,7 +89,7 @@ static int dump_response_file (char *file, /*{{{*/
 
 
 	if (dump_stats)
-	  fprintf (stdout, "%10.4e", emin);
+	  fprintf (stdout, "%20.14e", 0.5*(emin+emax));
 	else if (summary)
 	  fprintf (stdout, "%20.14e\t%d\t%4u\t%4u", emin, rv.num_grps,
 		   min_chan, max_chan);

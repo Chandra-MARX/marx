@@ -554,13 +554,13 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
    return_value =  simplex (simplex_pnt_matrix, matrix_dim0, matrix_dim1,
 			    compute_chisqr,
 			    chisqr, &best_i,
-			    (JDM_User_Type *) &scst);
+			    (JDM_User_Type *) (void *)&scst);
    
    /* The next call is to simply make sure that the caller gets
     * the best value.
     */
    *chisqr = compute_chisqr (simplex_pnt_matrix[best_i],
-			     vparms, (JDM_User_Type *) &scst);
+			     vparms, (JDM_User_Type *) (void *)&scst);
    
    vparms = 0;
    for (i = 0; i < n_parms; i++)

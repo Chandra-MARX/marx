@@ -19,7 +19,7 @@
 #define JDFITS_H_INCLUDED
 #include <stdio.h>
 #include <time.h>
-#define JDFITS_VERSION 162	       /* 1.61 */
+#define JDFITS_VERSION 163	       /* 1.63 */
 
 #ifndef HAS_BASIC_TYPEDEFS_DEFINED
 # if defined(__alpha__) || defined(__ALPHA__) || defined(__alpha)

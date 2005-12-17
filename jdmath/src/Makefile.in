@@ -9,6 +9,7 @@
 #---------------------------------------------------------------------------
 CC = @CC@
 CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
 RANLIB = @RANLIB@
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
@@ -56,8 +57,6 @@ TARGET_LIB = lib$(THIS_LIB).a
 TARGET_OBJ_LIB = $(OBJDIR)/$(TARGET_LIB)
 OTHERSTUFF = 
 OTHER_DEFINES = 
-
-EXECLIBS = -L$(OBJDIR) -l$(THIS_LIB) -lm
 
 OFILES = @PROGRAM_OFILES@
 OBJS = @PROGRAM_OBJECTS@
@@ -110,7 +109,7 @@ runtests:
 $(OBJDIR)/jdsys.h: $(OBJDIR)/sysconf
 	$(OBJDIR)/sysconf > $(OBJDIR)/jdsys.h
 $(OBJDIR)/sysconf: $(OBJDIR)/sysconf.o
-	$(CC) $(OBJDIR)/sysconf.o -o $(OBJDIR)/sysconf
+	$(CC) $(LDFLAGS) $(OBJDIR)/sysconf.o -o $(OBJDIR)/sysconf
 $(OBJDIR)/sysconf.o: $(SRCDIR)/jdmath.h $(SRCDIR)/sysconf.c
 	-$(RM) $(OBJDIR)/*.o
 	cd $(OBJDIR); $(COMPILE_CMD) $(SRCDIR)/sysconf.c
