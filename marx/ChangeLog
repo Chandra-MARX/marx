@@ -1,3 +1,7 @@
+2005-12-16  John E. Davis  <davis@space.mit.edu>
+
+	* libsrc/marx.h (MARX_VERSION): Updated to 4.2.1
+
 2005-11-30  John E. Davis  <davis@space.mit.edu>
 
 	* src/marx2fits.c (get_marx_pfile_info): Undo the change from

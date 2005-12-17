@@ -312,8 +312,9 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
 {
    char *file;
+#if 0
    float *en, *en_max;
-
+#endif
    if (dt == NULL)
      return 0;
 

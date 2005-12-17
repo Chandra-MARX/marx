@@ -3,14 +3,14 @@
 MARX_DATA_DIR=../data
 export MARX_DATA_DIR
 
-use_valgrind=1
+use_valgrind=0
 
 output_dir="/tmp/marx"
 mkdir $output_dir
 mkdir /tmp/marx/uparm
 valgrind_dir=$output_dir/valgrind
 mkdir $valgrind_dir
-valgrind="valgrind --leak-check=yes --logfile=$valgrind_dir"
+valgrind="valgrind --tool=memcheck --leak-check=yes --error-limit=no --num-callers=25 --logfile=$valgrind_dir"
 
 PFILES=/tmp/marx/uparm
 
