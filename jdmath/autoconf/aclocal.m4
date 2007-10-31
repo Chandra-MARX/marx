@@ -1,5 +1,16 @@
 dnl# -*- mode: sh; mode: fold -*-
-dnl# Version 0.1.4
+dnl# 0.2.2-1: JD_WITH_LIBRARY bug-fix
+dnl# 0.2.2:  Use ncurses5-config to search for terminfo dirs.
+dnl# 0.2.1:  Add .dll.a to list of extensions to when searching for libs (cygwin)
+dnl# 0.2.0:  Added install target name and more fixes for cygwin
+dnl# 0.1.12: Improved support for cygwin
+dnl# 0.1.11: Fixed elf linking on freebsd (Renato Botelho (garga at freebsd, org)
+dnl# Version 0.1.10: rpath support for netbsd
+dnl# Version 0.1.9: When searching for libs, use dylib on darwin
+dnl# Version 0.1.8: Add rpath support for OpenBSD
+dnl# Version 0.1.7: removed "-K pic" from IRIX compiler lines
+dnl# Version 0.1.6: Added cygwin module support
+dnl# Version 0.1.5: Added gcc version-script support.
 
 AC_DEFUN(JD_INIT,     dnl#{{{
 [
@@ -108,12 +119,18 @@ case "$host_os" in
       fi
     fi
   ;;
-  *osf*)
+  *osf*|*openbsd*)
     if test "X$GCC" = Xyes
     then
       RPATH="-Wl,-rpath,"
     else
       RPATH="-rpath "
+    fi
+  ;;
+  *netbsd*)
+    if test "X$GCC" = Xyes
+    then
+      RPATH="-Wl,-R"
     fi
   ;;
 esac
@@ -442,19 +459,23 @@ dnl#}}}
 
 AC_DEFUN(JD_TERMCAP, dnl#{{{
 [
-AC_MSG_CHECKING(for Terminfo)
-MISC_TERMINFO_DIRS="$FINKPREFIX/share/terminfo"
-if test ! -d $MISC_TERMINFO_DIRS
+AC_PATH_PROG(nc5config, ncurses5-config, no)
+if test "$nc5config" = "no"
 then
+  AC_PATH_PROG(nc5config, ncurses5w-config, no)
+fi
+AC_MSG_CHECKING(for terminfo)
+if test "$nc5config" != "no"
+then
+   MISC_TERMINFO_DIRS=`$nc5config --terminfo`
+else
    MISC_TERMINFO_DIRS=""
 fi
-
-JD_Terminfo_Dirs="/usr/lib/terminfo \
-                 /usr/share/terminfo \
-                 /usr/share/lib/terminfo \
-		 /usr/local/lib/terminfo \
-		 $MISC_TERMINFO_DIRS"
-
+JD_Terminfo_Dirs="$MISC_TERMINFO_DIRS \
+                  /usr/lib/terminfo \
+                  /usr/share/terminfo \
+                  /usr/share/lib/terminfo \
+		  /usr/local/lib/terminfo"
 TERMCAP=-ltermcap
 
 for terminfo_dir in $JD_Terminfo_Dirs
@@ -511,6 +532,7 @@ AC_TRY_COMPILE([ ],[
 
 dnl#}}}
 
+
 AC_DEFUN(JD_ELF_COMPILER, dnl#{{{
 [
 dnl #-------------------------------------------------------------------------
@@ -531,9 +553,6 @@ AC_CHECK_HEADER(dlfcn.h,[
    ])])
 AC_SUBST(DYNAMIC_LINK_LIB)
 
-ELFLIB="lib\$(THIS_LIB).so"
-ELFLIB_MAJOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION)"
-ELFLIB_MAJOR_MINOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
 
 if test "$GCC" = yes
 then
@@ -543,13 +562,24 @@ then
   fi
 fi
 
+dnl #Some defaults
+ELFLIB="lib\$(THIS_LIB).so"
+ELFLIB_MAJOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION)"
+ELFLIB_MAJOR_MINOR="\$(ELFLIB_MAJOR).\$(ELF_MINOR_VERSION)"
+ELFLIB_MAJOR_MINOR_MICRO="\$(ELFLIB_MAJOR_MINOR).\$(ELF_MICRO_VERSION)"
+
+dnl# This specifies the target to use in the makefile to install the shared library
+INSTALL_ELFLIB_TARGET="install-elf-and-links"
+ELFLIB_BUILD_NAME="\$(ELFLIB_MAJOR_MINOR_MICRO)"
+INSTALL_MODULE="\$(INSTALL_DATA)"
+SLANG_DLL_CFLAGS=""
+
 case "$host_os" in
-  *linux* )
+  *linux*|*gnu*|k*bsd*-gnu )
     DYNAMIC_LINK_FLAGS="-Wl,-export-dynamic"
     ELF_CC="\$(CC)"
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
-    ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname#"
-    ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
+    ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
     ;;
@@ -559,16 +589,14 @@ case "$host_os" in
       DYNAMIC_LINK_FLAGS=""
       ELF_CC="\$(CC)"
       ELF_CFLAGS="\$(CFLAGS) -fPIC"
-      ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-ztext -Wl,-h#"
-      ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
+      ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-ztext -Wl,-h,\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
       CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
     else
       DYNAMIC_LINK_FLAGS=""
       ELF_CC="\$(CC)"
       ELF_CFLAGS="\$(CFLAGS) -K PIC"
-      ELF_LINK="\$(CC) \$(LDFLAGS) -G -h#"
-      ELF_LINK_CMD="\$(ELF_LINK)\$(ELFLIB_MAJOR)"
+      ELF_LINK="\$(CC) \$(LDFLAGS) -G -h\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
       CC_SHARED="\$(CC) \$(CFLAGS) -G -K PIC"
     fi
@@ -580,8 +608,7 @@ case "$host_os" in
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
        ELF_CFLAGS="\$(CFLAGS) -fPIC"
-       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h#"
-       ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
+       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h,\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
      else
@@ -589,8 +616,7 @@ case "$host_os" in
        ELF_CC="\$(CC)"
        ELF_CFLAGS="\$(CFLAGS) -K pic"
        # ELF_LINK="ld -G -z text -h#"
-       ELF_LINK="\$(CC) \$(LDFLAGS) -G -z text -h#"
-       ELF_LINK_CMD="\$(ELF_LINK)\$(ELFLIB_MAJOR)"
+       ELF_LINK="\$(CC) \$(LDFLAGS) -G -z text -h\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -G -K pic"
      fi
@@ -604,51 +630,67 @@ case "$host_os" in
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
        ELF_CFLAGS="\$(CFLAGS) -fPIC"
-       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h#"
-       ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
+       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h,\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
      else
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
-       ELF_CFLAGS="\$(CFLAGS) -K pic"     # default anyhow
-       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -o #"
-       ELF_LINK_CMD="\$(ELF_LINK)\$(ELFLIB_MAJOR)"
+       ELF_CFLAGS="\$(CFLAGS)"     # default anyhow
+       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -o \$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="\$(CC) \$(CFLAGS) -shared -K pic"
+       CC_SHARED="\$(CC) \$(CFLAGS) -shared"
      fi
      ;;
   *darwin* )
      DYNAMIC_LINK_FLAGS=""
      ELF_CC="\$(CC)"
      ELF_CFLAGS="\$(CFLAGS) -fno-common"
-     ELF_LINK="\$(CC) \$(LDFLAGS) -dynamiclib"
-     ELF_LINK_CMD="\$(ELF_LINK) -install_name \$(install_lib_dir)/\$(ELFLIB_MAJOR) -compatibility_version \$(ELF_MAJOR_VERSION) -current_version \$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
+     ELF_LINK="\$(CC) \$(LDFLAGS) -dynamiclib -install_name \$(install_lib_dir)/\$(ELFLIB_MAJOR) -compatibility_version \$(ELF_MAJOR_VERSION) -current_version \$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
      ELF_DEP_LIBS="\$(LDFLAGS) \$(DL_LIB)"
      CC_SHARED="\$(CC) -bundle -flat_namespace -undefined suppress \$(CFLAGS) -fno-common"
      ELFLIB="lib\$(THIS_LIB).dylib"
      ELFLIB_MAJOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).dylib"
      ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION).dylib"
+     ELFLIB_MAJOR_MINOR_MICRO="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION).\$(ELF_MICRO_VERSION).dylib"
      ;;
   *freebsd* )
-    ELFLIB_MAJOR_MINOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION)"
     ELF_CC="\$(CC)"
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
-    if test "X$PORTOBJFORMAT" = "Xelf" ; then
-      ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
-    else
-      ELF_LINK="ld -Bshareable -x"
-    fi
-    ELF_LINK_CMD="\$(ELF_LINK)"
+    #if test "X$PORTOBJFORMAT" = "Xelf" ; then
+    #  ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
+    #else
+    #  ELF_LINK="ld -Bshareable -x"
+    #fi
+    ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    ;;
+  *cygwin* )
+    DYNAMIC_LINK_FLAGS=""
+    ELF_CC="\$(CC)"
+    SLANG_DLL_CFLAGS="-DSLANG_DLL=1"
+    ELF_CFLAGS="\$(CFLAGS) -DBUILD_DLL=1"
+    DLL_IMPLIB_NAME="lib\$(THIS_LIB)\$(ELFLIB_MAJOR_VERSION).dll.a"
+    #ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR) -Wl,--out-implib=\$(DLL_IMPLIB_NAME) -Wl,-export-all-symbols -Wl,-enable-auto-import"
+    ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-O1 -Wl,--version-script,\$(VERSION_SCRIPT) -Wl,-soname,\$(ELFLIB_MAJOR) -Wl,--out-implib=\$(DLL_IMPLIB_NAME)"
+    ELF_DEP_LIBS="\$(DL_LIB) -lm"
+    CC_SHARED="\$(CC) \$(CFLAGS) -shared -DSLANG_DLL=1"
+    dnl# CYGWIN prohibits undefined symbols when linking shared libs
+    SLANG_LIB_FOR_MODULES="-L\$(ELFDIR) -lslang"
+    INSTALL_MODULE="\$(INSTALL)"
+    INSTALL_ELFLIB_TARGET="install-elf-cygwin"
+    ELFLIB="lib\$(THIS_LIB).dll"
+    ELFLIB_MAJOR="lib\$(THIS_LIB)\$(ELF_MAJOR_VERSION).dll"
+    ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB)\$(ELF_MAJOR_VERSION)_\$(ELF_MINOR_VERSION).dll"
+    ELFLIB_MAJOR_MINOR_MICRO="lib\$(THIS_LIB)\$(ELF_MAJOR_VERSION)_\$(ELF_MINOR_VERSION)_\$(ELF_MICRO_VERSION).dll"
+    ELFLIB_BUILD_NAME="\$(ELFLIB_MAJOR)"
     ;;
   * )
     echo "Note: ELF compiler for host_os=$host_os may be wrong"
     ELF_CC="\$(CC)"
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
     ELF_LINK="\$(CC) \$(LDFLAGS) -shared"
-    ELF_LINK_CMD="\$(ELF_LINK)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
 esac
@@ -663,8 +705,14 @@ AC_SUBST(CC_SHARED)
 AC_SUBST(ELFLIB)
 AC_SUBST(ELFLIB_MAJOR)
 AC_SUBST(ELFLIB_MAJOR_MINOR)
+AC_SUBST(ELFLIB_MAJOR_MINOR_MICRO)
+AC_SUBST(SLANG_LIB_FOR_MODULES)
+AC_SUBST(DLL_IMPLIB_NAME)
+AC_SUBST(INSTALL_MODULE)
+AC_SUBST(INSTALL_ELFLIB_TARGET)
+AC_SUBST(ELFLIB_BUILD_NAME)
+AC_SUBST(SLANG_DLL_CFLAGS)
 ])
-
 
 dnl#}}}
 
@@ -704,7 +752,10 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
  JD_UPPERCASE($1,JD_ARG1)
  jd_$1_include_dir=""
  jd_$1_library_dir=""
- jd_with_$1_library=""
+ if test X"$jd_with_$1_library" = X
+ then 
+   jd_with_$1_library=""
+ fi
 
  AC_ARG_WITH($1,
   [  --with-$1=DIR      Use DIR/lib and DIR/include for $1],
@@ -715,13 +766,16 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
      jd_with_$1_library="no"
     ;;
    x)
-    AC_MSG_ERROR(--with-$1 requires a value-- try yes or no)
+    dnl# AC_MSG_ERROR(--with-$1 requires a value-- try yes or no)
+    jd_with_$1_library="yes"
     ;;
    xunspecified)
     ;;
    xyes)
+    jd_with_$1_library="yes"
     ;;
    *)
+    jd_with_$1_library="yes"
     jd_$1_include_dir="$jd_with_$1_arg"/include
     jd_$1_library_dir="$jd_with_$1_arg"/lib
     ;;
@@ -739,6 +793,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
     AC_MSG_ERROR(--with-$1lib requres a value)
     ;;
    *)
+    jd_with_$1_library="yes"
     jd_$1_library_dir="$jd_with_$1lib_arg"
     ;;
  esac
@@ -755,6 +810,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
    xno)
      ;;
    *)
+    jd_with_$1_library="yes"
     jd_$1_include_dir="$jd_with_$1inc_arg"
    ;;
  esac
@@ -771,13 +827,13 @@ dnl#  jd_$1_library_dir
 AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 [
   AC_REQUIRE([JD_EXPAND_PREFIX])dnl
-  AC_MSG_CHECKING(for the $1 library and header files $2)
   dnl JD_UPPERCASE($1,JD_ARG1)
   JD_WITH_LIBRARY_PATHS($1)
-  if test X"$jd_with_$1_library" = X
+  AC_MSG_CHECKING(for the $1 library and header files $2)
+  if test X"$jd_with_$1_library" != Xno
   then
     jd_$1_inc_file=$2
-    jd_with_$1_library="yes"
+    dnl# jd_with_$1_library="yes"
 
     if test "X$jd_$1_inc_file" = "X"
     then
@@ -824,14 +880,34 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
   	  /opt/lib \
   	  /opt/lib/$1 \
   	  /opt/$1/lib"
-  
+
+       case "$host_os" in
+         *darwin* )
+	   exts="dylib so a"
+	   ;;
+	 *cygwin* )
+	   exts="dll.a so a"
+	   ;;
+	 * )
+	   exts="so a"
+       esac
+   
+       found=0
        for X in $lib_library_dirs
        do
-        if test -r "$X/lib$1.so" -o -r "$X/lib$1.a"
-  	then
-  	  jd_$1_library_dir="$X"
-	  break
-        fi
+         for E in $exts
+	 do
+           if test -r "$X/lib$1.$E"
+	   then
+  	     jd_$1_library_dir="$X"
+	     found=1
+	     break
+           fi
+         done
+	 if test $found -eq 1
+	 then
+	   break
+	 fi
        done
        if test X"$jd_$1_library_dir" = X
        then
@@ -840,9 +916,10 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     fi
   fi
 
-  if test "$jd_with_$1_library" = "yes"
+  if test X"$jd_$1_include_dir" != X -a "$jd_$1_library_dir" != X
   then
     AC_MSG_RESULT(yes: $jd_$1_library_dir and $jd_$1_include_dir)
+    jd_with_$1_library="yes"
     dnl#  Avoid using /usr/lib and /usr/include because of problems with
     dnl#  gcc on some solaris systems.
     JD_ARG1[]_LIB=-L$jd_$1_library_dir
@@ -860,6 +937,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     fi
   else
     AC_MSG_RESULT(no)
+    jd_with_$1_library="no"
     JD_ARG1[]_INC=""
     JD_ARG1[]_LIB=""
   fi

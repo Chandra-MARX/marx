@@ -28,6 +28,7 @@
 
 #include "jdfits.h"
 #include "jdfitssys.h"
+#include "_jdfits.h"
 
 int jdfits_read_open_data (JDFits_Type *ft)
 {
@@ -301,13 +302,13 @@ unsigned int jdfits_read_float32 (JDFits_Type *ft, float32 *ss, unsigned int n)
 
 int jdfits_read_close_data (JDFits_Type *ft)
 {
-   long n = ft->bytes_padded + ft->bytes_left_to_read;
+   off_t n = ft->bytes_padded + ft->bytes_left_to_read;
    ft->bytes_left_to_read = 0;
    ft->bytes_padded = 0;
 #ifndef SEEK_CUR
 # define SEEK_CUR 1
 #endif
-   if (-1 == fseek (ft->fp, n, SEEK_CUR))
+   if (-1 == FSEEK (ft->fp, n, SEEK_CUR))
      {
 	jdfits_error ("jdfits_read_close_data: fseek error.");
 	return -1;

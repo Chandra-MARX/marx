@@ -14,6 +14,12 @@ stdlib.h \
 unistd.h \
 )
 
+AC_CHECK_FUNCS(\
+fseeko \
+)
+
+JD_LARGE_FILE_SUPPORT
+
 JD_SET_OBJ_SRC_DIR
 JD_GCC_WARNINGS
 JD_GET_MODULES(src/modules.lis)

@@ -228,12 +228,13 @@ JDFits_Bintable_Type;
 
 typedef struct JDFits_Header_Type
 {
-   unsigned char *header_data_buf;	       /* This is malloced. */
    unsigned int num_keywords;
    JDFits_Keyword_Type *keys;	       /* these contain char * which 
 					* point to header_data 
 					*/
-   unsigned long size;		       /* size of the data */
+#ifdef JDFITS_SOURCE
+   unsigned char *header_data_buf;	       /* This is malloced. */
+   off_t size;		       /* size of the data */
 
    /* Although this information can be obtained from the keys structure, it
     * is convenient to put it here as well.
@@ -254,6 +255,7 @@ typedef struct JDFits_Header_Type
      }
    ext;
    void (*free_routine)(struct JDFits_Header_Type *);
+#endif
 }
 JDFits_Header_Type;
 
@@ -265,13 +267,15 @@ typedef struct
 #define JDFITS_READ_MODE  1
 #define JDFITS_WRITE_MODE 2
    JDFits_Header_Type *header;
-   
+
+#ifdef JDFITS_SOURCE
    /* private members. */   
-   unsigned long bytes_left_to_read;
-   unsigned long bytes_padded;
+   off_t bytes_left_to_read;
+   off_t bytes_padded;
    
    unsigned char *write_buffer;	       /* JDFITS_RECORD_SIZE long */
    unsigned int write_buffer_len;
+#endif
 }
 JDFits_Type;
 
@@ -521,8 +525,10 @@ typedef struct
    data;
    
    /* private */
+#ifdef JDFITS_SOURCE
    unsigned int data_offset;
    unsigned char * (*read_fun)(void *, unsigned int, unsigned char *);
+#endif
 }
 JDFits_Col_Data_Type;
 
@@ -532,10 +538,12 @@ typedef struct
    unsigned int num_rows;
    JDFits_Col_Data_Type *col_data;
    
+#ifdef JDFITS_SOURCE
    /* private */
    unsigned char *row_bytes;
-   unsigned int num_bytes;
-   unsigned int num_rows_to_read;
+   off_t num_bytes;
+   off_t num_rows_to_read;
+#endif
 }
 JDFits_Row_Type;
    

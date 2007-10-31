@@ -350,7 +350,7 @@ static int parse_headers (JDFits_Header_Type *ht)
    int naxis;
    int bitpix;
    JDFits_Keyword_Type *kwt;
-   int32 naxis_product;
+   off_t naxis_product;
    
    kwt = (JDFits_Keyword_Type *) SLCALLOC (n, sizeof (JDFits_Keyword_Type));
    
@@ -921,7 +921,7 @@ Either the header or the data portion of the file was not ended.  I am\n\
 int jdfits_skip_to_next_header (JDFits_Type *ft)
 {
    JDFits_Header_Type *h = ft->header;
-   long size, dsize;
+   off_t size, dsize;
    
    if (h == NULL)
      {
@@ -942,7 +942,7 @@ int jdfits_skip_to_next_header (JDFits_Type *ft)
 #ifndef SEEK_CUR
 # define SEEK_CUR 1
 #endif
-   if (-1 == fseek (ft->fp, size, SEEK_CUR))
+   if (-1 == FSEEK (ft->fp, size, SEEK_CUR))
      {
 	jdfits_error ("jdfits_skip_to_next_header: seek error.");
 	return -1;

@@ -21,3 +21,11 @@ extern JDFits_Bintable_Field_Type *_jdfits_bintable_find_column (JDFits_Bintable
 extern JDFits_Keyword_Type *_jdfits_find_keyword (JDFits_Header_Type *h, char *name);
 
 extern char *_jdfits_skip_whitespace (char *);
+
+#ifdef HAVE_FSEEKO
+# define FSEEK(a,b,c) fseeko(a,b,c)
+# define FTELL(a) ftello(a)
+#else
+# define FSEEK(a,b,c) fseek(a,b,c)
+# define FTELL(a) ftell(a)
+#endif
