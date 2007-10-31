@@ -20,8 +20,6 @@ JDFITSLIB = @JDFITS_LIB_DIR@#    libjdfits.a location
 #-----------------------------------------------------------------------------
 OBJDIR = @OBJDIR@
 SRCDIR = @SRCDIR@
-BINDIR = @bindir@
-DATADIR = $(SRCDIR)/../data/ea-mirror
 
 #----------------------------------------------------------------------------
 # 4. Misc Info
@@ -37,9 +35,14 @@ HOSTNAME = @host@
 #---------------------------------------------------------------------------
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+datarootdir	= @datarootdir@
+BINDIR		= @bindir@
+DATADIR		= $(datarootdir)/marx/data
 install_lib_dir = @libdir@
 install_include_dir = @includedir@
-BIN_DIR = @bindir@
+
+EE_DATADIR = $(SRCDIR)/../data/ea-mirror
+MARX_DATA_DIR=$(DATADIR)
 
 #---------------------------------------------------------------------------
 # Misc comamnds (safe to leave these untouched)
@@ -66,11 +69,13 @@ OFILES = @PROGRAM_OFILES@
 OBJS = @PROGRAM_OBJECTS@
 
 OTHER_DEFINES = -DMARX
+data_C_FLAGS = -DMARX_DATA_DIR='"$(MARX_DATA_DIR)"'
+
 CONFIG_H = config.h
 ALL_CFLAGS = $(CFLAGS) -Dunix $(OTHER_DEFINES) $(INCLUDE_DIRS)
 COMPILE_CMD = $(CC) -c $(ALL_CFLAGS)
 
-all: $(TARGET_OBJ_LIB) $(DATADIR)/mirr-ee.bin
+all: $(TARGET_OBJ_LIB) $(EE_DATADIR)/mirr-ee.bin
 marxlib: $(TARGET_OBJ_LIB)
 
 $(TARGET_OBJ_LIB): $(CONFIG_H) $(OBJDIR) $(OBJS)
@@ -85,8 +90,8 @@ $(CONFIG_H) : $(SRCDIR)/sysconf.h
 #---------------------------------------------------------------------------
 # Data files
 #---------------------------------------------------------------------------
-$(DATADIR)/mirr-ee.bin: $(OBJDIR)/fix_ee $(DATADIR)/Mirror_EE.bin
-	cd $(DATADIR); $(OBJDIR)/fix_ee
+$(EE_DATADIR)/mirr-ee.bin: $(OBJDIR)/fix_ee $(EE_DATADIR)/Mirror_EE.bin
+	cd $(EE_DATADIR); $(OBJDIR)/fix_ee
 #---------------------------------------------------------------------------
 # Intallation rules
 #---------------------------------------------------------------------------
@@ -107,7 +112,7 @@ clean:
 	-/bin/rm -f $(OBJDIR)/* *~
 distclean: clean
 	-/bin/rm -rf $(OBJDIR) Makefile sysconf.h
-	-/bin/rm $(DATADIR)/mirr-ee.bin
+	-/bin/rm $(EE_DATADIR)/mirr-ee.bin
 #---------------------------------------------------------------------------
 $(SRCDIR)/source.c: $(SRCDIR)/source.def
 	touch $(SRCDIR)/source.c

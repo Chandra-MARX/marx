@@ -523,12 +523,8 @@ typedef struct
 	double *d;
      } 
    data;
-   
-   /* private */
-#ifdef JDFITS_SOURCE
    unsigned int data_offset;
    unsigned char * (*read_fun)(void *, unsigned int, unsigned char *);
-#endif
 }
 JDFits_Col_Data_Type;
 

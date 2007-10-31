@@ -5,8 +5,14 @@
 @SET_MAKE@
 SHELL = /bin/sh
 
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+datarootdir	= @datarootdir@
+
+DATADIR		= $(datarootdir)/marx/data
+
 all:
-	cd libsrc; $(MAKE) all
+	cd libsrc; $(MAKE) MARX_DATA_DIR=$(DATADIR) all
 	cd src; $(MAKE) all
 clean:
 	/bin/rm -f *~

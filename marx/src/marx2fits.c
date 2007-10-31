@@ -2245,7 +2245,7 @@ static int read_pileup_parms (void)
 
    Simulation_Used_No_Mirror = 1;
 
-   file = make_marx_filename ("pileup.par");
+   file = make_marx_filename ("marxpileup.par");
    pf = pf_open_parameter_file (file, "r");
    if (pf == NULL)
      {

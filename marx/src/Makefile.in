@@ -35,7 +35,7 @@ MARX_LIB = $(MARX_INCLUDE)/$(ARCH)objs#     location of libmarx.a
 #----------------------------------------------------------------------------
 @SET_MAKE@
 SHELL = /bin/sh
-PROGRAMS = marx marx2fits marx2img marxcat pileup detinfo \
+PROGRAMS = marx marx2fits marx2img marxcat marxpileup detinfo \
   marx2dpde rfl geff bestfocus dumpwfold acis-qe geffdump sky2chip \
   marxasp
 CONFIG_H = config.h
@@ -55,8 +55,8 @@ marx2fits_INC = -I$(JDFITSINC)
 marxasp_INC = -I$(JDFITSINC)
 marx2img_INC = -I$(JDFITSINC)
 
-pileup_DEPS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o
-pileup_LIBS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o
+marxpileup_DEPS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o
+marxpileup_LIBS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o
 
 testacis_DEPS = $(OBJDIR)/acissim.o $(OBJDIR)/henke.o
 testacis_LIBS = $(OBJDIR)/acissim.o $(OBJDIR)/henke.o

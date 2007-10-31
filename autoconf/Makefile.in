@@ -1,63 +1,124 @@
 # -*- sh -*-
 
 @SET_MAKE@
-SHELL = /bin/sh
+SHELL		= /bin/sh
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+RANLIB		= @RANLIB@
+MKINSDIR	= autoconf/mkinsdir.sh
 
-BINDIR = bin/$(ARCH)
-LIBDIR = lib/$(ARCH)
-INCDIR = ./include
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+datarootdir	= @datarootdir@
 
-MARX_EXECS = marx geff marx2dpde dumpwfold marx2fits \
-  bestfocus marx2img marxcat pileup detinfo marxasp
+BINDIR		= @bindir@
+DATADIR		= $(datarootdir)/marx/data
+INCDIR		= $(exec_prefix)/include
+LIBDIR		= $(exec_prefix)/lib
+LIBBINDIR	= $(LIBDIR)/marx
+PFILEDIR	= $(datarootdir)/marx/pfiles
+DOCDIR		= $(datarootdir)/doc/marx
 
-PFILE_EXECS = pset plist pwhich
-JDFITS_EXECS = fitsdump
+#---------------------------------------------------------------------------
+# DESTDIR is designed to facilitate making packages.  Normally it is empty
+#---------------------------------------------------------------------------
+DESTDIR =
+DEST_BINDIR 	= $(DESTDIR)$(BINDIR)
+DEST_DATADIR	= $(DESTDIR)$(DATADIR)
+DEST_INCDIR	= $(DESTDIR)$(INCDIR)
+DEST_LIBDIR	= $(DESTDIR)$(LIBDIR)
+DEST_LIBBINDIR	= $(DESTDIR)$(LIBBINDIR)
+DEST_PFILEDIR	= $(DESTDIR)$(PFILEDIR)
+
+BINEXECS = \
+ marx/src/$(ARCH)objs/marx \
+ marx/src/$(ARCH)objs/marx2dpde \
+ marx/src/$(ARCH)objs/marx2fits \
+ marx/src/$(ARCH)objs/marx2img \
+ marx/src/$(ARCH)objs/marxcat \
+ marx/src/$(ARCH)objs/marxpileup \
+ marx/src/$(ARCH)objs/marxasp \
+ jdfits/src/$(ARCH)objs/fitsdump
+
+LIBEXECS = \
+ marx/src/$(ARCH)objs/geff \
+ marx/src/$(ARCH)objs/detinfo \
+ marx/src/$(ARCH)objs/dumpwfold \
+ marx/src/$(ARCH)objs/detinfo \
+ marx/src/$(ARCH)objs/bestfocus \
+ tools/scripts/xspec2marx
+
+STATIC_LIBS = \
+ pfile/src/$(ARCH)objs/libpfile.a \
+ jdmath/src/$(ARCH)objs/libjdmath.a \
+ marx/libsrc/$(ARCH)objs/libmarx.a \
+ jdfits/src/$(ARCH)objs/libjdfits.a
+
+INC_FILES = \
+ pfile/src/pfile.h \
+ jdmath/src/jdmath.h \
+ marx/libsrc/marx.h \
+ jdfits/src/jdfits.h
+
+PAR_FILES = \
+ marx/par/marx.par \
+ marx/par/marxasp.par \
+ marx/par/marxpileup.par \
 
 all:
 	cd jdmath; $(MAKE) all
 	cd pfile; $(MAKE) all
 	cd jdfits; $(MAKE) all
-	cd marx; $(MAKE) all
-	@echo 
-	-mkdir bin
-	-mkdir $(BINDIR)
-	@for exe in $(MARX_EXECS); do \
-		echo Installing $$exe; \
-		cp marx/src/$(ARCH)objs/$$exe $(BINDIR); \
+	cd marx; $(MAKE) MARX_DATA_DIR=$(DATADIR) all
+	@echo ""
+	@echo "To install marx, run 'make install'."
+	@echo " (You may need root privileges for this step)"
+
+install-dirs:
+	$(MKINSDIR) $(DEST_BINDIR)
+	$(MKINSDIR) $(DEST_INCDIR)
+	$(MKINSDIR) $(DEST_LIBDIR)
+	$(MKINSDIR) $(DEST_LIBBINDIR)
+	$(MKINSDIR) $(DEST_PFILEDIR)
+
+install: all install-dirs
+	cd marx/doc; $(MAKE) DESTDIR=$(DESTDIR) DOCDIR=$(DOCDIR) install
+	cd marx/data; $(MAKE) DESTDIR=$(DESTDIR) DATADIR=$(DATADIR) install
+	@for X in $(BINEXECS); do \
+		echo Installing $$X in $(DEST_BINDIR); \
+		$(INSTALL) $$X $(DEST_BINDIR)/; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
 	done
-	@for exe in $(PFILE_EXECS); do \
-		echo Installing $$exe; \
-		cp pfile/src/$(ARCH)objs/$$exe $(BINDIR); \
+	@for X in $(LIBEXECS); do \
+		echo Installing $$X in $(DEST_LIBBINDIR); \
+		$(INSTALL) $$X $(DEST_LIBBINDIR)/; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
 	done
-	@for exe in $(JDFITS_EXECS); do \
-		echo Installing $$exe; \
-		cp jdfits/src/$(ARCH)objs/$$exe $(BINDIR); \
+	@for X in $(STATIC_LIBS); do \
+		echo Installing $$X in $(DEST_LIBDIR); \
+		$(INSTALL_DATA) $$X $(DEST_LIBDIR)/; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
 	done
-	cp tools/scripts/xspec2marx $(BINDIR)
-	chmod ugo+x $(BINDIR)/xspec2marx
-	@echo 
-	@echo Installing libraries
-	@echo
-	-mkdir lib
-	-mkdir $(LIBDIR)
-	-mkdir $(INCDIR)
-	-cp pfile/src/pfile.h $(INCDIR)
-	-cp pfile/src/$(ARCH)objs/libpfile.a $(LIBDIR)
-	-cp jdmath/src/jdmath.h $(INCDIR)
-	-cp jdmath/src/$(ARCH)objs/libjdmath.a $(LIBDIR)
-	-cp marx/libsrc/marx.h $(INCDIR)
-	-cp marx/libsrc/$(ARCH)objs/libmarx.a $(LIBDIR)
-	-cp jdfits/src/jdfits.h $(INCDIR)
-	-cp jdfits/src/$(ARCH)objs/libjdfits.a $(LIBDIR)
-	-cp marx/par/marx.par .
-	-cp marx/par/marxasp.par .
-	-cp marx/par/pileup.par .
-	@echo 
-	@echo marx is in the $(BINDIR) directory.
-	@echo marx.par and pileup.par are in the current directory.  
-	@echo 
-	@echo Before running the program, set the environment variable MARX_DATA_DIR
-	@echo  to `pwd`/marx/data.
+	@for X in $(INC_FILES); do \
+		echo Installing $$X in $(DEST_INCDIR); \
+		$(INSTALL_DATA) $$X $(DEST_INCDIR)/; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+	@for X in $(PAR_FILES); do \
+		echo Installing $$X in $(DEST_PFILEDIR) ; \
+		$(INSTALL_DATA) $$X $(DEST_PFILEDIR)/; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
 #
 clean:
 	cd jdmath; $(MAKE) clean
@@ -81,21 +142,4 @@ distclean:
 	-cd marx; $(MAKE) distclean
 	-/bin/rm -f Makefile
 #
-configure: autoconf/configure.in
-	cd autoconf && autoconf && mv ./configure ..
-configure_all: configure
-	cd jdmath; $(MAKE) configure
-	cd pfile; $(MAKE) configure
-	cd jdfits; $(MAKE) configure
-	cd marx; $(MAKE) configure
-update: autoconf/config.sub autoconf/config.guess
-autoconf/config.guess: /usr/share/misc/config.guess
-	/bin/cp -f /usr/share/misc/config.guess autoconf/config.guess
-autoconf/config.sub: /usr/share/misc/config.sub
-	/bin/cp -f /usr/share/misc/config.sub autoconf/config.sub
-update_all: update
-	cd jdmath; $(MAKE) update
-	cd pfile; $(MAKE) update
-	cd jdfits; $(MAKE) update
-	cd marx; $(MAKE) update
 #end of file

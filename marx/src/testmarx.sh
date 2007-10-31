@@ -1,34 +1,36 @@
 #! /bin/sh
 #set -v
-MARX_DATA_DIR=../data
-export MARX_DATA_DIR
+#MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
-use_valgrind=0
+use_valgrind=1
 
-output_dir="/tmp/marx"
+bindir=/tmp/marx/bin
+#bindir=./$ARCHobjs
+
+output_dir="/tmp/marxout"
 mkdir $output_dir
-mkdir /tmp/marx/uparm
+mkdir $output_dir/uparm
 valgrind_dir=$output_dir/valgrind
 mkdir $valgrind_dir
-valgrind="valgrind --tool=memcheck --leak-check=yes --error-limit=no --num-callers=25 --logfile=$valgrind_dir"
+valgrind="valgrind --tool=memcheck --leak-check=yes --error-limit=no --num-callers=25 --log-file=$valgrind_dir"
 
-PFILES=/tmp/marx/uparm
+PFILES=$output_dir/uparm
 
 UPARM=$PFILES
 export PFILES UPARM
-cp ../par/marxasp.par ../par/marx.par ../par/pileup.par /tmp/marx/uparm 
+cp ../par/marxasp.par ../par/marx.par ../par/marxpileup.par $output_dir/uparm 
 
-marx="./$ARCH""objs/marx NumRays=1000 dNumRays=200 ExposureTime=0 DitherModel=INTERNAL"
-marx2fits="./$ARCH""objs/marx2fits"
-marxasp="./$ARCH""objs/marxasp"
-pileup="./$ARCH""objs/pileup"
+marx="$bindir/marx NumRays=1000 dNumRays=200 ExposureTime=0 DitherModel=INTERNAL"
+marx2fits="$bindir/marx2fits"
+marxasp="$bindir/marxasp"
+marxpileup="$bindir/marxpileup"
 
 if [ "$use_valgrind" = "1" ]
 then
   valgrindmarx="$valgrind/marx"
   valgrindmarx2fits="$valgrind/marx2fits"
   valgrindmarxasp="$valgrind/marxasp"
-  valgrindpileup="$valgrind/pileup"
+  valgrindpileup="$valgrind/marxpileup"
 else
   valgrindmarx=""
   valgrindmarx2fits=""
@@ -71,7 +73,7 @@ do
    done
 done
 
-$valgrindpileup $pileup MarxOutputDir="$output_dir"/marx1 Verbose=1
+$valgrindpileup $marxpileup MarxOutputDir="$output_dir"/marx1 Verbose=1
 $valgrindmarx2fits $marx2fits --pileup "$output_dir"/marx1/pileup "$output_dir"/marx1/pileup.fits
 
 exit 0

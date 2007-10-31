@@ -67,7 +67,7 @@ then
   CF_Output_Files="$CF_Output_Files src/Makefile"
 fi
 
-AC_OUTPUT($CF_Output_Files)
+AC_OUTPUT($CF_Output_Files data/Makefile doc/Makefile)
 
 JD_CREATE_EXEC_RULE(fix_ee)
 JD_CREATE_EXEC_RULE(dump_ee)
@@ -98,7 +98,7 @@ JD_CREATE_EXEC_RULE(dumpwfold)
 JD_CREATE_EXEC_RULE(marx2img)
 JD_CREATE_EXEC_RULE(marxcat)
 JD_CREATE_EXEC_RULE(marx2fits)
-JD_CREATE_EXEC_RULE(pileup)
+JD_CREATE_EXEC_RULE(marxpileup)
 JD_CREATE_EXEC_RULE(acis-qe)
 JD_CREATE_EXEC_RULE(testacis)
 JD_CREATE_EXEC_RULE(detinfo)

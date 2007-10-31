@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2007 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -62,7 +62,13 @@ char *marx_make_data_file_name (char *f) /*{{{*/
    
    dir = Data_Directory;
    if (dir == NULL)
-     dir = getenv ("MARX_DATA_DIR");
+     {
+	dir = getenv ("MARX_DATA_DIR");
+#ifdef MARX_DATA_DIR
+	if (dir == NULL) 
+	  dir = MARX_DATA_DIR;
+#endif
+     }
 
    if (dir == NULL) dir = ".";
 
@@ -80,16 +86,28 @@ char *marx_make_data_file_name (char *f) /*{{{*/
 int marx_set_data_directory (char *dir) /*{{{*/
 {
    if (dir == NULL)
-     return -1;
-   
+     {
+#ifdef MARX_DATA_DIR
+	dir = MARX_DATA_DIR;
+	if (dir == NULL)
+#endif
+	  return -1;
+     }
+
    if (*dir == '$')
      {
 	char *env = getenv (dir + 1);
 	if (env == NULL)
 	  {
-	     marx_error ("Unable to set Data Search Path.\nEnvironment variable %s does not exist.",
-			 dir + 1);
-	     return -1;
+#ifdef MARX_DATA_DIR
+	     env = MARX_DATA_DIR;
+#endif
+	     if (env == NULL)
+	       {
+		  marx_error ("Unable to set Data Search Path.\nEnvironment variable %s does not exist.",
+			      dir + 1);
+		  return -1;
+	       }
 	  }
 	dir = env;
      }

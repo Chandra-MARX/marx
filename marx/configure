@@ -6490,7 +6490,7 @@ then
   CF_Output_Files="$CF_Output_Files src/Makefile"
 fi
 
-ac_config_files="$ac_config_files $CF_Output_Files"
+ac_config_files="$ac_config_files $CF_Output_Files data/Makefile doc/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -7047,6 +7047,8 @@ do
   case $ac_config_target in
     "libsrc/sysconf.h") CONFIG_HEADERS="$CONFIG_HEADERS libsrc/sysconf.h:libsrc/config.hin" ;;
     "$CF_Output_Files") CONFIG_FILES="$CONFIG_FILES $CF_Output_Files" ;;
+    "data/Makefile") CONFIG_FILES="$CONFIG_FILES data/Makefile" ;;
+    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -7779,12 +7781,12 @@ marx2fits : \$(OBJDIR)/marx2fits
 
 
 PROGRAM_OBJECT_RULES="$PROGRAM_OBJECT_RULES
-pileup : \$(OBJDIR)/pileup
-	@echo pileup created in \$(OBJDIR)
-\$(OBJDIR)/pileup : \$(OBJDIR)/pileup.o \$("pileup"_DEPS) \$(EXECDEPS)
-	\$(CC) -o \$(OBJDIR)/pileup \$(LDFLAGS) \$(OBJDIR)/pileup.o \$("pileup"_LIBS) \$(EXECLIBS)
-\$(OBJDIR)/pileup.o : \$(SRCDIR)/pileup.c \$(DOT_O_DEPS) \$("pileup"_O_DEP)
-	cd \$(OBJDIR); \$(COMPILE_CMD) \$("pileup"_INC) \$(EXECINC) \$(SRCDIR)/pileup.c
+marxpileup : \$(OBJDIR)/marxpileup
+	@echo marxpileup created in \$(OBJDIR)
+\$(OBJDIR)/marxpileup : \$(OBJDIR)/marxpileup.o \$("marxpileup"_DEPS) \$(EXECDEPS)
+	\$(CC) -o \$(OBJDIR)/marxpileup \$(LDFLAGS) \$(OBJDIR)/marxpileup.o \$("marxpileup"_LIBS) \$(EXECLIBS)
+\$(OBJDIR)/marxpileup.o : \$(SRCDIR)/marxpileup.c \$(DOT_O_DEPS) \$("marxpileup"_O_DEP)
+	cd \$(OBJDIR); \$(COMPILE_CMD) \$("marxpileup"_INC) \$(EXECINC) \$(SRCDIR)/marxpileup.c
 "
 
 

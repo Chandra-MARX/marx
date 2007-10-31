@@ -954,7 +954,7 @@ static int copy_files (void)
    free ((char *) marx_dir_file);
 
    /* Now copy the parameter file for this program to the output dir. */
-   if (-1 == cp_file (Parameter_File, Output_Pileup_Dir, "pileup.par"))
+   if (-1 == cp_file (Parameter_File, Output_Pileup_Dir, "marxpileup.par"))
      {
 	free ((char *) marx_dir_file);
 	return -1;
@@ -970,7 +970,7 @@ static int initialize (int argc, char **argv)
    char *file;
    int status;
 
-   p = pf_parse_cmd_line ("pileup.par", NULL, argc, argv);
+   p = pf_parse_cmd_line ("marxpileup.par", NULL, argc, argv);
 
    if (p == NULL)
      {
