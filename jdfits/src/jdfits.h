@@ -19,6 +19,8 @@
 #define JDFITS_H_INCLUDED
 #include <stdio.h>
 #include <time.h>
+#include <sys/types.h>		       /* off_t */
+
 #define JDFITS_VERSION 163	       /* 1.63 */
 
 #ifndef HAS_BASIC_TYPEDEFS_DEFINED
