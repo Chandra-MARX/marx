@@ -1,64 +1,43 @@
 -*- text -*-
 
-Marx Installation Notes.
+MARX Installation Notes.
 
-Marx requires an ANSI compatable compiler, e.g., gcc.  The SunOS `cc'
-compiler is _NOT_ ANSI compliant-- under SunOS, you must use gcc or acc.
+Before building marx, you need to decide where you want to install it.
+A good choice for a multi-user system is under /usr/local/.  If you
+want to install it for personal use, something like $HOME/marx/ might
+be more appropriate.  For the purposes of this document, assume that
+it is to be installed under /usr/local/.  Start by running the
+configure script as follows:
 
-To build marx, configure it by running the configure script, e.g.,
+   # ./configure --prefix=/usr/local
 
-    # ./configure
+This step may take a few minutes to complete, depending upon the speed
+of your system.  This script probes your system to see what tools and
+libraries are available, and then creates the necessary makefiles.  If
+all went well, you will see something like:
 
- [The --prefix configure argument has no effect. The executables will
- get installed in the bin/ subdirectory of this tree.  You will have
- to either set you path to point to the bin directory, or copy the
- executables to somewhere on your path.]
+   MARX executables will be installed in /usr/local/bin/.
+   MARX documentation will be installed in /usr/local/share/doc/marx/.
+   MARX data files will be installed in /usr/local/share/marx/data/.
+   MARX parameter files will be installed in /usr/local/share/marx/pfiles/.
 
-But before you perform this step, see the PROBLEMS section below to
-avoid problems on certain architectures, e.g., Ultrix.  See below for
-information about building MARX on multiple architectures.
+   To continue the build process, run `make`.
 
-Note that the configure script will take the CC, CFLAGS, and LDFLAGS
-from your environment, if they are defined.  If not, it will first
-look for gcc.  So, if you have gcc installed, and you want to use a
-compiler other than gcc, e.g., acc, you can instruct the configure
-script to use the other compiler e.g.,
+The next step in the build process is to run the `make` program:
 
-   # setenv CC acc
-   # setenv CFLAGS -g
-   # ./configure
-
-Once it has configured itself, simply type `make'.  It will put the
-executable in the `bin' directory and copy the marx.par file to this
-directory.  You will need to set the DataDirectory parameter to the
-subdirectory `marx/data'.  The environment variable `MARX_DATA_DIR' is a
-convenient way to do this.
-
-See marx/doc for information about running the simulator.
-
-===========================================================================
-Multiple Architectures
-===========================================================================
-
-It is easy to install MARX on multiple architectures using the same
-source tree.  
-
-To create MARX on multiple architectures, simply define an environment
-variable called `ARCH' and set it to an architecture-dependent value,
-For example, here at MIT, I build MARX under SunOS 4, Solaris, Linux,
-Ultrix, and NeXT.  To build MARX on, e.g., NeXT, I set ARCH to `next'
-and then run configure, i.e.,
-
-   # setenv ARCH next
-   # ./configure
    # make
-   
-This will result in the executables in the bin/next subdirectory.   
-Similarly when compiling on with Linux, I use:
 
-   # setenv ARCH linux
-   # ./configure
-   # make
+This will build the marx executables and needed libraries but will not
+install them.  Assuming a successful build, run `make install` to
+perform the installation:
+
+   # make install
+
+NOTE: This step may require root privileges if you do not have write
+permission to create files under the selected installation directory.
+So, you may have to perform the install script using something like
+
+   # sudo make install
 
 ===========================================================================
 MARXRSP

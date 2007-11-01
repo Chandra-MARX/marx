@@ -17,6 +17,17 @@ unistd.h \
 AC_CONFIG_SUBDIRS(jdmath pfile jdfits marx)
 AC_OUTPUT(Makefile:autoconf/Makefile.in)
 
+
 echo ""
-echo "Now type 'make'."
+echo "You are compiling MARX with the following compiler configuration:"
+echo "       CC =" "$CC"
+echo "   CFLAGS =" "$CFLAGS"
+echo "  LDFLAGS =" "$LDFLAGS" "$DYNAMIC_LINK_FLAGS"
+echo ""
+echo "MARX executables will be installed in $prefix/bin/."
+echo "MARX documentation will be installed in $prefix/share/doc/marx/."
+echo "MARX data files will be installed in $prefix/share/marx/data/."
+echo "MARX parameter files will be installed in $prefix/share/marx/pfiles/."
+echo ""
+echo "To continue the build process, run 'make'."
 echo ""

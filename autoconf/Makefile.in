@@ -71,7 +71,7 @@ all:
 	cd jdfits; $(MAKE) all
 	cd marx; $(MAKE) MARX_DATA_DIR=$(DATADIR) all
 	@echo ""
-	@echo "To install marx, run 'make install'."
+	@echo "To install MARX, run 'make install'."
 	@echo " (You may need root privileges for this step)"
 
 install-dirs:
