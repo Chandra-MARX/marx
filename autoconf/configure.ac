@@ -1,5 +1,6 @@
 dnl -*- sh -*-
 AC_INIT(marx/par/marx.par)
+JD_INIT
 
 JD_ANSI_CC
 
@@ -7,6 +8,10 @@ AC_CONFIG_AUX_DIR(autoconf)
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_PROG_INSTALL
+AC_CANONICAL_HOST
+
+AC_PATH_XTRA
+JD_CHECK_FOR_LIBRARY(cfitsio, fitsio.h)
 
 #Check these header since they cause trouble
 AC_CHECK_HEADERS( \
@@ -15,7 +20,7 @@ unistd.h \
 )
 
 AC_CONFIG_SUBDIRS(jdmath pfile jdfits marx)
-AC_OUTPUT(Makefile:autoconf/Makefile.in)
+AC_OUTPUT(Makefile:autoconf/Makefile.in marxrsp/Makefile)
 
 
 echo ""

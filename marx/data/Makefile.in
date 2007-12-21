@@ -35,7 +35,7 @@ HRMA_FILES = README iridium.dat corr_1.dat corr_3.dat corr_4.dat \
  EKCHDOS06.rdb ideal.rdb
 
 CALDB_FILES = telD1999-07-23geomN0005.fits \
- telD1999-07-23aimptsN0001.fits acisD1997-04-17qeN0005.fits \
+ telD1999-07-23aimptsN0002.fits acisD1997-04-17qeN0006.fits \
  letgD1996-11-01greffpr001N0005.fits \
  hetgD1996-11-01greffpr001N0005.fits acisfef.fits viewfef.sl fixfef.sl
 

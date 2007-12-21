@@ -65,14 +65,24 @@ PAR_FILES = \
  marx/par/marxasp.par \
  marx/par/marxpileup.par \
 
+MARXRSP_EXECS = marxrsp/marxrsp
+MARXRSP_LIBEXECS = marxrsp/rspdump
+
 all:
 	cd jdmath; $(MAKE) all
 	cd pfile; $(MAKE) all
 	cd jdfits; $(MAKE) all
 	cd marx; $(MAKE) MARX_DATA_DIR=$(DATADIR) all
 	@echo ""
+	@echo "NOTES:"
 	@echo "To install MARX, run 'make install'."
 	@echo " (You may need root privileges for this step)"
+	@echo "If you ran configure using the --with-cfitsio option and want"
+	@echo "  marxrsp installed, then run 'make marxrsp' before 'make install'"
+
+marxrsp: all
+	cd marxrsp; $(MAKE)
+	@echo "Now run make install"
 
 install-dirs:
 	$(MKINSDIR) $(DEST_BINDIR)
@@ -119,12 +129,31 @@ install: all install-dirs
 		  exit 1; \
 		fi; \
 	done
+	@for X in $(MARXRSP_EXECS); do \
+		if [ -x $$X ]; then \
+		  echo Installing $$X in $(DEST_BINDIR) ; \
+		  $(INSTALL) $$X $(DEST_BINDIR)/; \
+		  if [ "$$?" != "0" ]; then \
+		    exit 1; \
+		  fi; \
+	        fi; \
+	done
+	@for X in $(MARXRSP_LIBEXECS); do \
+		if [ -x $$X ]; then \
+		  echo Installing $$X in $(DEST_LIBBINDIR) ; \
+		  $(INSTALL) $$X $(DEST_LIBBINDIR)/; \
+		  if [ "$$?" != "0" ]; then \
+		    exit 1; \
+		  fi; \
+	        fi; \
+	done
 #
 clean:
 	cd jdmath; $(MAKE) clean
 	cd pfile; $(MAKE) clean
 	cd jdfits; $(MAKE) clean
 	cd marx; $(MAKE) clean
+	cd marxrsp; $(MAKE) clean
 confclean:
 	cd jdmath; $(MAKE) confclean
 	cd pfile; $(MAKE) confclean
@@ -140,6 +169,7 @@ distclean:
 	-cd pfile; $(MAKE) distclean
 	-cd jdfits; $(MAKE) distclean
 	-cd marx; $(MAKE) distclean
+	-cd marxrsp; $(MAKE) distclean
 	-/bin/rm -f Makefile
 #
 update-configure:
@@ -148,4 +178,7 @@ update-configure:
 	cd jdfits/autoconf; $(MAKE)
 	cd jdmath/autoconf; $(MAKE)
 	cd marx/autoconf; $(MAKE)
+#
+.PHONY: all marxrsp install clean distclean confclean install-dirs update-configure
+
 #end of file

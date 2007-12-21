@@ -2,7 +2,7 @@
 #
 #
 GEOM,f,h,"caldb/telD1999-07-23geomN0005.fits",,,"Name of GEOM file"
-AIMPTS,f,h,"caldb/telD1999-07-23aimptsN0001.fits",,,"Name of AIMPOINTS file"
+AIMPTS,f,h,"caldb/telD1999-07-23aimptsN0002.fits",,,"Name of AIMPOINTS file"
 ACISQE,f,h,"caldb/acisD1997-04-17qeN0006.fits",,,"Name of ACIS QE file"
 ACISFEF,f,h,"caldb/acisfef.fits",,,"Name of ACIS QE file"
 HETGEFF,f,h,"caldb/hetgD1996-11-01greffpr001N0005.fits",,,"Name of HETG GEFF file"

@@ -4,7 +4,7 @@
 
 use_valgrind=1
 
-bindir=/tmp/marx/bin
+bindir=/tmp/marxroot/bin
 #bindir=./$ARCHobjs
 
 output_dir="/tmp/marxout"

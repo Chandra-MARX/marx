@@ -11,10 +11,19 @@ configure script as follows:
 
    # ./configure --prefix=/usr/local
 
-This step may take a few minutes to complete, depending upon the speed
-of your system.  This script probes your system to see what tools and
-libraries are available, and then creates the necessary makefiles.  If
-all went well, you will see something like:
+If you intend to build marxrsp (see below for details), then add the
+location of where libcfitsio is located to the configure line, e.g.,
+
+   # ./configure --prefix=/usr/local --with-cfitsio=/opt/cfitsio
+
+  (The configure script also supports the --with-cfitsioinc/lib options
+   for additional flexibility.  Use `./configure --help` for more
+   information)
+
+The configure step may take a few minutes to complete, depending upon
+the speed of your system.  This script probes your system to see what
+tools and libraries are available, and then creates the necessary
+makefiles.  If all went well, you will see something like:
 
    MARX executables will be installed in /usr/local/bin/.
    MARX documentation will be installed in /usr/local/share/doc/marx/.
@@ -47,13 +56,16 @@ Note: You do not need marxrsp to run marx.  This program is optional!!
 To build marxrsp, you first need to get the CFITSIO library if you do
 not already have it.  It is not included in this distribution because
 you probably already have it if you have ftools.  In any case, after
-locating your cfitsio distribution, or creating CFITSIO, do:
+locating your cfitsio distribution, or building and installing
+CFITSIO, and runnning configure as described above, then do:
 
-   cd marxrsp
-   <edit the Makefile>
-   make
+   make marxrsp
    make install
-   
+
+If marxrsp failed to build, then most likely you do not have cfitsio
+properly installed, or you specified the wrong cfitsio location when
+you configured marx.
+
 ====================================================================
 PROBLEMS
 ====================================================================

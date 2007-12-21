@@ -1,0 +1,12 @@
+NEWS for marx 4.2.1:
+
+`make install` installs marx in a more traditional Unix location.  See
+the INSTALL file for more detail.
+
+Marx is now sin
+Totally rewrote the installation  marx installs itself 
+Updated the ACIS QE and Aimpoint files to match those of the latest CALDB.
+
+Added large file support to allow the creation of files exceeding 2 GB.
+
+MacOSX and Cygwin ports.
