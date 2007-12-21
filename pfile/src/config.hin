@@ -29,3 +29,6 @@
 
 /* Define this if you have limits.h */
 #undef HAVE_LIMITS_H
+
+#undef off_t
+

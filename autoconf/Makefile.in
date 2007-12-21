@@ -142,4 +142,10 @@ distclean:
 	-cd marx; $(MAKE) distclean
 	-/bin/rm -f Makefile
 #
+update-configure:
+	cd autoconf; $(MAKE)
+	cd pfile/autoconf; $(MAKE)
+	cd jdfits/autoconf; $(MAKE)
+	cd jdmath/autoconf; $(MAKE)
+	cd marx/autoconf; $(MAKE)
 #end of file

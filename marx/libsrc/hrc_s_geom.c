@@ -398,32 +398,32 @@ int _marx_hrc_s_compute_pixel (int id, double dx, double dy,
 
 static _Marx_Simple_Data_Type Array_Data_Table [] = 
 {
-   {"V_Pixel_Size",	1, &V_Pixel_Size,	1.0},
-   {"V_Physical",	6, V_Physical,		1.0},
-   {"V_Active",		6, V_Active,		1.0},
+   {"V_Pixel_Size",	1, &V_Pixel_Size,	1.0, 0},
+   {"V_Physical",	6, V_Physical,		1.0, 0},
+   {"V_Active",		6, V_Active,		1.0, 0},
 
-   {"U_Pixel_Size",	1, &U_Pixel_Size,	1.0},
-   {"U_Physical",	2, U_Physical,		1.0},
-   {"U_Active",		2, U_Active,		1.0},
+   {"U_Pixel_Size",	1, &U_Pixel_Size,	1.0, 0},
+   {"U_Physical",	2, U_Physical,		1.0, 0},
+   {"U_Active",		2, U_Active,		1.0, 0},
 
-   {"Aimpoint_Offset",	3, Aimpoint_Offset,	1.0},
+   {"Aimpoint_Offset",	3, Aimpoint_Offset,	1.0, 0},
 
-   {"Left_UV",		2, Left_UV,		1.0},
-   {"Right_UV",		2, Right_UV,		1.0},
-   {"Middle_UV",	2, Middle_UV,		1.0},
+   {"Left_UV",		2, Left_UV,		1.0, 0},
+   {"Right_UV",		2, Right_UV,		1.0, 0},
+   {"Middle_UV",	2, Middle_UV,		1.0, 0},
 
-   {"Left_XYZ",		3, Left_XYZ,		1.0},
-   {"Right_XYZ",	3, Right_XYZ,		1.0},
-   {"Middle_XYZ",	3, Middle_XYZ,		1.0},
+   {"Left_XYZ",		3, Left_XYZ,		1.0, 0},
+   {"Right_XYZ",	3, Right_XYZ,		1.0, 0},
+   {"Middle_XYZ",	3, Middle_XYZ,		1.0, 0},
 
-   {"Left_CXCY",	2, Left_CXCY,		1.0},
-   {"Right_CXCY",	2, Right_CXCY,		1.0},
-   {"Middle_CXCY",	2, Middle_CXCY,		1.0},
+   {"Left_CXCY",	2, Left_CXCY,		1.0, 0},
+   {"Right_CXCY",	2, Right_CXCY,		1.0, 0},
+   {"Middle_CXCY",	2, Middle_CXCY,		1.0, 0},
 
-   {"Left_Angle",	1, &Left_Theta, 	PI/180.0},
-   {"Right_Angle",	1, &Right_Theta,	PI/180.0},
-   {"Detector_Angle",	1, &Detector_Theta,	PI/180.0},
-   {NULL}
+   {"Left_Angle",	1, &Left_Theta, 	PI/180.0, 0},
+   {"Right_Angle",	1, &Right_Theta,	PI/180.0, 0},
+   {"Detector_Angle",	1, &Detector_Theta,	PI/180.0, 0},
+   {NULL, 0, NULL, 0.0, 0}
 };
 
 /* Note: This may be called with pf == NULL */

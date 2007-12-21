@@ -92,7 +92,7 @@ int marx_close_write_dump_file (FILE *fp, unsigned long n)
 #ifndef SEEK_SET
 # define SEEK_SET	0
 #endif
-   if (-1 == fseek (fp, NUM_ROWS_OFFSET, SEEK_SET))
+   if (-1 == FSEEK (fp, NUM_ROWS_OFFSET, SEEK_SET))
      {
 	marx_error (errfmt, "seek error", errno);
 	ret = -1;
@@ -397,7 +397,7 @@ static int open_files (char *dir, unsigned long write_mask, int new_file) /*{{{*
 	if (new_file == 0)
 	  {
 	     /* See comment above regarding r+t mode. */
-	     if (-1 == fseek (fp, 0, SEEK_END))
+	     if (-1 == FSEEK (fp, 0, SEEK_END))
 	       {
 		  marx_error ("seek error.");
 		  goto return_error;

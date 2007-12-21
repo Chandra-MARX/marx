@@ -158,17 +158,17 @@ int _marx_hrc_i_compute_pixel (double dx, double dy,
 
 static _Marx_Simple_Data_Type Array_Data_Table [] = 
 {
-   {"HRC_I_X_Pixel_Size",	1, &X_Pixel_Size,	1.0},
-   {"HRC_I_Y_Pixel_Size",	1, &Y_Pixel_Size,	1.0},
+   {"HRC_I_X_Pixel_Size",	1, &X_Pixel_Size,	1.0, 0},
+   {"HRC_I_Y_Pixel_Size",	1, &Y_Pixel_Size,	1.0, 0},
 
-   {"HRC_I_LL_XYZ",		3, LL_XYZ,		1.0},
-   {"HRC_I_Center_XYZ",		3, Center_XYZ,		1.0},
-   {"HRC_I_LL_to_LR_Vector",	3, LL_to_LR_Vector,	1.0},
+   {"HRC_I_LL_XYZ",		3, LL_XYZ,		1.0, 0},
+   {"HRC_I_Center_XYZ",		3, Center_XYZ,		1.0, 0},
+   {"HRC_I_LL_to_LR_Vector",	3, LL_to_LR_Vector,	1.0, 0},
 
-   {"HRC_I_Center_CXCY",	2, Center_CXCY,		1.0},
-   {"HRC_I_Aimpoint_CXCY",	2, Aimpoint_CXCY,	1.0},
+   {"HRC_I_Center_CXCY",	2, Center_CXCY,		1.0, 0},
+   {"HRC_I_Aimpoint_CXCY",	2, Aimpoint_CXCY,	1.0, 0},
 
-   {NULL}
+   {NULL, 0, NULL, 0.0, 0}
 };
 
 /* Note: This may be called with pf == NULL */

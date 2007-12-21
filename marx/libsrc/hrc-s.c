@@ -355,15 +355,15 @@ int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
 
 static _Marx_Simple_Data_Type IonShield_Data_Table [] =
 {
-   {"Ion_Shield_T",	1,	&Shield_OffsetT,	1.0},
-   {"Ion_Shield_L",	1,	&Shield_OffsetL,	1.0},
-   {"Ion_Shield_R",	1,	&Shield_OffsetR,	1.0},
-   {"Ion_Shield_X",	1,	&Shield_OffsetX,	1.0},
-   {"Ion_Shield_SL",	1,	&Shield_OffsetSL,	1.0},
-   {"Ion_Shield_SR",	1,	&Shield_OffsetSR,	1.0},
-   {"Ion_Shield_GapL",	1,	&Shield_GapL,		1.0},
-   {"Ion_Shield_GapR",	1,	&Shield_GapR,		1.0},
-   {NULL}
+   {"Ion_Shield_T",	1,	&Shield_OffsetT,	1.0, 0},
+   {"Ion_Shield_L",	1,	&Shield_OffsetL,	1.0, 0},
+   {"Ion_Shield_R",	1,	&Shield_OffsetR,	1.0, 0},
+   {"Ion_Shield_X",	1,	&Shield_OffsetX,	1.0, 0},
+   {"Ion_Shield_SL",	1,	&Shield_OffsetSL,	1.0, 0},
+   {"Ion_Shield_SR",	1,	&Shield_OffsetSR,	1.0, 0},
+   {"Ion_Shield_GapL",	1,	&Shield_GapL,		1.0, 0},
+   {"Ion_Shield_GapR",	1,	&Shield_GapR,		1.0, 0},
+   {NULL, 0, NULL, 0.0, 0}
 };
 
 

@@ -1,3 +1,4 @@
+/*-*-c-*-*/
 /*
     This file is part of MARX
 
@@ -20,7 +21,6 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-/* -*- c -*- */
 
 /* Define this if have stdlib.h */
 #undef HAVE_STDLIB_H
@@ -40,3 +40,19 @@
 #undef SIZEOF_FLOAT
 #undef SIZEOF_DOUBLE
 
+#undef HAVE_FSEEKO
+
+#undef off_t
+
+/* The following set defines may be necessary to activate long file support */
+#undef _FILE_OFFSET_BITS
+#undef _LARGE_FILES
+#undef _LARGEFILE_SOURCE
+
+#ifdef HAVE_FSEEKO
+# define FSEEK(a,b,c) fseeko(a,b,c)
+# define FTELL(a) ftello(a)
+#else
+# define FSEEK(a,b,c) fseek(a,b,c)
+# define FTELL(a) ftell(a)
+#endif

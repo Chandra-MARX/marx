@@ -254,7 +254,7 @@ int JDMbdata_close_file (JDMBData_File_Type *bf)
 
    if (bf->flags & JDMBDATA_WRITE_MODE)
      {
-	if (-1 == fseek (fp, 0, SEEK_SET))
+	if (-1 == FSEEK (fp, 0, SEEK_SET))
 	  {
 	     JDMath_Error = JDMATH_FILE_WRITE_ERROR;
 	     JDMmsg_error ("Seek error");

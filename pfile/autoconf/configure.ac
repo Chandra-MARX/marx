@@ -16,6 +16,8 @@ unistd.h \
 limits.h \
 )
 
+JD_LARGE_FILE_SUPPORT
+
 JD_SET_OBJ_SRC_DIR
 JD_GCC_WARNINGS
 JD_GET_MODULES(src/modules.lis)

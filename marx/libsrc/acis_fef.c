@@ -489,7 +489,7 @@ static int compute_pha_with_neg_amps (Gauss_Parm_Type *gaussians, unsigned int n
 #define HAS_NEG_AMP_GAUSSIANS	1
 #define HAS_NEG_POS_GAUSSIANS	2
 #define HAS_TOTAL_NEG_AREA	4
-#define INFINITY 1e37
+#define MY_INFINITY 1e37
 static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num, 
 				int *flagsp, float *first_momentp)
 {
@@ -507,8 +507,8 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
      {
 	double area1, area2;
 
-	area1 = gaussian_integral (0, INFINITY, g);
-	area2 = gaussian_integral (-INFINITY, 0, g);
+	area1 = gaussian_integral (0, MY_INFINITY, g);
+	area2 = gaussian_integral (-MY_INFINITY, 0, g);
 	
 	if (area2 > area1)
 	  {

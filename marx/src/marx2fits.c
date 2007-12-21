@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2007 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -1956,7 +1956,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {1,"TITLE",	H_FILE,	NULL,	"Title of Observation"},
      {3,"OBS_ID",	H_STR,	"0",		"Observation ID (*)"},
      {3,"MISSION",	H_STR,	"AXAF",	"Advanced X-ray Astrophysics Facility"},
-     {3,"TELESCOP",	H_STR,	"Chandra",	"Telescope used"},
+     {3,"TELESCOP",	H_STR,	"CHANDRA",	"Telescope used"},
      {3,"INSTRUME",	H_PSTR,	&Instrum_Name,	NULL},
      {1,"DETNAM",	H_PSTR,	&DetectorType,	NULL},
      {1,"GRATING",	H_PSTR,	&GratingType,	"Grating type used"},

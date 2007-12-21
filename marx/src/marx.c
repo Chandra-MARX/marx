@@ -123,7 +123,7 @@ static void message_copyright (FILE *fp)
    if (Marx_Verbose == 0)
      return;
    
-   fprintf (fp, "MARX version %s, Copyright (C) 2002-2005 Massachusetts Institute of Technology\n\n",
+   fprintf (fp, "MARX version %s, Copyright (C) 2002-2007 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 

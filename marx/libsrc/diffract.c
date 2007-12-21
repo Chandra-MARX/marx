@@ -447,6 +447,7 @@ static double MEG_Rowland_Diameter = 8634.0;	       /* mm */
 static double HEG_Rowland_Diameter = 8634.0;	       /* mm */
 static double LEG_Rowland_Diameter = 8634.0;	       /* mm */
 
+#define REST_OF_STRUCT_FIELDS 0, 0, 0
 static Marx_Grating_Info_Type HEG_Grating_Info = 
 {
    0.2,				       /* period (um)*/
@@ -457,7 +458,8 @@ static Marx_Grating_Info_Type HEG_Grating_Info =
    0.0,				       /* chromium */
    0.0,				       /* nickel */
    0.0,				       /* dp_over_p */
-   -5.0				       /* dispersion angle */
+   -5.0,				       /* dispersion angle */
+   REST_OF_STRUCT_FIELDS
 };
 
 static Marx_Grating_Info_Type MEG_Grating_Info =
@@ -470,7 +472,8 @@ static Marx_Grating_Info_Type MEG_Grating_Info =
    0.0,				       /* chromium */
    0.0,				       /* nickel */
    0.0,				       /* dp_over_p */
-   5.0				       /* dispersion angle */
+   5.0,				       /* dispersion angle */
+   REST_OF_STRUCT_FIELDS
 };
 
 static Marx_Grating_Info_Type LEG_Grating_Info =
@@ -483,7 +486,8 @@ static Marx_Grating_Info_Type LEG_Grating_Info =
    0.0,				       /* chromium */
    0.0,				       /* nickel */
    0.0,				       /* dp_over_p */
-   0.0				       /* dispersion angle */
+   0.0,				       /* dispersion angle */
+   REST_OF_STRUCT_FIELDS
 };
 
 static Marx_Grating_Info_Type LEG_Fine_Grating_Info =
@@ -496,7 +500,8 @@ static Marx_Grating_Info_Type LEG_Fine_Grating_Info =
    0.0,				       /* chromium */
    0.0,				       /* nickel */
    0.0,				       /* dp_over_p */
-   0.0				       /* dispersion angle */
+   0.0,				       /* dispersion angle */
+   REST_OF_STRUCT_FIELDS
 };
 
 static Marx_Grating_Info_Type LEG_Coarse_Grating_Info =
@@ -509,7 +514,8 @@ static Marx_Grating_Info_Type LEG_Coarse_Grating_Info =
    0.0,				       /* chromium */
    0.0,				       /* nickel */
    0.0,				       /* dp_over_p */
-   0.0				       /* dispersion angle */
+   0.0,				       /* dispersion angle */
+   REST_OF_STRUCT_FIELDS
 };
 
 static Grating_Type *Gratings[MARX_NUM_MIRRORS];
@@ -983,7 +989,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
    
    /* Loop through all valid photons and diffract off the appropriate
     * grating.  The grating is determined by the Mirror shell the photon
-    * diffracted off of.
+    * diffracted from.
     */
    for (i = 0; i < MARX_NUM_MIRRORS; i++)
      {

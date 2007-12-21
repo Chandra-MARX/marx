@@ -172,7 +172,7 @@ static Detector_Cap_Type Detector_Caps [] =
    {"HRC-I", _marx_hrc_i_init, _marx_hrc_i_detect, MARX_DETECTOR_HRC_I},
    {"PLANE", plane_init, plane_detect, MARX_DETECTOR_PLANE},
    {"NONE", NULL, NULL, 0},
-   {NULL, NULL, NULL}
+   {NULL, NULL, NULL, 0}
 };
 
 char *Marx_Supported_Detectors = "ACIS-S, ACIS-I, HRC-S, HRC-I";

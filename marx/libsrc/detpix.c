@@ -67,6 +67,9 @@ static int acis_s_to_tiled (Marx_Detector_Type *det,
 
 /* The following numbers come from table 4 in Rev 4.0 of the coordinate memo.
  */
+#define REST_OF_STRUCT_FIELDS \
+   0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0, 0, 0, 0
+
 static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 {
      {
@@ -75,7 +78,8 @@ static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 	  {0.744, -81.051, -59.170},   /* x_ll */
 	  {0.353, -56.478, -59.170},   /* x_lr */
 	  {0.353, -56.478,  -34.590},   /* x_ur */
-	  {0.744, -81.051, -34.590}   /* x_ul */
+	  {0.744, -81.051, -34.590},   /* x_ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	5,			       /* id */
@@ -83,7 +87,8 @@ static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 	  {0.348, -56.047, -59.170},   /* x_ll */
 	  {0.099, -31.473, -59.170},   /* x_lr */
 	  {0.099, -31.473, -34.590},    /* x_ur */
-	  {0.348, -56.047, -34.590}    /* x_ul */
+	  {0.348, -56.047, -34.590},    /* x_ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	6,			       /* id */
@@ -91,7 +96,8 @@ static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 	  {0.096, -31.042, -59.170},   /* x_ll */
 	  {-0.011, -6.466, -59.170},   /* x_lr */
 	  {-0.011, -6.466, -34.590},    /* x_ur */
-	  {0.096, -31.042, -34.590}    /* x_ul */
+	  {0.096, -31.042, -34.590},    /* x_ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	7,			       /* id */
@@ -99,7 +105,8 @@ static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 	  {-0.011, -6.035, -59.170},   /* x_ll */
 	  {0.024, 18.541, -59.170},    /* x_lr */
 	  {0.024, 18.541, -34.590},     /* x_ur */
-	  {-0.011, -6.035, -34.590}    /* x_ul */
+	  {-0.011, -6.035, -34.590},    /* x_ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	8,			       /* id */
@@ -107,7 +114,8 @@ static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 	  {0.026, 18.972, -59.170},    /* x_ll */
 	  {0.208, 43.547, -59.170},    /* x_lr */
 	  {0.208, 43.547, -34.590},     /* x_ur */
-	  {0.026, 18.972, -34.590}     /* x_ul */
+	  {0.026, 18.972, -34.590},     /* x_ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	9,			       /* id */
@@ -115,7 +123,8 @@ static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS] =
 	  {0.208, 43.978, -59.170},    /* x_ll */
 	  {0.528, 68.552, -59.170},    /* x_lr */
 	  {0.528, 68.552, -34.590},     /* x_ur */
-	  {0.208, 43.978, -34.590}     /* x_ul */
+	  {0.208, 43.978, -34.590},     /* x_ul */
+	REST_OF_STRUCT_FIELDS
      }
 };
 
@@ -203,6 +212,7 @@ static Marx_Detector_Geometry_Type ACIS_I_Geom [_MARX_NUM_ACIS_I_CHIPS] =
 	  { 1.130, -26.546,  -1.458},   /* lr */
 	  {-0.100,  -2.001,  -1.458},   /* ur */
 	  { 1.130,  -1.939,  23.088},   /* ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	1,
@@ -211,6 +221,7 @@ static Marx_Detector_Geometry_Type ACIS_I_Geom [_MARX_NUM_ACIS_I_CHIPS] =
 	  { 2.360,  23.024,  23.088},   /* lr */
 	  { 1.130,  -1.521,  23.088},   /* ur */
 	  {-0.100,  -1.459,  -1.458},   /* ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	2,
@@ -219,6 +230,7 @@ static Marx_Detector_Geometry_Type ACIS_I_Geom [_MARX_NUM_ACIS_I_CHIPS] =
 	  { 2.361, -26.484, -26.543},   /* lr */
 	  { 1.130,  -1.939, -26.543},   /* ur */
 	  {-0.100,  -2.001,  -1.997},   /* ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	3,
@@ -227,6 +239,7 @@ static Marx_Detector_Geometry_Type ACIS_I_Geom [_MARX_NUM_ACIS_I_CHIPS] =
 	  { 1.131,  23.086,  -1.997},   /* lr */
 	  {-0.100,  -1.459,  -1.997},   /* ur */
 	  { 1.130,  -1.521, -26.543},   /* ul */
+	REST_OF_STRUCT_FIELDS
      },
 };
 
@@ -309,21 +322,24 @@ static Marx_Detector_Geometry_Type HRC_S_Geom [_MARX_NUM_HRC_S_CHIPS] =
 	  {2.234,-144.179, -9.050},    /* ll */
 	  {0.100, -49.506, -9.050},    /* lr */
 	  {0.100, -49.506,  9.100},    /* ur */
-	  {2.234,-144.179,  9.100}     /* ul */
+	  {2.234,-144.179,  9.100},     /* ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	1, 0, 0,
 	  {0.100, -45.237, -9.050},    /* ll */
 	  {0.100,  52.946, -9.050},    /* lr */
 	  {0.100,  52.946,  9.000},    /* ur */
-	  {0.100, -45.237,  9.000}     /* ul */
+	  {0.100, -45.237,  9.000},     /* ul */
+	REST_OF_STRUCT_FIELDS
      },
      {
 	2, 0, 0,
 	  {0.100,  57.704, -9.050},    /* ll */
 	  {2.589, 151.810, -9.050},    /* lr */
 	  {2.589, 151.810,  9.050},    /* ur */
-	  {0.100,  57.704,  9.050}     /* ul */
+	  {0.100,  57.704,  9.050},     /* ul */
+	REST_OF_STRUCT_FIELDS
      }
 };
 #else
@@ -483,6 +499,7 @@ static Marx_Detector_Geometry_Type HRC_I_Geom [_MARX_NUM_HRC_I_CHIPS] =
 	  {0.000,  74.489*YA_HRC_HACK,   0.000},   /* lr */
 	  {0.000,   0.000, -74.489*YA_HRC_HACK},   /* ur */
 	  {0.000, -74.489*YA_HRC_HACK,   0.000},   /* ul */
+	REST_OF_STRUCT_FIELDS
      }
 };
 
