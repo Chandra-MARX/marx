@@ -1948,6 +1948,8 @@ static Fits_Header_Table_Type Acis_Timing_Component [] =
      {0,NULL, 0, NULL, NULL}
 };
 
+static double Defocus = 0.0;
+static char *Canonical_Detname;
 
 static Fits_Header_Table_Type Obs_Info_Component [] =
 {
@@ -1958,13 +1960,14 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {3,"MISSION",	H_STR,	"AXAF",	"Advanced X-ray Astrophysics Facility"},
      {3,"TELESCOP",	H_STR,	"CHANDRA",	"Telescope used"},
      {3,"INSTRUME",	H_PSTR,	&Instrum_Name,	NULL},
-     {1,"DETNAM",	H_PSTR,	&DetectorType,	NULL},
+     {1,"DETNAM",	H_PSTR,	&Canonical_Detname,	NULL},
      {1,"GRATING",	H_PSTR,	&GratingType,	"Grating type used"},
      {1,"OBS_MODE",	H_STR,	"POINTING",	"Observation mode"},
 
      {1,"SIM_X",	H_PFLT,	&Sim_X,		"SIM offset, mm"},
      {1,"SIM_Y",	H_PFLT,	&Sim_Y,		"SIM offset, mm"},
      {1,"SIM_Z",	H_PFLT,	&Sim_Z,		"SIM offset, mm"},
+     {1,"DEFOCUS",	H_PFLT,	&Defocus,	"Needs clarification"},
      {1,"FOC_LEN",	H_PFLT,	&Focal_Length,	NULL},
      {1,"ONTIME",	H_FILE,	NULL,		"Ontime in seconds"},
      {1,"LIVETIME",	H_FILE,	NULL,		"Livetime in seconds"},
@@ -1989,6 +1992,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
 static Fits_Header_Table_Type Acis_Obs_Info_Component [] = 
 {
    {1,"DATAMODE",	H_FILE,	NULL,	"telemetry mode"},
+   {1,"CYCLE",		H_STR,	"P",	"Events from Primary exposures"},
    {0, NULL, 0, NULL, NULL}
 };
 
@@ -2321,10 +2325,18 @@ static int get_marx_pfile_info (void) /*{{{*/
    if (0 == strcmp (Mirror_Type, "FLATFIELD"))
      Simulation_Used_No_Mirror = 1;
 
+   Canonical_Detname = DetectorType;
+
    if (0 == strcmp (DetectorType, "ACIS-S"))
-     Simulation_Detector_Type = DETECTOR_ACIS_S;
+     {
+	Simulation_Detector_Type = DETECTOR_ACIS_S;
+	Canonical_Detname = "ACIS-456789";
+     }
    else if (0 == strcmp (DetectorType, "ACIS-I"))
-     Simulation_Detector_Type = DETECTOR_ACIS_I;
+     {
+	Simulation_Detector_Type = DETECTOR_ACIS_I;
+	Canonical_Detname = "ACIS-0123";
+     }
    else if (0 == strcmp (DetectorType, "HRC-S"))
      Simulation_Detector_Type = DETECTOR_HRC_S;
    else if (0 == strcmp (DetectorType, "HRC-I"))

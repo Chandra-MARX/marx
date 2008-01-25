@@ -1,7 +1,7 @@
 require ("fits");
 
 %variable File = "acisD2000-01-29fef_phaN0002.fits";
-variable File = "acisD2000-01-29fef_pha_ctiN0004.fits";
+variable File = "acisD2000-01-29fef_phaN0005.fits";
 variable Outfile = "test_newfef.fits";
 
 variable Table = fits_read_table (File);

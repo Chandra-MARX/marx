@@ -123,7 +123,7 @@ static void message_copyright (FILE *fp)
    if (Marx_Verbose == 0)
      return;
    
-   fprintf (fp, "MARX version %s, Copyright (C) 2002-2007 Massachusetts Institute of Technology\n\n",
+   fprintf (fp, "MARX version %s, Copyright (C) 2002-2008 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 
@@ -142,7 +142,11 @@ marx usage forms:\n\
    marx --version\n\
    marx --help\n\
 ");
+#ifdef MARX_PFILE_DIR
+   fprintf (stderr, "\nmarx parameter files may be found in:\n %s/\n", MARX_PFILE_DIR);
+#endif
    
+
    exit (1);
 }
 
@@ -730,7 +734,7 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 {
    Param_File_Type *p;
    
-   if (NULL == (p = pf_parse_cmd_line ("marx.par", NULL, argc, argv)))
+   if (NULL == (p = marx_pf_parse_cmd_line ("marx.par", NULL, argc, argv)))
      {
 	fprintf (stderr, "marx: Error opening parameter file.\n");
 	return NULL;
@@ -973,14 +977,14 @@ static int write_obs_par (double total_time)
       case MARX_DETECTOR_ACIS_I:
 	obsdir_file = "obs/acis_i_obs.par";
 	detector = "ACIS-I";
-	datamode = "FAINT";
+	datamode = "GRADED";
 	d = marx_get_detector_info (detector);
 	break;
 
       case MARX_DETECTOR_ACIS_S:
 	obsdir_file = "obs/acis_s_obs.par";
 	detector = "ACIS-S";
-	datamode = "FAINT";
+	datamode = "GRADED";
 	d = marx_get_detector_info (detector);
 	break;
 	

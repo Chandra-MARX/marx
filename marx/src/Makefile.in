@@ -21,6 +21,9 @@ DL_LIB= @DYNAMIC_LINK_LIB@
 #-----------------------------------------------------------------------------
 # 4. Directory where the various libraries are located.
 #-----------------------------------------------------------------------------
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
 PFILEINC = @PFILE_INCLUDE@#      pfile.h location
 PFILELIB = @PFILE_LIB_DIR@#      libpfile.a location
 JDMATHINC = @JDMATH_INCLUDE@#    jdmath.h location
@@ -30,6 +33,9 @@ JDFITSLIB = @JDFITS_LIB_DIR@#    libjdfits.a location
 
 MARX_INCLUDE = $(SRCDIR)/../libsrc#             location of marx.h
 MARX_LIB = $(MARX_INCLUDE)/$(ARCH)objs#     location of libmarx.a
+PFILEDIR	= $(datarootdir)/marx/pfiles
+
+
 #----------------------------------------------------------------------------
 # End of user configuration
 #----------------------------------------------------------------------------
@@ -49,11 +55,14 @@ EXECLIBS = -L$(MARX_LIB) -lmarx -L$(JDMATHLIB) -ljdmath \
 EXECDEPS = $(MARX_LIB)/libmarx.a
 EXECINC =
 #---------------------------------------------------------------------------
-marx_O_DEP = marx-feat.h
-marx_INC = -I$(JDFITSINC) -DMARX -DMARX_HOSTNAME='"$(HOSTNAME)"'
+MARX_PFILE_DIR=$(PFILEDIR)
+
+marx_O_DEP = marx-feat.h Makefile
+marx_INC = -I$(JDFITSINC) -DMARX -DMARX_HOSTNAME='"$(HOSTNAME)"' -DMARX_PFILE_DIR='"$(MARX_PFILE_DIR)"'
 marx2fits_INC = -I$(JDFITSINC)
 marxasp_INC = -I$(JDFITSINC)
 marx2img_INC = -I$(JDFITSINC)
+
 
 marxpileup_DEPS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o
 marxpileup_LIBS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o

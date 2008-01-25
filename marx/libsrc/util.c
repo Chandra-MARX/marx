@@ -232,3 +232,25 @@ int marx_set_time_years (double tyrs)
    _Marx_TStart_Yrs = tyrs;
    return 0;
 }
+
+Param_File_Type *marx_pf_parse_cmd_line 
+  (char *file, char *mode, int argc, char **argv)
+{
+   Param_File_Type *pf;
+   
+   pf = pf_parse_cmd_line_no_exit (file, mode, argc, argv);
+   if (pf != NULL)
+     return pf;
+#ifdef MARX_PFILE_DIR
+   if (PF_Errno == PF_FILE_NOT_FOUND)
+     {
+	fprintf (stderr, "*****\n\
+Unable to locate a %s parameter file.  Marx parameter files may be\n\
+found in:\n\
+ %s/\n\
+*****\n",
+		 file, MARX_PFILE_DIR);
+     }
+#endif
+   exit (1);
+}

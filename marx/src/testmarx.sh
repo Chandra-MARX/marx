@@ -4,8 +4,8 @@
 
 use_valgrind=1
 
-bindir=/tmp/marxroot/bin
-#bindir=./$ARCHobjs
+#bindir=/tmp/marxroot/bin
+bindir=./${ARCH}objs
 
 output_dir="/tmp/marxout"
 mkdir $output_dir

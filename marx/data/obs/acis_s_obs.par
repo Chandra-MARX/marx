@@ -1,4 +1,4 @@
-datamode,s,h,"FAINT",,,"Data mode"
+datamode,s,h,"GRADED",,,"Data mode"
 detnam,s,h,"ACIS-456789",,,"Detector"
 instrume,s,h,"ACIS",,,"Instrument"
 detector,s,h,"ACIS-S",,,"Focus detector"

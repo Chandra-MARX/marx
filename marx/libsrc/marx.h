@@ -336,6 +336,9 @@ extern char *marx_find_file_in_path (char *, char *, char);
 extern int marx_file_exists (char *);
 extern char *marx_make_data_file_name (char *);
 
+extern Param_File_Type *marx_pf_parse_cmd_line (char *file, char *mode, int argc, char **argv);
+
+
 
 extern double marx_reflectivity (double, double, double);
 extern double marx_interp_reflectivity (double, double,

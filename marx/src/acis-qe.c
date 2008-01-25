@@ -45,7 +45,7 @@ static int acis_qe_initialize (int argc, char **argv)
 {
    Param_File_Type *p;
    
-   p = pf_parse_cmd_line ("pileup.par", NULL, argc, argv);
+   p = marx_pf_parse_cmd_line ("pileup.par", NULL, argc, argv);
 
    if (p == NULL)
      {

@@ -219,6 +219,7 @@ static Fits_Header_Table_Type Acis_Timing_Component [] =
      {0,NULL, 0, NULL, NULL}
 };
 
+static char *Canonical_Detnam;
 
 static Fits_Header_Table_Type Obs_Info_Component [] =
 {
@@ -229,7 +230,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {3,"MISSION",	H_STR,	"AXAF",	"Advanced X-ray Astrophysics Facility"},
      {3,"TELESCOP",	H_STR,	"CHANDRA",	"Telescope used"},
      {3,"INSTRUME",	H_PSTR,	&Instrum_Name,	NULL},
-     {1,"DETNAM",	H_PSTR,	&DetectorType,	NULL},
+     {1,"DETNAM",	H_PSTR,	&Canonical_Detnam,	NULL},
      {1,"GRATING",	H_PSTR,	&GratingType,	"Grating type used"},
      {1,"OBS_MODE",	H_STR,	"POINTING",	"Observation mode"},
 
@@ -440,10 +441,18 @@ static int get_marx_pfile_info (Param_File_Type *pf)
    if (-1 == marx_set_data_directory ("$MARX_DATA_DIR"))
      return -1;
 
+   Canonical_Detnam = DetectorType;
+
    if (0 == strcmp (DetectorType, "ACIS-S"))
-     Simulation_Detector_Type = DETECTOR_ACIS_S;
+     {
+	Simulation_Detector_Type = DETECTOR_ACIS_S;
+	Canonical_Detnam = "ACIS-456789";
+     }
    else if (0 == strcmp (DetectorType, "ACIS-I"))
-     Simulation_Detector_Type = DETECTOR_ACIS_I;
+     {
+	Canonical_Detnam = "ACIS-0123";
+	Simulation_Detector_Type = DETECTOR_ACIS_I;
+     }
    else if (0 == strcmp (DetectorType, "HRC-S"))
      Simulation_Detector_Type = DETECTOR_HRC_S;
    else if (0 == strcmp (DetectorType, "HRC-I"))
@@ -1060,7 +1069,7 @@ int main (int argc, char **argv)
 
    sprintf (MarxAsp_Pgm, "%s v%s", Program_Name, MARX_VERSION_STRING);
 
-   p = pf_parse_cmd_line ("marxasp.par", NULL, argc, argv);
+   p = marx_pf_parse_cmd_line ("marxasp.par", NULL, argc, argv);
 
    if (p == NULL)
      {

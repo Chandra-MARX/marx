@@ -970,7 +970,7 @@ static int initialize (int argc, char **argv)
    char *file;
    int status;
 
-   p = pf_parse_cmd_line ("marxpileup.par", NULL, argc, argv);
+   p = marx_pf_parse_cmd_line ("marxpileup.par", NULL, argc, argv);
 
    if (p == NULL)
      {

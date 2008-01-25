@@ -41,15 +41,6 @@
 #include "_marx.h"
 
 /* 
- * I am going to be blunt: The FEF format is _stupid_ and
- * ill-conceived.  Any person adopting this format outside the CXC
- * should lose his or her job. It is even a failure when viewed as a
- * file format for storing gaussian parameters.  I do not have the
- * time to go into all that is wrong with the FEF format; instead, I
- * will just point out the problems with these files for storing
- * gaussians. Such a comment is necessary for one to understand the
- * code below.
- * 
  * A single FEF extension contains a function written here as
  * R(h,E,i,j,ccdid) where h is the pha, E is the energy, (i,j)
  * specifies a pixel on the CCD, and ccdid specifies the CCD.  This

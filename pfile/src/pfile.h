@@ -23,7 +23,7 @@
 #ifndef _PF_H_LOADED_
 #define _PF_H_LOADED_
 
-#define PFILE_VERSION 232	       /* 2.3.1 */
+#define PFILE_VERSION 240	       /* 2.4.0 */
 
 #define PF_MAX_LINE_LEN 1024
 
@@ -101,6 +101,7 @@ extern int pf_parameter_exists (Param_File_Type *, char *);
 extern int pf_add_to_search_path (char *path, int append_flag);
 
 extern Param_File_Type *pf_parse_cmd_line (char *, char *, int, char **);
+extern Param_File_Type *pf_parse_cmd_line_no_exit (char *, char *, int, char **);
 #if 0
 {
 #endif

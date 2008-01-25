@@ -38,11 +38,13 @@ exec_prefix = @exec_prefix@
 datarootdir	= @datarootdir@
 BINDIR		= @bindir@
 DATADIR		= $(datarootdir)/marx/data
+PFILEDIR	= $(datarootdir)/marx/pfiles
 install_lib_dir = @libdir@
 install_include_dir = @includedir@
 
 EE_DATADIR = $(SRCDIR)/../data/ea-mirror
 MARX_DATA_DIR=$(DATADIR)
+MARX_PFILE_DIR=$(PFILEDIR)
 
 #---------------------------------------------------------------------------
 # Misc comamnds (safe to leave these untouched)
@@ -70,6 +72,9 @@ OBJS = @PROGRAM_OBJECTS@
 
 OTHER_DEFINES = -DMARX
 data_C_FLAGS = -DMARX_DATA_DIR='"$(MARX_DATA_DIR)"'
+util_C_FLAGS = -DMARX_PFILE_DIR='"$(MARX_PFILE_DIR)"'
+data_O_DEP = Makefile
+util_O_DEP = Makefile
 
 CONFIG_H = config.h
 ALL_CFLAGS = $(CFLAGS) -Dunix $(OTHER_DEFINES) $(INCLUDE_DIRS)

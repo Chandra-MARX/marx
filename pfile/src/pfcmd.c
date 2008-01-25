@@ -127,8 +127,8 @@ int pf_learn_value (Param_File_Type *p, char *name, char *value)
    return set_value (p, name, value, PF_LEARN_MODE);
 }
 
-	
-Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **argv)
+
+Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, char **argv)
 {
    int i;
    Param_File_Type *p;
@@ -153,8 +153,11 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
      }
    
    if ((argc == 1) && (0 == strcmp ("--help", argv[0])))
-     pf_usage (file, 1);
-	
+     {
+	pf_usage (file, 0);
+	return NULL;
+     }
+
    if (argc)
      {
 	/* If argv[0] is of the form @@file, use file as parameter file */
@@ -172,7 +175,7 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
    if (NULL == (p = pf_open_parameter_file (file, mode)))
      {
 	pf_error ("Unable to open parameter file %s.", file);
-	exit (1);
+	return NULL;
      }
    
    pf = p->pf;
@@ -232,7 +235,7 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
 					   pf->name);
 				 SLFREE (value);
 				 (void) pf_close_parameter_file (p);
-				 exit (1);
+				 return NULL;
 			      }
 			 }
 		       else if (-1 == _pf_set_pf_value (p, pf, value, 0))
@@ -241,7 +244,7 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
 				      pf->name, value);
 			    SLFREE (value);
 			    (void) pf_close_parameter_file (p);
-			    exit (1);
+			    return NULL;
 			 }
 		       
 		       SLFREE (value);
@@ -261,7 +264,7 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
 			    value);
 		  SLFREE (value);
 		  (void) pf_close_parameter_file (p);
-		  exit (1);
+		  return NULL;
 	       }
 	     
 	     *str++ = 0;	       /* value is malloced so knock out = */
@@ -270,7 +273,7 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
 		  pf_error ("Error setting value for %s=%s.", value,str);
 		  SLFREE (value);
 		  (void) pf_close_parameter_file (p);
-		  exit (1);
+		  return NULL;
 	       }
 	     
 	     SLFREE (value);
@@ -278,6 +281,14 @@ Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **arg
      }
    
    return p;
+}
+
+Param_File_Type *pf_parse_cmd_line (char *file, char *mode, int argc, char **argv)
+{
+   Param_File_Type *pf = pf_parse_cmd_line_no_exit (file, mode, argc, argv);
+   if (pf == NULL)
+     exit (1);
+   return pf;
 }
 
 void pf_usage (char *file, int quit)

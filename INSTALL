@@ -14,11 +14,17 @@ configure script as follows:
 If you intend to build marxrsp (see below for details), then add the
 location of where libcfitsio is located to the configure line, e.g.,
 
-   # ./configure --prefix=/usr/local --with-cfitsio=/opt/cfitsio
+   # ./configure --prefix=/usr/local --with-cfitsio=/opt
 
-  (The configure script also supports the --with-cfitsioinc/lib options
-   for additional flexibility.  Use `./configure --help` for more
-   information)
+   This form assumes that libcfitsio and fitsio.h are in the lib/ and
+   include/ subdirectories of a common root directory (/opt in this
+   example.  If this is not the case, then you will have to use the
+   --with-cfitsiolib and --with-cfitsioinc options, as indicated by
+   running `./configure --help | grep cfitsio`:
+
+     --with-cfitsio=DIR      Use DIR/lib and DIR/include for cfitsio
+     --with-cfitsiolib=DIR   cfitsio library in DIR
+     --with-cfitsioinc=DIR   cfitsio include files in DIR
 
 The configure step may take a few minutes to complete, depending upon
 the speed of your system.  This script probes your system to see what
@@ -57,7 +63,7 @@ To build marxrsp, you first need to get the CFITSIO library if you do
 not already have it.  It is not included in this distribution because
 you probably already have it if you have ftools.  In any case, after
 locating your cfitsio distribution, or building and installing
-CFITSIO, and runnning configure as described above, then do:
+CFITSIO, and running configure as described above, then do:
 
    make marxrsp
    make install
@@ -90,7 +96,7 @@ Solaris
 -------
 There appears to be a bug in the libc function `qsort'.  We have not
 actually experienced any problems with the bug but `purify' does report an
-``unitialiized memory read'' in the qsort function.  This is __NOT__ a
+``uninitialized memory read'' in the qsort function.  This is __NOT__ a
 result of a bug in MARX.  If you do experience a coredump of MARX and
 the dump occurs while the qsort function is executing, let me know and
 I will supply a custom bug-free version of qsort in the next MARX release.
