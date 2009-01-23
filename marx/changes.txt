@@ -1,5 +1,4 @@
 Changes since 4.3.0:
-
 1.  Calibration updates:
        * HETG efficiencies: hetgD1996-11-01greffpr001N0006.fits
        * HRMA Effective area: The corr_*.dat files were updated to
@@ -14,6 +13,8 @@ Changes since 4.3.0:
     unmodified.
 3.  src/hrma.c: Added HRMA support structures and modified the value
     of the marx.par vignetting factor parameter accordingly.
+4.  ../autoconf/Makefile.in: `make distclean` was removing the
+    installation bin-directory--- not a good thing to do!
 
 Changes since 2.22
 1.  Explicit use of `signed char' for 8 bit integers.  The grating 

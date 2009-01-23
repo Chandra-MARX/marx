@@ -162,7 +162,6 @@ confclean:
 	-/bin/rm -f config.cache config.status config.log
 	-/bin/rm -f Makefile
 distclean:
-	-/bin/rm -rf $(BINDIR)
 	-/bin/rm -f *~ marx.par
 	-/bin/rm -f config.cache config.status config.log
 	-cd jdmath; $(MAKE) distclean
