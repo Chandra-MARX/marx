@@ -719,7 +719,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		       int eof;
 
 		       if (isnan (the_number))
-			 eof = fprintf (fp, "%15s", "NaN");
+			 eof = fprintf (fp, "%16s", "NaN");
 		       else
 			 eof = fprintf (fp, (char *) fmt, tzero + tscal * the_number);
 

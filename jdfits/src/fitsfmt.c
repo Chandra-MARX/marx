@@ -31,10 +31,11 @@
 
 int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
 {
-    char ch, *p, fmt_type;
-    char wstr[16], pstr[16], *s;
-    
-   /* SKip whitespace */
+   char ch, *p, fmt_type;
+   char wstr[16], pstr[16], *s;
+   char *smax;
+
+   /* skip whitespace */
    while ((*ffmt == ' ') || (*ffmt == '\t')) ffmt++;
 
    if (*ffmt == 0)
@@ -50,24 +51,25 @@ int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
     if (ffmt != p) jdfits_warning ("jdfits_ffmt_to_cfmt: Repeat count ignored. (%s)", ffmt);
     
     fmt_type = *p++ | 0x20;
-    
-    
+
     *wstr = *pstr = 0;
     /* get the width */
     s = wstr;
-    while ((ch = *p), isdigit (ch))
+   smax = wstr + (sizeof(wstr)-1);
+    while ((ch = *p), isdigit (ch) && (s < smax))
       {
 	  *s++ = ch;
 	  p++;
       }
     *s = 0;
-    
+
     /* Now precision specifier */
     if (ch == '.')
       {
 	  p++;
 	  s = pstr;
-	  while ((ch = *p++), isdigit (ch))
+	 smax = pstr + (sizeof(pstr)-1);
+	  while ((ch = *p++), isdigit (ch) && (s < smax))
 	    {
 		*s++ = ch;
 	    }

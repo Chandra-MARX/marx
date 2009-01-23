@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2007 Massachusetts Institute of Technology
+    Copyright (C) 2002-2009 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -52,6 +52,7 @@
 #define HRC_FITS_FILE_SPEC		"HRC_L1_0.0"
 static char *Program_Name = "marx2fits";
 static char Marx2fits_Pgm[80];
+#define MARX2FITS_PATCHLVL "-1"
 
 static Marx_Detector_Type *The_Detector;
 static int Simulation_Grating_Type;    /* 0==>NONE, 1==>HETG, 2==>LETG */
@@ -2786,27 +2787,28 @@ static int get_simulation_info (void) /*{{{*/
    Marx_Dump_File_Type *dft;
    char *file;
    int ret = 0;
-#ifdef VERY_OLD_PILEUP_MODEL
-   FILE *fp;
-   unsigned int row;
-#endif
    char type;
+   int is_pha;
 
    if (-1 == get_marx_pfile_info ())
      return -1;
 
-#ifdef VERY_OLD_PILEUP_MODEL
-   type = 'I';
-   file = "pha.dat";
-#else
-   type = 'E';
-   file = "time.dat";
-#endif
    /* Compute number of rows.  This is necessary because the jdfits library
     * does not have the capability to update header values.
     */
-   file = make_marx_filename (file);
-   
+   file = make_marx_filename ("pha.dat");
+   if (1 == marx_file_exists (file))
+     {
+	is_pha = 1;
+	type = 'I';
+     }
+   else
+     {
+	is_pha = 0;
+	file = make_marx_filename ("time.dat");
+	type = 'E';
+     }
+
    if (NULL == (dft = marx_open_read_dump_file (file)))
      {
 	marx_error ("*** Unable to open %s.\n", file);
@@ -2820,35 +2822,34 @@ static int get_simulation_info (void) /*{{{*/
      }
 
    Num_Marx_Data_Values = (int) dft->num_rows;
-
-#ifdef VERY_OLD_PILEUP_MODEL
-   row = (unsigned int) Num_Marx_Data_Values;
-   fp = dft->fp;
    
-   while (row != 0)
+   if (is_pha)
      {
-	int16 phas[1024];
+	FILE *fp = dft->fp;
+	unsigned int row = (unsigned int) Num_Marx_Data_Values;
 
-	unsigned int nread = 1024, i;
-	if (row < nread)
-	  nread = row;
+	while (row != 0)
+	  {
+	     int16 phas[1024];
+	     unsigned int nread = 1024, i;
+	     if (row < nread)
+	       nread = row;
 
-	nread = JDMread_int16 (phas, nread, fp);
-	if (nread == 0)
-	  {
-	     marx_error ("*** Error reading %s", file);
-	     ret = -1;
-	     break;
-	  }
+	     nread = JDMread_int16 (phas, nread, fp);
+	     if (nread == 0)
+	       {
+		  marx_error ("*** Error reading %s", file);
+		  ret = -1;
+		  break;
+	       }
 	
-	for (i = 0; i < nread; i++)
-	  {
-	     if (phas[i] == -1) Num_Marx_Data_Values--;
+	     for (i = 0; i < nread; i++)
+	       {
+		  if (phas[i] == -1) Num_Marx_Data_Values--;
+	       }
+	     row -= nread;
 	  }
-	
-	row -= nread;
      }
-#endif
 
    (void) marx_close_read_dump_file (dft);
    return ret;
@@ -3108,7 +3109,7 @@ int main (int argc, char **argv) /*{{{*/
    char *fits_file;
    JDFits_Type *ft;
 
-   sprintf (Marx2fits_Pgm, "marx2fits v%s", MARX_VERSION_STRING);
+   sprintf (Marx2fits_Pgm, "marx2fits v%s", MARX_VERSION_STRING MARX2FITS_PATCHLVL);
 
    switch (argc)
      {

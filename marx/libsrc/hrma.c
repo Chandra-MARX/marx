@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2009 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -241,6 +241,9 @@ static int Use_Blur_Factors = 1;
 static char *Geometry_File;
 static int HRMA_Is_Ideal = 0;
 
+#if MARX_HRMA_HAS_STRUTS
+static int HRMA_Use_Struts = 1;
+#endif
 static Param_Table_Type HRMA_Parm_Table [] =
 {
    {"HRMAOptConst",	PF_FILE_TYPE,		&HRMA_Opt_File},
@@ -275,7 +278,10 @@ static Param_Table_Type HRMA_Parm_Table [] =
    {"H6ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[3].h_scat_factor},
    {"P6ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[3].p_scat_factor},
 #endif
-     {"HRMA_Ideal",	PF_BOOLEAN_TYPE,	&HRMA_Is_Ideal},
+   {"HRMA_Ideal",	PF_BOOLEAN_TYPE,	&HRMA_Is_Ideal},
+#if MARX_HRMA_HAS_STRUTS
+   {"HRMA_Use_Struts",	PF_BOOLEAN_TYPE,	&HRMA_Use_Struts},
+#endif
 	
    {"HRMA_Geometry_File",PF_FILE_TYPE,		&Geometry_File},
    
@@ -862,8 +868,8 @@ static int init_yaw_pitch (void)
 	 * 2. Rotate about the new Y Marx axis by -osac_el.
 	 */
 
-	el = -h->osac_el_p * (PI/180.0);
-	az = -h->osac_az_p * (PI/180);
+	el = -h->osac_el_p * (PI/180.0);   /* - */
+	az = -h->osac_az_p * (PI/180); /* - */
 
 	JDM3m_rot_z_matrix (rz, -az);
 	new_y_axis = JDM3m_vector_mul (rz, JDMv_vector (0, 1, 0));
@@ -894,8 +900,92 @@ static int init_yaw_pitch (void)
 }
 #endif
 
-static void project_photon_to_hrma (Marx_Photon_Attr_Type *at, /*{{{*/
-				    double source_distance)
+#if MARX_HRMA_HAS_STRUTS
+typedef struct
+{
+   double xpos;			       /* offset from cap */
+   double half_width;
+}
+HRMA_Strut_Type;
+
+#define NUM_PRECOLIMATOR_STRUTS	2
+static HRMA_Strut_Type Precolimator_Struts [NUM_PRECOLIMATOR_STRUTS] =
+{
+   {1492.060,	0.5*0.5*25.4},
+   {942.266,	0.5*0.5*25.4}	       /* FAP strut */
+};
+#define NUM_CAP_STRUTS	2
+static HRMA_Strut_Type Cap_Struts [NUM_CAP_STRUTS] =
+{
+   {0.5*1.965*25.4, 0.5*0.75*25.4},
+   {-0.5*1.965*25.4, 0.5*0.75*25.4}
+};
+
+#define NUM_POSTCOLIMATOR_STRUTS 2
+static HRMA_Strut_Type Postcolimator_Struts [NUM_POSTCOLIMATOR_STRUTS] =
+{
+   {-1050.353, 0.5*0.5*25.4},
+   {-1271.333, 0.5*0.5*25.4}
+};
+      
+static int intersects_struts (Marx_Photon_Attr_Type *at, HRMA_Strut_Type *s, unsigned int num)
+{
+   double theta = 30.0*(PI/180.0);
+   double cos_theta = cos(theta);
+   double sin_theta = sin(theta);
+   HRMA_Strut_Type *smax = s + num;
+   unsigned int i, num_rotations = 3;
+
+   while (s < smax)
+     {
+	double half_width = s->half_width;
+	double x, y, z;
+	double px, py, pz;
+	double t;
+
+	x = at->x.x; y = at->x.y; z = at->x.z;
+	px = at->p.x; py = at->p.y; pz = at->p.z;
+
+	t = (s->xpos + _Marx_HRMA_Cap_Position - x)/px;
+	y += py*t; z += pz*t;
+
+	for (i = 0; i < num_rotations; i++)
+	  {
+	     if (i != 0)
+	       {
+		  double tmp = cos_theta*y - sin_theta*z;
+		  z = sin_theta*y + cos_theta*z;
+		  y = tmp;
+	       }
+
+	     if (((-half_width < y) && (y < half_width))
+		 || ((-half_width < z) && (z < half_width)))
+	       {
+		  at->flags |= PHOTON_MIRROR_VBLOCKED;
+		  return 1;
+	       }
+	  }
+	s++;
+     }
+   return 0;
+}
+
+static int intersects_precolimator_struts (Marx_Photon_Attr_Type *at)
+{
+   return intersects_struts (at, Precolimator_Struts, NUM_PRECOLIMATOR_STRUTS);
+}
+static int intersects_cap_struts (Marx_Photon_Attr_Type *at)
+{
+   return intersects_struts (at, Cap_Struts, NUM_CAP_STRUTS);
+}
+static int intersects_postcolimator_struts (Marx_Photon_Attr_Type *at)
+{
+   return intersects_struts (at, Postcolimator_Struts, NUM_POSTCOLIMATOR_STRUTS);
+}
+#endif
+
+static int project_photon_to_hrma (Marx_Photon_Attr_Type *at, /*{{{*/
+				   double source_distance)
 {
    double r;
    unsigned int i;
@@ -950,7 +1040,13 @@ static void project_photon_to_hrma (Marx_Photon_Attr_Type *at, /*{{{*/
 		       at->p = JDMv_ax1_bx2 (1.0, at->x, source_distance, at->p);
 		       JDMv_normalize (&at->p);
 		    }
-		  return;
+
+#if MARX_HRMA_HAS_STRUTS
+		  if (HRMA_Use_Struts
+		      && (1 == intersects_precolimator_struts (at)))
+		    return -1;
+#endif
+		  return 0;
 	       }
 	  }
      }
@@ -1071,9 +1167,7 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
    double beta = 0.0, delta = 0.0, correction_factor = 1.0;
    double source_distance;
    HRMA_Type *last_h;
-#if 1
-   unsigned int num_made_it = 0;
-#endif
+
    if (pt->history & MARX_MIRROR_SHELL_OK)
      return 0;			       /* been here already */
    pt->history |= MARX_MIRROR_SHELL_OK;
@@ -1197,13 +1291,17 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	at->p = JDM3m_vector_mul (h->bwd_matrix_p, at->p);
 	at->x = JDM3m_vector_mul (h->bwd_matrix_p, at->x);
 #endif
+	
 
 	/* Now go back to our coordinate system and then into OSAC for hyperbola */
-	/* at->x = JDMv_diff (at->x, h->to_osac_p);
-	 * at->x = JDMv_sum (at->x, h->to_osac_h);
-	 */
-	at->x = JDMv_sum (JDMv_diff (at->x, h->to_osac_p),
-			  h->to_osac_h);
+	at->x = JDMv_diff (at->x, h->to_osac_p);
+
+#if MARX_HRMA_HAS_STRUTS
+	if (HRMA_Use_Struts
+	    && (1 == intersects_cap_struts (at)))
+	  continue;
+#endif
+	at->x = JDMv_sum (at->x, h->to_osac_h);
 
 #if MARX_HAS_HRMA_PITCH_YAW
 	/* Now rotate into the coordinate system of the hyperbola */
@@ -1225,20 +1323,21 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	     at->flags |= PHOTON_UNREFLECTED;
 	     continue;
 	  }
-#if 1
-	if (status == -2)
-	  num_made_it++;
-#endif
+
 #if MARX_HAS_HRMA_PITCH_YAW
 	at->p = JDM3m_vector_mul (h->bwd_matrix_h, at->p);
 	at->x = JDM3m_vector_mul (h->bwd_matrix_h, at->x);
 #endif
+
 	at->x = JDMv_diff (at->x, h->to_osac_h);
-     }
-#if 0
-   fprintf (stdout, "Percent single reflect = %g\n", 
-	    (double)num_made_it/(double)pt->num_sorted);
+
+#if MARX_HRMA_HAS_STRUTS
+	if (HRMA_Use_Struts
+	    && (1 == intersects_postcolimator_struts (at)))
+	  continue;
 #endif
+
+     }
    return 0;
 }
 

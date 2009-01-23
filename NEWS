@@ -1,3 +1,20 @@
+What's NEW for marx 4.4.0?
+
+* Vignetting by the HRMA support structs has been added.
+
+* The marx calibration files have been update to be consistent with
+  CALDB 4.1.1.  In particular, the HETG efficiency file was updated to
+  hetgD1996-11-01greffpr001N0006.fits, and the HRMA on axis effective
+  has been recalibrated to agree with hrmaD1996-12-20axeffaN0008.fits.
+
+* The handling of the marx.par file has been changed.  The input
+  marx.par file is now regarded as read-only and its contents will not
+  be modified.  Instead, all parameter values, including those that
+  are hidden (mode="h") are written to the marx.par file in the output
+  directory.  Previously, unless a hidden parameter was marked to be
+  "learned" (mode="hl"), the value used for the simulation was not
+  reflected in the output marx.par file.
+     
 What's NEW for marx 4.3.0?
 
 * `make install` installs marx in a more traditional unix manner.  See

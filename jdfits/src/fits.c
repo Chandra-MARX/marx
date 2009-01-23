@@ -342,6 +342,13 @@ static int parse_bool (JDFits_Keyword_Type *kwt)
    return 0;
 }
 
+static int is_commentary_keyword (char *name)
+{
+   return ((0 == jdfits_strcasecmp (name, "HISTORY"))
+	   || (0 == jdfits_strcasecmp (name, "COMMENT")));
+}
+
+
 static int parse_headers (JDFits_Header_Type *ht)
 {
    unsigned char *p, ch;
@@ -375,7 +382,8 @@ static int parse_headers (JDFits_Header_Type *ht)
 	while ((p1 >= p) && (*p1 == ' '))
 	  *p1-- = 0;
 	
-	if (ch == '=')
+	if ((ch == '=')
+	    && (0 == is_commentary_keyword (kwt->name)))
 	  {
 	     /* value */
 	     

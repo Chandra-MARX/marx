@@ -2,10 +2,12 @@
 #set -v
 #MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
-use_valgrind=1
+use_valgrind=0
 
 #bindir=/tmp/marxroot/bin
-bindir=./${ARCH}objs
+#bindir=./${ARCH}objs
+#bindir=/nfs/cxc/a1/i686/opt/packages/marx-4.3.0/bin
+bindir=$HOME/sys/linux/test/bin
 
 output_dir="/tmp/marxout"
 mkdir $output_dir

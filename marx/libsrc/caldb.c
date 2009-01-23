@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2009 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -157,12 +157,36 @@ static int check_repeat (JDFits_Col_Data_Type *c, unsigned int repeat, int n)
    return 0;
 }
 
+#if 0
+static void tweak_chip (Marx_Detector_Geometry_Type *g)
+{
+   JDMVector_Type axis;
+   JDMVector_Type v;
+   double theta = -3 * PI/180.0;
+   double cos_theta, sin_theta;
+   
+   if (g->id < 4)
+     return;
+   
+   cos_theta = cos(theta);
+   sin_theta = sin(theta);
+
+   axis = JDMv_unit_vector (JDMv_diff(g->x_ul, g->x_ll));
+
+   v = JDMv_rotate_vector1 (JDMv_diff (g->x_lr, g->x_ll), axis, cos_theta, sin_theta);
+   g->x_lr = JDMv_sum (g->x_ll, v);
+
+   v = JDMv_rotate_vector1 (JDMv_diff (g->x_ur, g->x_ul), axis, cos_theta, sin_theta);
+   g->x_ur = JDMv_sum (g->x_ul, v);
+}
+#endif
 static void set_vector (JDMVector_Type *v, double *xyz)
 {
    v->x = xyz[0];
    v->y = xyz[1];
    v->z = xyz[2];
 }
+
 
 static int set_corner_data (Marx_Detector_Geometry_Type *g, unsigned int n, 
 			    JDFits_Col_Data_Type *c)
@@ -181,6 +205,7 @@ static int set_corner_data (Marx_Detector_Geometry_Type *g, unsigned int n,
 	     set_vector (&g->x_lr, c[2].data.d);
 	     set_vector (&g->x_ul, c[3].data.d);
 	     set_vector (&g->x_ur, c[4].data.d);
+	     /* tweak_chip (g); */
 	     return 0;
 	  }
 	g++;

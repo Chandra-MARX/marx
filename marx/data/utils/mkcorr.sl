@@ -1,12 +1,16 @@
 require ("fits");
-require ("pgplot");
+require ("gslinterp");
+require ("histogram");
+
+%require ("pgplot");
 private variable Flux = 1.0;	       %  simulation SourceFlux value
 
 define read_file (shell)
 {
    variable file = sprintf ("hrma_ea_%d.dat", shell);
    variable e, n, t;
-   (e,n,t) = readcol (file, 1, 4, 5);
+   () = readascii (file, &e, &n, &t; cols=[1,4,5]);
+   %(e,n,t) = readcol (file, 1, 4, 5);
    t *= Flux;
    return e, n/t, sqrt(n)/t;
 }
@@ -26,7 +30,7 @@ define compute_ratio (shell)
    (e,a,da) = read_file (shell);
    (e1, a1) = read_arf (shell);
 
-   a1 = interpol (e, e1, a1);
+   a1 = interp_linear (e, e1, a1);
    variable i = where ((a != 0) and (a1 != 0));
    return e[i], a1[i]/a[i], da[i]/a1[i];
 }
@@ -125,7 +129,7 @@ define smooth (r)
 	r1 = r[i];
 	r2 = r[i+1];
 	if (0)
-	  new_r[i] = [r0, r1, r2][sort([r0,r1,r2])[1]];
+	  new_r[i] = [r0, r1, r2][array_sort([r0,r1,r2])[1]];
 	else
 	  new_r[i] = (r0 + r1 + r2)/3.0;
 	r0 = r1;
@@ -158,7 +162,7 @@ define process_shell (shell, nsmooth)
 
    i = where (e > cutoff);
    e2 = [min(e[i]):max(e[i]):0.05];
-   r2 = rebin (e2, e[i], r[i])*0.003/0.05;
+   r2 = hist1d_rebin (e2, e[i], r[i])*0.003/0.05;
    i = prune (e2, r2, NULL, 0.01);
    e2 = e2[i]; r2 = r2[i];
    
@@ -167,6 +171,7 @@ define process_shell (shell, nsmooth)
    return ([e1, e2, [e2[-1]+1]], [r1, r2, [r2[-1]]]);
 }
 
+#ifexists plot2d
 define plot_shell (shell, nsmooth)
 {
    pset_title (sprintf ("HRMA shell %d", shell));
@@ -190,10 +195,13 @@ define replot_shell (shell, nsmooth)
    variable r,dr;
    replot2d (process_shell (shell, nsmooth));
 }
+#endif
 
 define write_shell (shell, nsmooth)
 {
-   writecol (sprintf("corr_%d.tbl", shell), process_shell (shell, nsmooth));
+   variable fp = fopen (sprintf ("corr_%d.tbl", shell), "w");
+   () = array_map (Int_Type, &fprintf, fp, "%g %g\n", process_shell (shell, nsmooth));
+   () = fclose (fp);
 }
 write_shell (1, 2);
 write_shell (3, 2);

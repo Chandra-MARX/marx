@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2009 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -75,9 +75,8 @@ void _marx_acis_apply_streak (double tstart,
    /* Border pixels are excluded because of ACIS event detection */
    at->z_pixel = 1.0 + 1022.0 * JDMrandom ();
 
-   /* Now I need to update the X and P vectors.  Although will have a 
-    * well-defined meaning not be because of the not since it will not
-    * be unique.  So, define it with respect to the mirror nodal position.
+   /* Now I need to update the X and P vectors.  
+    * Define the P vector with respect to the mirror nodal position.
     */
 
    xpixel = (at->y_pixel - d->xpixel_offset) * d->x_pixel_size;

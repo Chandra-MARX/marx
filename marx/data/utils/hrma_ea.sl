@@ -1,6 +1,6 @@
 require ("fits");
 
-private variable Marx_Cmd = "../../src/i686objs/marx";
+private variable Marx_Cmd = "../../src/objs/marx";
 private variable Marx_Args= "SourceRA=0 SourceDec=0"
   + " SpectrumType=FLAT  RA_Nom=0 Dec_Nom=0"
   + " Roll_Nom=0 DitherModel=NONE";
@@ -8,7 +8,9 @@ Marx_Args += " ExposureTime=0";
 Marx_Args += " GratingType=NONE Verbose=no";
 Marx_Args += " DetectorType=NONE";
 Marx_Args += " SourceFlux=1.0";
-Marx_Args += " HRMA_Use_Scale_Factors=no";
+% If HRMA_Use_Scale_Factors is yes, then prefix the output filename
+% with "scaled_".
+Marx_Args += " HRMA_Use_Scale_Factors=yes";
 
 putenv ("MARX_DATA_DIR=..");
 
@@ -48,7 +50,7 @@ define slsh_main ()
      {
 	variable shell = ();
 	variable i;
-	variable Out_Dat = sprintf ("hrma_ea_%d.dat", shell);
+	variable Out_Dat = sprintf ("scaled_hrma_ea_%d.dat", shell);
 	() = remove (Out_Dat);
 	variable numrays = 500000;
 	for (i = 0; i < length (en_lo); i++)

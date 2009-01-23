@@ -1,3 +1,20 @@
+Changes since 4.3.0:
+
+1.  Calibration updates:
+       * HETG efficiencies: hetgD1996-11-01greffpr001N0006.fits
+       * HRMA Effective area: The corr_*.dat files were updated to
+         account for the CALDB 4.1.1 update to the HRMA on-axis
+         effective are file.  Note: the corr_*.dat files represent
+	 tweaks to the reflectivity.
+
+2.  The marx.par file is now opened in "rwL" mode to force the value of
+    all parameters to be learned.  The input file itself will not be
+    modified, but the output file (in the marx output dir) will
+    contain the changes.  Previously hidden parameter values were
+    unmodified.
+3.  src/hrma.c: Added HRMA support structures and modified the value
+    of the marx.par vignetting factor parameter accordingly.
+
 Changes since 2.22
 1.  Explicit use of `signed char' for 8 bit integers.  The grating 
     orders were coming out positive on systems where `char' is unsigned.

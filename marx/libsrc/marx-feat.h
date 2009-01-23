@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2009 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -42,3 +42,4 @@
 /* One or the other of these may be defined, but not both. */
 #define MARX_HAS_ACIS_GAIN_MAP		0
 #define MARX_HAS_ACIS_FEF		1
+#define MARX_HRMA_HAS_STRUTS		1

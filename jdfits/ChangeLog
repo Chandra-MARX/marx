@@ -1,3 +1,19 @@
+2008-6-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 165
+
+	* src/fitsbin.c (jdfits_bintable_dump_data): Changed display
+	  width for NaN.
+
+	* src/fitsfmt.c (jdfits_ffmt_to_cfmt): Added buffer-overflow check.
+
+2008-5-23  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): bumped to 164
+
+	* src/fits.c (is_commentary_keyword): such keywords are
+	  allowed to have an = in column 9.
+
 2005-9-8  John E. Davis  <davis@space.mit.edu>
 
 	* src/jdfits.h (JDFITS_VERSION): bumped to 163

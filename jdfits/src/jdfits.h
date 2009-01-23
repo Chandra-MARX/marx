@@ -21,7 +21,7 @@
 #include <time.h>
 #include <sys/types.h>		       /* off_t */
 
-#define JDFITS_VERSION 163	       /* 1.63 */
+#define JDFITS_VERSION 165	       /* 1.63 */
 
 #ifndef HAS_BASIC_TYPEDEFS_DEFINED
 # if defined(__alpha__) || defined(__ALPHA__) || defined(__alpha)

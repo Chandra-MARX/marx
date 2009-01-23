@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2004 Massachusetts Institute of Technology
+    Copyright (C) 2002-2009 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -123,7 +123,7 @@ static void message_copyright (FILE *fp)
    if (Marx_Verbose == 0)
      return;
    
-   fprintf (fp, "MARX version %s, Copyright (C) 2002-2008 Massachusetts Institute of Technology\n\n",
+   fprintf (fp, "MARX version %s, Copyright (C) 2002-2009 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 
@@ -440,7 +440,29 @@ int main (int argc, char **argv) /*{{{*/
 	marx_dealloc_photon_type (pt);
 	return 1;
      }
+
+   if (Needs_Cp_Par_File)
+     {
+	char *marx_par;
+	
+	if (NULL == (marx_par = marx_dircat (Output_Dir, "marx.par")))
+	  {
+	     pf_close_parameter_file (p);
+	     marx_dealloc_photon_type (pt);
+	     return 1;
+	  }
+	if (-1 == pf_set_output_filename (p, marx_par))
+	  {
+	     marx_free (marx_par);
+	     pf_close_parameter_file (p);
+	     marx_dealloc_photon_type (pt);
+	     return 1;
+	  }
+	marx_free (marx_par);
+     }
    pf_close_parameter_file (p);
+
+#if 0
    if (Needs_Cp_Par_File
        && (-1 == cp_par_file (Parameter_File, Output_Dir)))
      {
@@ -448,7 +470,7 @@ int main (int argc, char **argv) /*{{{*/
 	marx_dealloc_photon_type (pt);
 	return 1;
      }
-
+#endif
    marx_message ("System initialized.\n\n");
    
    /* 
@@ -734,7 +756,7 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 {
    Param_File_Type *p;
    
-   if (NULL == (p = marx_pf_parse_cmd_line ("marx.par", NULL, argc, argv)))
+   if (NULL == (p = marx_pf_parse_cmd_line ("marx.par", "rwL", argc, argv)))
      {
 	fprintf (stderr, "marx: Error opening parameter file.\n");
 	return NULL;
