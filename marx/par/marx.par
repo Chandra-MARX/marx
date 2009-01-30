@@ -1,5 +1,5 @@
 #-*-sh-*--------------------------------------------------------------------
-# MIT MARX Simulator Parameter file       Flight / Version 4.3 (Dec 2007)
+# MIT MARX Simulator Parameter file       Flight / Version 4.4 (Jan 2009)
 #----------------------------------------------------------------------------
 #
 # Simulation setup and control
@@ -7,7 +7,7 @@
 #----------------------------------------------------------------------------
 NumRays,i,a,1000000,1,,"Enter TOTAL number of rays to generate"
 dNumRays,i,a,100000,1,100000,"Enter number of rays per iteration"
-TStart,r,a,2003.5,1999.56,,"Enter year of observation"
+TStart,r,a,2009.5,1999.56,,"Enter year of observation"
 ExposureTime,r,a,10000,,,"Enter exposure time (0.0 for none)"
 OutputDir,f,a,"point",,,"Enter output directory name"
 DataDirectory,s,h,"$MARX_DATA_DIR",,,"Enter directory for input data"

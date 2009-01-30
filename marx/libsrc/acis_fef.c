@@ -381,14 +381,23 @@ static JDFits_Row_Type *open_rows (JDFits_Type *f, unsigned int num_columns)
 
 #define SQRT_2		1.4142135623730951
 #define SQRT_2PI	2.5066282746310002
+
+/* It appears that the ciao processing of the FEF does not include the
+ * sqrt(2*PI*sigma^2) in the denominator of the gaussian.  In other words, the
+ * amplitude to does include this correction.
+ */
 static double gaussian_integral (double xmin, double xmax, Gauss_Parm_Type *g)
 {
    double sigma, x0;
 
    if (0.0 == (sigma = g->sigma * SQRT_2))
      return 0.0;
+
    x0 = g->center;
-   return 0.5 * g->amp * (erf ((xmax-x0)/sigma) - erf((xmin-x0)/sigma));
+   /* return 0.5 * g->amp * (erf ((xmax-x0)/sigma) - erf((xmin-x0)/sigma)); */
+
+   return 0.5 * g->amp * (erf ((xmax-x0)/sigma) - erf((xmin-x0)/sigma))
+     * (SQRT_2PI*g->sigma);
 }
 
 static double evaluate_gaussian (double x, Gauss_Parm_Type *g)
@@ -400,7 +409,8 @@ static double evaluate_gaussian (double x, Gauss_Parm_Type *g)
      return 0.0;
 
    x = (x - g->center)/sigma;
-   return g->amp * exp (-0.5*x*x) / (SQRT_2PI * sigma);
+   /* return g->amp * exp (-0.5*x*x) / (SQRT_2PI * sigma); */
+   return g->amp * exp (-0.5*x*x);
 }
 
 /* All gaussians have a positive weight. */

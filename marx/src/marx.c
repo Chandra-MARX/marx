@@ -643,7 +643,7 @@ static void version (void) /*{{{*/
 /*}}}*/
 
 /*}}}*/
-
+#if 0
 static int cp_par_file (char *file, char *dir) /*{{{*/
 {
    char *ofile = NULL;
@@ -727,7 +727,7 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
 }
 
 /*}}}*/
-
+#endif
 static Param_Table_Type Control_Parm_Table [] = /*{{{*/
 {
      {"NumRays",	PF_INTEGER_TYPE, 	&Num_Rays},

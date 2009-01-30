@@ -10,7 +10,7 @@ Marx_Args += " DetectorType=NONE";
 Marx_Args += " SourceFlux=1.0";
 % If HRMA_Use_Scale_Factors is yes, then prefix the output filename
 % with "scaled_".
-Marx_Args += " HRMA_Use_Scale_Factors=yes";
+Marx_Args += " HRMA_Use_Scale_Factors=no";
 
 putenv ("MARX_DATA_DIR=..");
 
@@ -50,7 +50,7 @@ define slsh_main ()
      {
 	variable shell = ();
 	variable i;
-	variable Out_Dat = sprintf ("scaled_hrma_ea_%d.dat", shell);
+	variable Out_Dat = sprintf ("hrma_ea_%d.dat", shell);
 	() = remove (Out_Dat);
 	variable numrays = 500000;
 	for (i = 0; i < length (en_lo); i++)
