@@ -1,13 +1,13 @@
 #! /bin/sh
 #set -v
-#MARX_DATA_DIR=../data; export MARX_DATA_DIR
+MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
 use_valgrind=0
 
 #bindir=/tmp/marxroot/bin
-#bindir=./${ARCH}objs
+bindir=./${ARCH}objs
 #bindir=/nfs/cxc/a1/i686/opt/packages/marx-4.3.0/bin
-bindir=$HOME/sys/linux/test/bin
+#bindir=$HOME/sys/linux/test/bin
 
 output_dir="/tmp/marxout"
 mkdir $output_dir
@@ -52,7 +52,9 @@ do
    do
       for x in yes no
       do
-         $valgrindmarx $marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
+         #$valgrindmarx $marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
+         gdb --args $marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
+	 exit 1
 	 if [ "$?" != "0" ]
 	 then
 	    if [ $use_valgrind = 0 ]; then exit 1; fi

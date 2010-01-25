@@ -1,3 +1,11 @@
+Changes since 4.4.0:
+1.  Updated the contamination model to match the HM+AV hybrid model.
+2.  When using SAOSAC rays, the ray X coordinate is 0.01675 mm.
+    Apparantly, the rays in the rayfile are projected from a plane
+    -10079.77 from the best focus of the HRMA at 1.49 keV.
+3.  marx.par: If NumRays is < 0, then the simulation will continue
+    until |NumRays| photons are detected.
+
 Changes since 4.3.0:
 1.  Calibration updates:
        * HETG efficiencies: hetgD1996-11-01greffpr001N0006.fits

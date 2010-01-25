@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -26,8 +26,8 @@
 #include <jdmath.h>
 #include <pfile.h>
 
-#define MARX_VERSION 40400
-#define MARX_VERSION_STRING "4.4.0"
+#define MARX_VERSION 40500
+#define MARX_VERSION_STRING "4.5.0"
 
 #ifndef SIGNED_CHAR
 # define SIGNED_CHAR signed char
@@ -465,12 +465,13 @@ extern int marx_dump (int, char **);
 
 extern char *marx_dircat (char *, char *);
 
-#define HBAR_C 1.973271e-04 /* KeV-Microns */
-/* WAS: 1.9732858e-4  
- * The new value is the product of 
- * 6.5821220e-19 KeV sec * 2.99792458e14 um
- * taken from the 1986 values
- */
+/* #define HBAR_C 1.973271e-04 keV-Microns (1986) */
+ /* WAS: 1.9732858e-4  
+  * The new value is the product of 
+  * 6.5821220e-19 KeV sec * 2.99792458e14 um
+  * taken from the 1986 values
+  */
+#define HBAR_C 1.973269631e-4 /* keV-Microns (2006 NIST value) */
 
 #define MARX_RAYFILE_MAGIC 0xF8161961UL
 extern int marx_dump_to_rayfile (char *, int,
@@ -574,6 +575,6 @@ extern int marx_map_energy_to_acis_pha (int ccd_id, int x, int y, double energy,
 extern int marx_init_acis_s_rmf (Param_File_Type *p);
 extern int marx_init_acis_i_rmf (Param_File_Type *p);
 
-extern int marx_set_time_years (double);
+extern int marx_set_time (double, double);
 
 #endif				       /* _MARX_H_ */

@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -720,7 +720,7 @@ static int diffract_photon (Grating_Type *g, double theta,
    if (gs != NULL)
      {
 	unsigned int sector_num;
-	float sector;
+	double sector;
 	/* The sector is determined by the y and z coordinates of the ray. */
 	
 	sector = atan2 (x.y, x.z);

@@ -62,7 +62,7 @@ private define read_fef (file, ccdid, x, y)
    variable p = [-4096:4096];
    variable e;
    (e,y) = compute_fef (t, p, i);
-   %plot_open ("out.ps/CPS");
+   variable id = plot_open ("out.ps/CPS");
 
    ylabel ("PHA");
    xlabel ("ENERGY");
@@ -91,7 +91,7 @@ private define read_fef (file, ccdid, x, y)
 	plot (e,yy);
 	plot_pause;
      }
-   plot_close;
+   plot_close (id);
 }
 
 read_fef (File, Chip_Id, Chip_X, Chip_Y);

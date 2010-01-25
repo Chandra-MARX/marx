@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -44,6 +44,7 @@ static char *ACIS_QE_File;
 static char *ACIS_Fef_File;
 static char *Hetg_Geff_File;
 static char *Letg_Geff_File;
+static char *ACIS_Contam_File;
 
 static Param_Table_Type Caldb_Parm_Table [] =
 {
@@ -56,6 +57,7 @@ static Param_Table_Type Caldb_Parm_Table [] =
    {"ACISFEF",	PF_FILE_TYPE,		&ACIS_Fef_File},
    {"HETGEFF",	PF_FILE_TYPE,		&Hetg_Geff_File},
    {"LETGEFF",	PF_FILE_TYPE,		&Letg_Geff_File},
+   {"ACISCONTAM",PF_FILE_TYPE,		&ACIS_Contam_File},
    {NULL, 0, NULL}
 };
 
@@ -298,7 +300,7 @@ int _marx_caldb_patch_hrc_s_geom (Marx_Detector_Type *d)
 }
 
 /* Unfortunately character strings read from the caldb files have trailing
- * whitespace.  Deal with that non-sence here. Sigh.
+ * whitespace.  Deal with that non-sense here. Sigh.
  */
 static void remove_trailing_whitespace (char *s)
 {

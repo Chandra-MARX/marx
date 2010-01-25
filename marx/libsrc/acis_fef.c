@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -289,30 +289,14 @@ static int check_fef_map_for_holes (int min_ccdid, int max_ccdid)
 }
 
 
-static int check_monotonicity (float *p, unsigned int n)
-{
-   float x, *pmax;
-
-   pmax = p + n;
-   x = *p++;
-   while (p < pmax)
-     {
-	if (*p < x)
-	  return -1;
-	x = *p++;
-     }
-   return 0;
-}
-
-
 static int check_fef_validity (Fef_Type *f)
 {  
-   if (-1 == check_monotonicity (f->energies, f->num_energies))
+   if (-1 == _marx_check_monotonicity_f (f->energies, f->num_energies))
      {
 	marx_error ("Fef Map does not have monotonically increasing energies");
 	return -1;
      }
-   if (-1 == check_monotonicity (f->channels, f->num_energies))
+   if (-1 == _marx_check_monotonicity_f (f->channels, f->num_energies))
      {
 	marx_error ("Fef Map does not have monotonically increasing PHAs");
 	return -1;

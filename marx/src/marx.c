@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -85,8 +85,9 @@ static double DetOffset_X;
 static double DetOffset_Y;
 static double DetOffset_Z;
 
-static unsigned int Num_Rays;
-static unsigned int Num_Rays_Per_Iteration;
+static int Num_Rays_Per_Iteration;
+static int Num_Rays_Marx_Par;
+
 static int Random_Seed = -1;
 static int Dump_To_Rayfile;
 static char *Rayfile_Name;
@@ -104,7 +105,7 @@ static double TStart_MJDref;
 
 static Param_File_Type *setup_parms (int argc, char **argv);	       
 static unsigned long compute_write_mask (void);
-static int cp_par_file (char *, char *);
+/* static int cp_par_file (char *, char *); */
 static void version (void);
 static int module_init (Param_File_Type *);
 static int write_fits_info (double);
@@ -123,7 +124,7 @@ static void message_copyright (FILE *fp)
    if (Marx_Verbose == 0)
      return;
    
-   fprintf (fp, "MARX version %s, Copyright (C) 2002-2009 Massachusetts Institute of Technology\n\n",
+   fprintf (fp, "MARX version %s, Copyright (C) 2002-2010 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 
@@ -323,21 +324,21 @@ static int setup_tstart (Param_File_Type *pf)
      {
 	/* asssume that tstart is in years */
 	yrs_tstart = tstart;
-	time_t_tstart = (time_t) (time_t_mjdref + (yrs_tstart - MJDref_Years)*secs_per_year);
+	tstart = (yrs_tstart - MJDref_Years)*secs_per_year;
      }
    else
      {
 	/* assume tstart is secs from mjdref */
 	yrs_tstart = MJDref_Years + tstart/secs_per_year;
-	time_t_tstart = time_t_mjdref + tstart;
      }
+   time_t_tstart = (time_t) (time_t_mjdref + tstart);
    
    MJDref_Unix = time_t_mjdref;
    TStart_Years = yrs_tstart;
    TStart_Unix = time_t_tstart;
    TStart_MJDref = TStart_Unix - MJDref_Unix;
    
-   if (-1 == marx_set_time_years (TStart_Years))
+   if (-1 == marx_set_time (TStart_Years, tstart))
      return -1;
 
    return 0;
@@ -350,7 +351,8 @@ int main (int argc, char **argv) /*{{{*/
    Marx_Source_Type *st;
    Marx_Photon_Type *pt;
    double total_time;
-   unsigned long num_sorted = 0, n_photons;
+   unsigned long total_num_collected, total_num_detected;
+   unsigned long num_to_collect, num_to_detect;
    unsigned long write_mask;
    int open_mode;
    int (*open_function)(Param_File_Type *);
@@ -477,15 +479,31 @@ int main (int argc, char **argv) /*{{{*/
     * Main loop
     */
    
-   n_photons = 0;
+   total_num_collected = 0;
+   total_num_detected = 0;
    open_mode = 1;
    total_time = 0.0;
+   num_to_collect = 0;
+   num_to_detect = 0;
 
    if (Exposure_Time > 0.0)
      marx_message ("Starting simulation.  Exposure Time set to %e seconds\n", Exposure_Time);
+   else if (Num_Rays_Marx_Par < 0)
+     {
+	num_to_detect = (unsigned long) (-Num_Rays_Marx_Par);
+	if ((unsigned long)Num_Rays_Per_Iteration > num_to_detect)
+	  Num_Rays_Per_Iteration = num_to_detect;
+	marx_message ("Starting simulation.  NumRays to detect = %u, dNumRays = %u\n",
+		      num_to_detect, Num_Rays_Per_Iteration);
+     }
    else
-     marx_message ("Starting simulation.  NumRays = %u, dNumRays = %u\n",
-		   Num_Rays, Num_Rays_Per_Iteration);
+     {
+	num_to_collect = (unsigned long) Num_Rays_Marx_Par;
+	if ((unsigned long)Num_Rays_Per_Iteration > num_to_collect)
+	  Num_Rays_Per_Iteration = num_to_collect;
+	marx_message ("Starting simulation.  NumRays to collect = %u, dNumRays = %u\n",
+		      num_to_collect, Num_Rays_Per_Iteration);
+     }
 
 #if PRINT_STATS_ARRAY
    Stats[0] = 0;
@@ -493,20 +511,27 @@ int main (int argc, char **argv) /*{{{*/
    Stats[2] = 0;
    Stats[3] = 0;
 #endif
-   while ((n_photons < Num_Rays) || (Exposure_Time > 0.0))
+   while (1)
      {
 	unsigned int num_collected;
-	double *exposure_time_ptr;
+	double *exposure_time_ptr = NULL;
 	double exposure_time_left;
 	
-	if (Exposure_Time <= 0.0) exposure_time_ptr = NULL;
-	else
+	if (Exposure_Time > 0.0)
 	  {
 	     exposure_time_left = (Exposure_Time - total_time);
 	     if (exposure_time_left <= 0.0)
 	       break;
+
 	     exposure_time_ptr = &exposure_time_left;
 	  }
+	else if (Num_Rays_Marx_Par > 0)
+	  {
+	     if (total_num_collected >= num_to_collect)
+	       break;
+	  }
+	else if (total_num_detected >= num_to_detect)
+	  break;
 
 	marx_message ("Collecting %d photons...\n", Num_Rays_Per_Iteration);
 	
@@ -521,7 +546,7 @@ int main (int argc, char **argv) /*{{{*/
 	if (num_collected == 0)
 	  break;
 	
-	n_photons += num_collected;
+	total_num_collected += num_collected;
 
 	if (-1 == process_photons (pt))
 	  goto return_error;
@@ -533,21 +558,20 @@ int main (int argc, char **argv) /*{{{*/
 	marx_message ("\n");
 	
 	marx_prune_photons (pt);
-	num_sorted += pt->num_sorted;
+	total_num_detected += pt->num_sorted;
 	total_time += pt->total_time;
 	
  	marx_message ("Total photons: %lu, Total Photons detected: %lu, (efficiency: %f)\n",
-		      n_photons, num_sorted, (double)num_sorted / n_photons);
+		      total_num_collected, total_num_detected, (double)total_num_detected / total_num_collected);
 	
  	marx_message ("  (efficiency this iteration  %f)  Total time: %f\n",
 		      (double)pt->num_sorted / num_collected,
 		      total_time);
 	
 	marx_message ("\n");
-	
-	if (Num_Rays_Per_Iteration != num_collected)
-	  break;
-	
+
+	if ((unsigned long)Num_Rays_Per_Iteration != num_collected)
+	  break;	
      }
    
    /* drop */
@@ -730,7 +754,7 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
 #endif
 static Param_Table_Type Control_Parm_Table [] = /*{{{*/
 {
-     {"NumRays",	PF_INTEGER_TYPE, 	&Num_Rays},
+     {"NumRays",	PF_INTEGER_TYPE, 	&Num_Rays_Marx_Par},
      {"dNumRays",	PF_INTEGER_TYPE, 	&Num_Rays_Per_Iteration},
      {"OutputDir",	PF_FILE_TYPE,	 	&Output_Dir},
      {"OutputVectors",	PF_STRING_TYPE,	 	&Data_To_Write},
@@ -777,8 +801,16 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
    
    if (Exposure_Time <= 0.0)
      {
-	if (Num_Rays_Per_Iteration > Num_Rays)
-	  Num_Rays_Per_Iteration = Num_Rays;
+	if (Num_Rays_Per_Iteration <= 0)
+	  {
+	     (void) fprintf (stderr, "dNumRays must be > 0\n");
+	     exit (1);
+	  }
+	if (Num_Rays_Marx_Par == 0)
+	  {
+	     (void) fprintf (stderr, "NumRays must be non-zero\n");
+	     exit (1);
+	  }
      }
    
    if (Random_Seed == -1)

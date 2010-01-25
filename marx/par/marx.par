@@ -5,7 +5,7 @@
 # Simulation setup and control
 #
 #----------------------------------------------------------------------------
-NumRays,i,a,1000000,1,,"Enter TOTAL number of rays to generate"
+NumRays,i,a,1000000,,,"Enter TOTAL number of rays to generate (if negative, to num to detect)"
 dNumRays,i,a,100000,1,100000,"Enter number of rays per iteration"
 TStart,r,a,2009.5,1999.56,,"Enter year of observation"
 ExposureTime,r,a,10000,,,"Enter exposure time (0.0 for none)"

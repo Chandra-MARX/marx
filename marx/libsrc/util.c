@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -51,6 +51,7 @@
 #include "_marx.h"
 
 double _Marx_TStart_Yrs;
+double _Marx_TStart_MJDsecs;
 
 static void do_malloc_error (void) /*{{{*/
 {
@@ -227,9 +228,10 @@ char *marx_find_file_in_path (char *dirs, char *file, char colon)
    return NULL;
 }
 
-int marx_set_time_years (double tyrs)
+int marx_set_time (double tyrs, double mjdsecs)
 {
    _Marx_TStart_Yrs = tyrs;
+   _Marx_TStart_MJDsecs = mjdsecs;
    return 0;
 }
 
@@ -253,4 +255,34 @@ found in:\n\
      }
 #endif
    exit (1);
+}
+
+int _marx_check_monotonicity_f (float *p, unsigned int n)
+{
+   float x, *pmax;
+
+   pmax = p + n;
+   x = *p++;
+   while (p < pmax)
+     {
+	if (*p < x)
+	  return -1;
+	x = *p++;
+     }
+   return 0;
+}
+
+int _marx_check_monotonicity_d (double *p, unsigned int n)
+{
+   double x, *pmax;
+
+   pmax = p + n;
+   x = *p++;
+   while (p < pmax)
+     {
+	if (*p < x)
+	  return -1;
+	x = *p++;
+     }
+   return 0;
 }

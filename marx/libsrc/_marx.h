@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -209,5 +209,9 @@ extern int _marx_read_simple_data_file (char *, _Marx_Simple_Data_Type *);
 extern int _marx_get_vector_parm (Param_File_Type *, char *, JDMVector_Type *);
 
 extern double _Marx_TStart_Yrs;
+extern double _Marx_TStart_MJDsecs;
+
+extern int _marx_check_monotonicity_f (float *, unsigned int);
+extern int _marx_check_monotonicity_d (double *, unsigned int);
 
 #endif /* _M_MARX_H_ */

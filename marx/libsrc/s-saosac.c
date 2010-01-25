@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2009 Massachusetts Institute of Technology
+    Copyright (C) 2002-2010 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -171,9 +171,14 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	py = buf[4];
 	pz = buf[5];
 
+	/* According to Diab, the rays in the saosac file are projected to
+	 * the its best focus position at 1.49 keV.  This position should
+	 * correspond to the origin of the marx system.
+	 */
+	/* Ummm...  I am not so sure about the coordinate system. */
 	t = -x / px;
 	
-	at->x.x = _Marx_HRMA_Cap_Position;
+	at->x.x = _Marx_HRMA_Cap_Position - 0.016750;
 	at->x.y = y = buf[1] + py * t;
 	at->x.z = z = buf[2] + pz * t;
 
