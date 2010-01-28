@@ -15,7 +15,7 @@ TOP_FILES = README FORMAT.TXT marxcaldb.par
 SRC_FILES = Makefile bdat2tbl.c tbl2bdat.c
 OBS_FILES = acis_i_obs.par acis_s_obs.par hrc_i_obs.par hrc_s_obs.par
 PIXLIB_FILES = pix_corner_lsi.par pix_sim_table_flight.par
-ACIS_FILES = README aciscontam.dat
+ACIS_FILES = README
 EA_MIRROR_FILES = README Ae_s1346.dat Mirror_EE.bin
 
 GRATING_FILES = README optical-constants.dat optical-constants.xray \

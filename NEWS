@@ -1,3 +1,15 @@
+What's NEW for marx 4.5.0?
+
+* The MARX ACIS spatial contamination model has been updated to be
+  consistent with that of the latest Chandra CALDB (specifically,
+  acisD1999-08-13contamN0005.fits).
+
+* If the marx.par parameter NumRays is set to a negative value, then
+  the simulation will continue until at least |NumRays| photons have
+  been detected.
+  
+* Misc bug fixes.  See the ChangeLog files for details.
+
 What's NEW for marx 4.4.0?
 
 * Vignetting by the HRMA support structs has been added.

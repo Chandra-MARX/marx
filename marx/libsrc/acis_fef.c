@@ -80,12 +80,15 @@
 #define NUM_REGIONS (1024/MIN_REGION_SIZE)
 #define FEF_EXTNAME "FUNCTION"
 
+#define FIRST_CHAN 1
+
 typedef struct
 {
    float amp;
    float center;
    float sigma;
    float cum_area;
+   int use_tail_dist;
 }
 Gauss_Parm_Type;
 
@@ -418,15 +421,41 @@ static int compute_pha_with_pos_amps (Gauss_Parm_Type *gaussians, unsigned int n
 		  continue;
 	       }
 	     
-	     count = 0;
-	     do
+	     if (g->use_tail_dist == 0)
 	       {
-		  pha = g->center + g->sigma * JDMgaussian_random ();
-		  count++; 
+		  count = 0;
+		  do
+		    {
+		       pha = g->center + g->sigma * JDMgaussian_random ();
+		       count++; 
+		    }
+		  while ((pha < 0) && (count < 100));
 	       }
-	     while ((pha < 0.0) && (count < 100));
-	     if (pha < 0.0)
-	       break;
+	     else
+	       {
+		  /* The algorithm here was adapted from the GNU Scientific Library */
+		  double u, v, x;
+		  double s = (0 - g->center)/g->sigma;
+
+		  do
+		    {
+		       u = JDMrandom ();
+		       do
+			 {
+			    v = JDMrandom();
+			 }
+		       while (v == 0.0);
+		       x = sqrt (s * s - 2 * log (v));
+		    }
+		  while (x * u > s);
+		  pha = g->center + x * g->sigma;
+	       }
+	     
+	     if (pha < 0)
+	       {
+		  fprintf (stderr, "Failed to find a pha value\n");
+		  break;
+	       }
 
 	     *phap = pha;
 	     return 0;
@@ -494,14 +523,15 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
 
 	area1 = gaussian_integral (0, MY_INFINITY, g);
 	area2 = gaussian_integral (-MY_INFINITY, 0, g);
-	
+
+	g->use_tail_dist = 0;
+
 	if (area2 > area1)
 	  {
 	     double ratio = area1/area2;
-	     if (ratio < 1e-5)
-	       area1 = 0;
+	     if (ratio < 0.1)
+	       g->use_tail_dist = 1;
 	  }
-
 	if (area1 >= 0)
 	  total_pos_area += area1;
 	else
@@ -527,7 +557,10 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
    g = gaussians;
    if (total_pos_area > 0) while (g < gmax)
      {
-	g->amp /= total_pos_area;
+	/* Since we interpolate over pairs of gaussians, do not normalize 
+	 * each member of the pair separately.
+	 */
+	/* g->amp /= total_pos_area; */
 	g->cum_area /= total_pos_area;
 	g++;
      }
@@ -621,6 +654,7 @@ static int process_region_rows (Row_Type *r, unsigned int num_energies,
 	     g->amp = g1->amp;
 	     g->center = g1->center;
 	     g->sigma = g1->sigma;
+	     g->use_tail_dist = 0;
 	     g++;
 	     g1++;
 	  }
@@ -874,6 +908,8 @@ static Fef_Type *find_fef (int ccd_id, float x, float y)
    Fef_Map_Type *m;
    Fef_Type *f;
 
+   /* x=308; y=494; ccd_id=7; */
+
    i = (unsigned int) (x / MIN_REGION_SIZE);
    j = (unsigned int) (y / MIN_REGION_SIZE);
    
@@ -939,9 +975,23 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
    
    for (i = 0; i < num_gaussians; i++)
      {
+	double v;
 	Gaussians[i].center = g0->center + t * (g1->center - g0->center);
-	Gaussians[i].sigma = g0->sigma + t * (g1->sigma - g0->sigma);
-	Gaussians[i].amp = g0->amp + t * (g1->amp - g0->amp);
+	v = g0->sigma + t * (g1->sigma - g0->sigma);
+	if (v <= 0.0)
+	  {
+	     Gaussians[i].sigma = 0.0;
+	     Gaussians[i].amp = 0.0;
+	  }
+	else
+	  {
+	     Gaussians[i].sigma = v;
+	     v = g0->amp + t * (g1->amp - g0->amp);
+	     if ((v < 0.0) && ((g1->amp > 0.0) || (g0->amp > 0.0)))
+	       v = 0.0;
+	     Gaussians[i].amp = v;
+	  }
+
 	g0++;
 	g1++;
      }
@@ -964,11 +1014,31 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
    
    if (status == -1)
      return -1;
-   
-   *pip = JDMinterpolate_f (pha, f->channels, f->energies, f->num_energies);
-   if (*pip < 0.0)
-     *pip = 0.0;
+
+   /* At this point, pha is real-valued.  Now convert it to an integer.
+    * The first pha bin has a PHA of 1.  The convention (which I do not favor)
+    * is to regard the center of the bin as having a value of 1.0, with the
+    * left edge at 0.5.  Hence, if the pha is written as an integer (ipha) 
+    * plus a fraction f, then pha=ipha+f.  If 0 < 0.5 < f, then the desired
+    * integer is ipha.  However, if (0.5<=f<1), then the desired value is
+    * ipha+1.  
+    *
+    * So, it would seem that we want *phap = (short)(pha+0.5).  However this
+    * leads to a bin-shift when comparing to mkrmf.  Better agreement is 
+    * obtained using a bin defined by ipha <= pha < ipha+1.
+    */
    *phap = (short) pha;
+
+   /* The convention is that the first PHA bin is at ipha=1.  We want to 
+    * randomize within the bin to compute energy value.  I feel that this 
+    * calculation should go into marx2fits, but we do it here so that the 
+    * marx output files can be used.
+    */
+   pha = *phap - JDMrandom();
+
+   *pip = JDMinterpolate_f (pha, f->channels, f->energies, f->num_energies);
+   if (*pip < 0)
+     return -1;
    
    return 0;
 }

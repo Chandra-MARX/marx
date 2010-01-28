@@ -4,4 +4,4 @@ After marx has been installed, its documentation may be found under
 $prefix/share/doc/marx/, where $prefix represents the value of the
 prefix option given to the configure script.
 
-The marx web page is at <http://space.mit.edu/asc/marx/>.
+The marx web page is at <http://space.mit.edu/cxc/marx/>.

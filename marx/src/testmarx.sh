@@ -2,19 +2,19 @@
 #set -v
 MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
-use_valgrind=0
+use_valgrind=1
 
 #bindir=/tmp/marxroot/bin
-bindir=./${ARCH}objs
+#bindir=./${ARCH}objs
 #bindir=/nfs/cxc/a1/i686/opt/packages/marx-4.3.0/bin
-#bindir=$HOME/sys/linux/test/bin
+bindir=$HOME/sys/linux/opt/marx4.5/bin
 
 output_dir="/tmp/marxout"
 mkdir $output_dir
 mkdir $output_dir/uparm
 valgrind_dir=$output_dir/valgrind
 mkdir $valgrind_dir
-valgrind="valgrind --tool=memcheck --leak-check=yes --error-limit=no --num-callers=25 --log-file=$valgrind_dir"
+valgrind="valgrind --tool=memcheck --leak-check=yes --error-limit=no --num-callers=25 --log-file=$valgrind_dir/%q{VGOUTPUT}"
 
 PFILES=$output_dir/uparm
 
@@ -26,19 +26,6 @@ marx="$bindir/marx NumRays=1000 dNumRays=200 ExposureTime=0 DitherModel=INTERNAL
 marx2fits="$bindir/marx2fits"
 marxasp="$bindir/marxasp"
 marxpileup="$bindir/marxpileup"
-
-if [ "$use_valgrind" = "1" ]
-then
-  valgrindmarx="$valgrind/marx"
-  valgrindmarx2fits="$valgrind/marx2fits"
-  valgrindmarxasp="$valgrind/marxasp"
-  valgrindpileup="$valgrind/marxpileup"
-else
-  valgrindmarx=""
-  valgrindmarx2fits=""
-  valgrindmarxasp=""
-  valgrindpileup=""
-fi
 
 #purify="./solarisobjs/purify.log"
 
@@ -52,21 +39,25 @@ do
    do
       for x in yes no
       do
-         #$valgrindmarx $marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
-         gdb --args $marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
-	 exit 1
+         export VGOUTPUT="marx-$count.log"
+         $valgrind $marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
+         #$marx OutputDir=$output_dir/marx$count DetectorType=$det GratingType=$grat UseGratingEffFiles=$x
 	 if [ "$?" != "0" ]
 	 then
 	    if [ $use_valgrind = 0 ]; then exit 1; fi
 	 fi
 #	 /bin/cp $purify $output_dir/marx$count/marx.purify
-	 $valgrindmarx2fits $marx2fits $output_dir/marx$count $output_dir/marx$count/events.fits
+
+         export VGOUTPUT="marx2fits-$count.log"
+	 $valgrind $marx2fits $output_dir/marx$count $output_dir/marx$count/events.fits
 	 if [ "$?" != "0" ]
 	 then
 	    if [ $use_valgrind = 0 ]; then exit 1; fi
 	 fi
 #	 /bin/cp $purify $output_dir/marx$count/marx2fits.purify
-	 $valgrindmarxasp $marxasp MarxDir=$output_dir/marx$count OutputFile=$output_dir/marx$count/pcad.fits
+
+         export VGOUTPUT="marxasp-$count.log"
+	 $valgrind $marxasp MarxDir=$output_dir/marx$count OutputFile=$output_dir/marx$count/pcad.fits
 	 if [ "$?" != "0" ]
 	 then
 	    if [ $use_valgrind = 0 ]; then exit 1; fi
@@ -77,7 +68,9 @@ do
    done
 done
 
-$valgrindpileup $marxpileup MarxOutputDir="$output_dir"/marx1 Verbose=1
-$valgrindmarx2fits $marx2fits --pileup "$output_dir"/marx1/pileup "$output_dir"/marx1/pileup.fits
+export VGOUTPUT="marxpileup.log"
+$valgrind $marxpileup MarxOutputDir="$output_dir"/marx1 Verbose=1
+export VGOUTPUT="marx2fits-pileup.log"
+$valgrind $marx2fits --pileup "$output_dir"/marx1/pileup "$output_dir"/marx1/pileup.fits
 
 exit 0

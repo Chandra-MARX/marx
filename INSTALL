@@ -1,6 +1,7 @@
 -*- text -*-
 
-MARX Installation Notes.
+MARX Installation Notes.  For details, see
+<http://space.mit.edu/cxc/marx/install.html>.
 
 Before building marx, you need to decide where you want to install it.
 A good choice for a multi-user system is under /usr/local/.  If you
