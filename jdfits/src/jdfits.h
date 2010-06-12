@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2002 MIT Center For Space Research
+    Copyright (C) 2002-2010 MIT Center For Space Research
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include <time.h>
 #include <sys/types.h>		       /* off_t */
 
-#define JDFITS_VERSION 165	       /* 1.63 */
+#define JDFITS_VERSION 166	       /* 1.66 */
 
 #ifndef HAS_BASIC_TYPEDEFS_DEFINED
 # if defined(__alpha__) || defined(__ALPHA__) || defined(__alpha)

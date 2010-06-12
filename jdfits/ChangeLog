@@ -1,3 +1,10 @@
+2010-6-12  John E. Davis  <davis@space.mit.edu>
+
+	* src/jdfits.h (JDFITS_VERSION): Bumped to 166
+
+	* src/fitsfmt.c (jdfits_ffmt_to_cfmt): Added support for 'z'
+	  (hex) format.
+
 2008-6-18  John E. Davis  <davis@space.mit.edu>
 
 	* src/jdfits.h (JDFITS_VERSION): bumped to 165

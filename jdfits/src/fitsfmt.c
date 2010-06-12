@@ -32,7 +32,7 @@
 int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
 {
    char ch, *p, fmt_type;
-   char wstr[16], pstr[16], *s;
+   char wstr[512], pstr[512], *s;
    char *smax;
 
    /* skip whitespace */
@@ -107,6 +107,16 @@ int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
 	  break;
 	  
        case 'z':		       /* hex */
+	 cfmt--;
+	 *cfmt++ = '0';
+	 *cfmt++ = 'x';
+	 *cfmt++ = '%';
+	 *cfmt++ = '0';
+	 s = wstr;
+	 while ((ch = *s++) != 0) *cfmt++ = ch;
+	 *cfmt++ = 'X';
+	 break;
+
        case 'o':		       /* octal */
        default:
 	 jdfits_error ("jdfits_ffmt_to_cfmt: Format type '%c' not implemented.", fmt_type);
