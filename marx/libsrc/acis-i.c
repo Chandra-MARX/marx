@@ -48,7 +48,7 @@ typedef struct
 }
 Detector_Type;
 
-static Marx_Detector_Geometry_Type *ACIS_I_Geom;
+static Marx_Detector_Geometry_Type *ACIS_I_Chips;
 static _Marx_Acis_Chip_Type Acis_CCDS [_MARX_NUM_ACIS_I_CHIPS];
 
 #if MARX_HAS_ACIS_STREAK
@@ -131,7 +131,7 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	_marx_transform_ray (&at->x, &at->p, &_Marx_Det_XForm_Matrix);
 	
 	d = _marx_intersect_with_detector (at->x, at->p,
-					   ACIS_I_Geom, _MARX_NUM_ACIS_I_CHIPS,
+					   ACIS_I_Chips,
 					   &at->x, &dx, &dy);
 	if (d == NULL)
 	  {
@@ -144,7 +144,7 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->y_pixel = dx / d->x_pixel_size;
 	     at->z_pixel = dy / d->y_pixel_size;
 	     
-	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d - ACIS_I_Geom)], at))
+	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d->id)], at))
 	       {
 #if MARX_HAS_ACIS_STREAK
 		  (void) _marx_acis_apply_streak (tstart, at, d);
@@ -319,7 +319,7 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
    if (NULL == (acis_i = marx_get_detector_info ("ACIS-I")))
      return -1;
 
-   ACIS_I_Geom = acis_i->geom;
+   ACIS_I_Chips = acis_i->facet_list;
 
 #if MARX_HAS_ACIS_GAIN_MAP
    if (-1 == _marx_init_acis_i_gain_map (p))

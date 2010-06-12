@@ -793,9 +793,9 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
       0,			       /* column_number */
-      read_byte_to_int16,	       /* compute_value */
+      read_int16,	       /* compute_value */
       write_int16,		       /* write_value */
-      open_marx_byte_file,	       /* open */
+      open_marx_int16_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
       0,			       /* ddt_min_max_type */
@@ -2357,13 +2357,13 @@ static int get_marx_pfile_info (void) /*{{{*/
 	return -1;
      }
 #if 1
-   Sim_X = DetOffset_X + The_Detector->stf_stt_offset.x;
-   Sim_Y = DetOffset_Y + The_Detector->stf_stt_offset.y;
-   Sim_Z = DetOffset_Z + The_Detector->stf_stt_offset.z;
+   Sim_X = DetOffset_X + The_Detector->aimpoint_offset.x;
+   Sim_Y = DetOffset_Y + The_Detector->aimpoint_offset.y;
+   Sim_Z = DetOffset_Z + The_Detector->aimpoint_offset.z;
 #else
-   Sim_X = -DetOffset_X + The_Detector->stf_stt_offset.x;
-   Sim_Y = -DetOffset_Y + The_Detector->stf_stt_offset.y;
-   Sim_Z = -DetOffset_Z + The_Detector->stf_stt_offset.z;
+   Sim_X = -DetOffset_X + The_Detector->aimpoint_offset.x;
+   Sim_Y = -DetOffset_Y + The_Detector->aimpoint_offset.y;
+   Sim_Z = -DetOffset_Z + The_Detector->aimpoint_offset.z;
 #endif
    Instrum_Name = "ACIS";
 
@@ -3439,9 +3439,9 @@ static int open_detxy (Data_Def_Type *ddt)
    int num, i;
 
    (void) ddt;
-   First_Chip_Id = The_Detector->first_chip_id;
-   Last_Chip_Id = The_Detector->last_chip_id;
-   
+   First_Chip_Id = The_Detector->first_facet_id;
+   Last_Chip_Id = The_Detector->last_facet_id;
+
    num = Last_Chip_Id - First_Chip_Id + 1;
    if (num <= 0)
      {

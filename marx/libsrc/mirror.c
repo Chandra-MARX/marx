@@ -59,6 +59,8 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
      type = MARX_MIRROR_EA;
    else if (!strcmp (buf, "FLATFIELD"))
      type = MARX_MIRROR_FFIELD;
+   else if (!strcmp (buf, "IXO"))
+     type = MARX_MIRROR_IXO;
    else
      {
 	marx_error ("MirrorType %s not supported.", buf);
@@ -79,6 +81,11 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 
       case MARX_MIRROR_FFIELD:
 	if (-1 == _marx_ff_mirror_init (pf))
+	  type = -1;
+	break;
+
+      case MARX_MIRROR_IXO:
+	if (-1 == _marx_ixo_mirror_init (pf))
 	  type = -1;
 	break;
      }
@@ -109,6 +116,10 @@ int marx_mirror_reflect (Marx_Photon_Type *p, int verbose) /*{{{*/
       case MARX_MIRROR_FFIELD:
 	if (verbose) marx_message ("Flat Fielding Rays\n");
 	return _marx_ff_mirror_reflect (p);
+
+      case MARX_MIRROR_IXO:
+	if (verbose) marx_message ("Reflecting from IXO\n");
+	return _marx_ixo_mirror_reflect (p);
      }
    
    marx_error ("Mirror not initialized.");

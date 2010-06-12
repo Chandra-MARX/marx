@@ -1,26 +1,4 @@
 /* -*- mode: C; mode: fold; -*- */
-/*
-    This file is part of MARX
-
-    Copyright (C) 2002-2010 Massachusetts Institute of Technology
-
-    This software was developed by the MIT Center for Space Research
-    under contract SV1-61010 from the Smithsonian Institution.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 #include "config.h"
 #include "marx-feat.h"
 
@@ -48,7 +26,7 @@
 
 /*}}}*/
 
-/*{{{ HRMA_Type structure and initialization */
+/*{{{ Wolter1_Type structure and initialization */
 
 typedef struct
 {
@@ -76,22 +54,19 @@ typedef struct
    double xoffset;		       /* tweak to Cap_Position to shift focus */
    double p_blur;
    double h_blur;
-#if MARX_HAS_WFOLD
-   double h_scat_factor;
-   double p_scat_factor;
-#endif
+
    /* These are computed */
    /* The equation of the conic is rearranged in form
     * x^2 + y^2 + z^2 = a x^2 + b x + c
     * (0,0,0) is at the center of the conic.  This is the origin of the OSAC 
     * coordinate system.
     */
-   double conic_a_p;		       /* 1-osac_p_p  ;was: osac_r_p ^2 */
+   double conic_a_p;		       /* osac_r_p ^2 */
    double conic_b_p;		       /* -2.0 * osac_k_p */
-   double conic_c_p;		       /* osac_r_p^2  ;was: 1.0 - osac_p_p */
-   double conic_a_h;		       /* 1-osac_p_h  ;was: osac_r_h ^2 */
+   double conic_c_p;		       /* 1.0 - osac_p_p */
+   double conic_a_h;		       /* osac_r_h ^2 */
    double conic_b_h;		       /* -2.0 * osac_k_h */
-   double conic_c_h;		       /* osac_r_h^2  ;was: 1.0 - osac_p_h */
+   double conic_c_h;		       /* 1.0 - osac_p_h */
    double conic_xmin_h;		       /* -length_h / 2 */
    double conic_xmax_h;		       /* +length_h / 2 */
    double conic_xmin_p;		       /* -length_p / 2 */
@@ -109,17 +84,6 @@ typedef struct
    unsigned int shutter_bitmap;
    unsigned int num_open_shutters;
 
-   /* These are the energy dependent correction factors used to match the 
-    * marx hrma eff-area to the caldb values.
-    */
-   float *correction_energies;
-   float *correction_factors;
-   unsigned int num_correction_factors;
-
-#if MARX_HAS_WFOLD
-   Marx_WFold_Table_Type *p_wfold_table;
-   Marx_WFold_Table_Type *h_wfold_table;
-#endif
 #if MARX_HAS_HRMA_PITCH_YAW
    JDM_3Matrix_Type fwd_matrix_p;
    JDM_3Matrix_Type bwd_matrix_p;
@@ -127,165 +91,48 @@ typedef struct
    JDM_3Matrix_Type bwd_matrix_h;
 #endif
 }
-HRMA_Type;
+Wolter1_Type;
 
-static HRMA_Type HRMA_Mirrors [MARX_NUM_MIRRORS] =
+typedef struct 
 {
-     {
-	1,
-	842.2150,		       /* length_p */
-	842.1920,		       /* length_h */
-	-426.5761,		       /* osac_z0_p */
-	481.0146,		       /* osac_z0_h */
-	0.2151,			       /* osac_y0_p */
-	-0.2060,		       /* osac_y0_h */
-	0.1239,			       /* osac_x0_p */
-	-0.1154,		       /* osac_x0_h */
-	0.0,			       /* osac_p_p */
-	-1.7797716637950739e-03,       /* osac_p_h */
-	-8.9333113530131421E+00,       /* osac_k_p */
-	-26.0506034413416841,	       /* osac_k_h */
-	606.86080963697918,	       /* osac_r_p */
-	579.89015840093919,	       /* osac_r_h (rho0) */
-	/* These come from table 6 of "Focus and Alignment of AXAF Optics"
-	 * by Gaetz, et. al.
-	 */
-	0.0,			       /* osac_az_p = */
-	2.4194219,		       /* osac_az_h = -tilt_y XRFC */
-	0.0,			       /* osac_el_p */
-	4.4454479		       /* osac_el_h = -tilt_z XRCF */
-     },
-     {
-	3,
-	842.2080,		       /* length_p */
-	842.1970,		       /* length_h */
-	-436.7098,		       /* osac_z0_p */
-	480.9282,		       /* osac_z0_h */
-	0.2437,			       /* osac_y0_p */
-	-0.2345,		       /* osac_y0_h */
-	0.08675,		       /* osac_x0_p */
-	-0.08365,		       /* osac_x0_h */
-	0.0,			       /* osac_p_p */
-	-1.1532395834759916E-03,       /* osac_p_h */
-	-5.7939624154424676E+00,       /* osac_k_p */
-	-1.6875942397594130E+01,       /* osac_k_h */
-	4.8846244215611011E+02,	       /* osac_r_p */
-	4.6664379784205374E+02,	       /* osac_r_h */
-	0.0,			       /* osac_az_p */
-	1.8542174,		       /* osac_az_h */
-	0.0,			       /* osac_el_p */
-	4.9943249		       /* osac_el_h */
-     },
-     {
-	4,
-	842.2080,		       /* length_p */
-	842.2250,		       /* length_h */
-	-440.3572,		       /* osac_z0_p */
-	480.8279,		       /* osac_z0_h */
-	0.2168,			       /* osac_y0_p */
-	-0.2065,		       /* osac_y0_h */
-	0.08634,		       /* osac_x0_p */
-	-0.08386,		       /* osac_x0_h */
-	0.0,			       /* osac_p_p */
-	-8.9864417477996457E-04,       /* osac_p_h */
-	-4.5165799273846270E+00,       /* osac_k_p */
-	-1.3150318066441841E+01,       /* osac_k_h */
-	4.3126225933154404E+02,	       /* osac_r_p */
-	4.1191935912458598E+02,	       /* osac_r_h */
-	0.0,			       /* osac_az_p */
-	1.8468078,		       /* osac_az_h */
-	0.0,			       /* osac_el_p */
-	4.4350269		       /* osac_el_h */
-     },
-     {
-	6,
-	842.2090,		       /* length_p */
-	842.2000,		       /* length_h */
-	-445.0821,		       /* osac_z0_p */
-	479.2152,		       /* osac_z0_h */
-	0.2245,			       /* osac_y0_p */
-	-0.2067,		       /* osac_y0_h */
-	0.08625,		       /* osac_x0_p */
-	-0.1096,		       /* osac_x0_h */
-	0.0,			       /* osac_p_p */
-	-4.9625995845653374E-04,       /* osac_p_h */
-	-2.4957050467401789E+00,       /* osac_k_p */
-	-7.2620248152618760E+00,       /* osac_k_h */
-	3.2056977725634789E+02,	       /* osac_r_p */
-	3.0609851668776219E+02,	       /* osac_r_h */
-	0.0,			       /* osac_az_p */
-	2.3720568,		       /* osac_az_h */
-	0.0,			       /* osac_el_p */
-	4.4891913		       /* osac_el_h */
-     }
-};
+   unsigned int num_shells;
+   Wolter1_Type *shell_info;
+}
+IXO_Mirror_Type;
 
+static IXO_Mirror_Type *IXO_Mirrors;
 
 /*}}}*/
 
 /*{{{ Static variables and HRMA Parms */
 
-static char *HRMA_Opt_File;
+static char *IXO_Opt_File;
 
-static double HRMA_Vignetting_Factor = 0.9;
+static double IXO_Vignetting_Factor = 0.9;
+static double IXO_Cap_Position = 20000.0;    /* mm */
 
-double _Marx_HRMA_Cap_Position = 10079.5;
-
-static int Use_Scale_Factors = 1;
-
-static char *Mirror_Shutters [MARX_NUM_MIRRORS];
-#if MARX_HAS_WFOLD
-static int Use_Wfold_Tables = 0;
-#endif
-static int Use_Blur_Factors = 1;
 static char *Geometry_File;
-static int HRMA_Is_Ideal = 0;
+static int Mirror_Is_Ideal = 0;
+static int Use_Blur_Factors = 1;
+static double IXO_Mirror_Blur = 0.0;
+static double Az_Blur_Sigma = 0.0;
+static double El_Blur_Sigma = 0.0;
+static double Lateral_Disp_Blur_Sigma = 0;
+static double Defocus_Blur_Sigma = 0;
 
-#if MARX_HRMA_HAS_STRUTS
-static int HRMA_Use_Struts = 1;
-#endif
-static Param_Table_Type HRMA_Parm_Table [] =
+static Param_Table_Type IXOMirror_Parm_Table [] =
 {
-   {"HRMAOptConst",	PF_FILE_TYPE,		&HRMA_Opt_File},
-   {"HRMAVig",		PF_REAL_TYPE,		&HRMA_Vignetting_Factor},
-   {"HRMA_Cap_X",	PF_REAL_TYPE,		&_Marx_HRMA_Cap_Position},
-   {"Shutters1", 	PF_STRING_TYPE,		&Mirror_Shutters[0]},
-   {"Shutters3", 	PF_STRING_TYPE,		&Mirror_Shutters[1]},
-   {"Shutters4", 	PF_STRING_TYPE,		&Mirror_Shutters[2]},
-   {"Shutters6", 	PF_STRING_TYPE,		&Mirror_Shutters[3]},
-   {"HRMA_P1H1_XOffset",PF_REAL_TYPE,		&HRMA_Mirrors[0].xoffset},
-   {"HRMA_P3H3_XOffset",PF_REAL_TYPE,		&HRMA_Mirrors[1].xoffset},
-   {"HRMA_P4H4_XOffset",PF_REAL_TYPE,		&HRMA_Mirrors[2].xoffset},
-   {"HRMA_P6H6_XOffset",PF_REAL_TYPE,		&HRMA_Mirrors[3].xoffset},
-   {"P1Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[0].p_blur},
-   {"H1Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[0].h_blur},
-   {"P3Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[1].p_blur},
-   {"H3Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[1].h_blur},
-   {"P4Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[2].p_blur},
-   {"H4Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[2].h_blur},
-   {"P6Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[3].p_blur},
-   {"H6Blur",		PF_REAL_TYPE,		&HRMA_Mirrors[3].h_blur},
-   {"HRMA_Use_Blur",	PF_BOOLEAN_TYPE,	&Use_Blur_Factors},
-   {"HRMA_Use_Scale_Factors",	PF_BOOLEAN_TYPE,	&Use_Scale_Factors},
-#if MARX_HAS_WFOLD
-   {"HRMA_Use_WFold",	PF_BOOLEAN_TYPE,	&Use_Wfold_Tables},
-   {"H1ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[0].h_scat_factor},
-   {"P1ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[0].p_scat_factor},
-   {"H3ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[1].h_scat_factor},
-   {"P3ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[1].p_scat_factor},
-   {"H4ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[2].h_scat_factor},
-   {"P4ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[2].p_scat_factor},
-   {"H6ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[3].h_scat_factor},
-   {"P6ScatFactor", 	PF_REAL_TYPE,		&HRMA_Mirrors[3].p_scat_factor},
-#endif
-   {"HRMA_Ideal",	PF_BOOLEAN_TYPE,	&HRMA_Is_Ideal},
-#if MARX_HRMA_HAS_STRUTS
-   {"HRMA_Use_Struts",	PF_BOOLEAN_TYPE,	&HRMA_Use_Struts},
-#endif
-	
-   {"HRMA_Geometry_File",PF_FILE_TYPE,		&Geometry_File},
-   
-	  
+   {"IXOMirrorOptConst",	PF_FILE_TYPE,		&IXO_Opt_File},
+   {"IXOMirrorVig",		PF_REAL_TYPE,		&IXO_Vignetting_Factor},
+   {"IXOMirror_Cap_X",		PF_REAL_TYPE,		&IXO_Cap_Position},
+   {"IXOMirror_Use_Blur",	PF_BOOLEAN_TYPE,	&Use_Blur_Factors},
+   {"IXOMirror_Blur",		PF_REAL_TYPE,		&IXO_Mirror_Blur},
+   {"IXOMirror_Ideal",		PF_BOOLEAN_TYPE,	&Mirror_Is_Ideal},
+   {"IXOMirror_Geometry_File",	PF_FILE_TYPE,		&Geometry_File},
+   {"IXOMirror_Az_Blur",	PF_REAL_TYPE,		&Az_Blur_Sigma},
+   {"IXOMirror_El_Blur",	PF_REAL_TYPE,		&El_Blur_Sigma},
+   {"IXOMirror_Lateral_Blur",	PF_REAL_TYPE,		&Lateral_Disp_Blur_Sigma},
+   {"IXOMirror_Defocus_Blur",	PF_REAL_TYPE,		&Defocus_Blur_Sigma},
    {NULL, 0, NULL}
 };
 
@@ -298,105 +145,31 @@ static unsigned int Num_Energies;
 
 /*}}}*/
 
-
-static int get_rdb_value (Marx_RDB_File_Type *rdb, int row,
-			  char *colname, double *value)
+static void deallocate_ixo_mirror (IXO_Mirror_Type *m)
 {
-   int c;
-   char *s;
-
-   c = marx_rdb_get_col (rdb, colname);
-   if (c == -1)
-     return -1;
-   
-   s = marx_rdb_get_value (rdb, (unsigned int) row, (unsigned int) c);
-   if (s == NULL)
-     return -1;
-   
-   if (1 != sscanf (s, "%lf", value))
-     {
-	marx_error ("Error parsing field %s as a double", value);
-	return -1;
-     }
-   
-   return 0;
+   if (m == NULL)
+     return;
+   if (m->shell_info == NULL)
+     marx_free ((char *) m->shell_info);
+   marx_free ((char *)m);
 }
 
-   
-
-static int read_hrma_geometry_file (char *file)
+static IXO_Mirror_Type *allocate_ixo_mirror (unsigned int num_shells)
 {
-   Marx_RDB_File_Type *rdb;
-   HRMA_Type *h, *hmax;
+   IXO_Mirror_Type *m;
 
-   marx_message ("\t%s\n", file);
-
-   if (NULL == (rdb = marx_open_rdb_file (file)))
-     return -1;
+   if (NULL == (m = (IXO_Mirror_Type *)marx_malloc (sizeof(IXO_Mirror_Type))))
+     return NULL;
    
-   h = HRMA_Mirrors;
-   hmax = HRMA_Mirrors + MARX_NUM_MIRRORS;
-   
-   while (h < hmax)
+   m->num_shells = num_shells;
+   if (NULL == (m->shell_info = (Wolter1_Type *)marx_calloc (num_shells, sizeof(Wolter1_Type))))
      {
-	int r;
-	char mirror[3];
-
-	/* Parabola */
-	sprintf (mirror, "p%u", h->mirror_number);
-	
-	r = marx_rdb_get_row (rdb, "mirror", mirror);
-	if (r == -1)
-	  {
-	     marx_close_rdb_file (rdb);
-	     return -1;
-	  }
-	
-	if ((-1 == get_rdb_value (rdb, r, "x0", &h->osac_x0_p))
-	    || (-1 == get_rdb_value (rdb, r, "y0", &h->osac_y0_p))
-	    || (-1 == get_rdb_value (rdb, r, "z0", &h->osac_z0_p))
-	    || (-1 == get_rdb_value (rdb, r, "p", &h->osac_p_p))
-	    || (-1 == get_rdb_value (rdb, r, "k", &h->osac_k_p))
-	    || (-1 == get_rdb_value (rdb, r, "rho0", &h->osac_r_p))
-	    || (-1 == get_rdb_value (rdb, r, "az_mis", &h->osac_az_p))
-	    || (-1 == get_rdb_value (rdb, r, "el_mis", &h->osac_el_p))
-	    || (-1 == get_rdb_value (rdb, r, "l", &h->length_p)))
-	  {
-	     marx_close_rdb_file (rdb);
-	     return -1;
-	  }
-
-	/* hyperbola */
-
-	sprintf (mirror, "h%u", h->mirror_number);
-
-	r = marx_rdb_get_row (rdb, "mirror", mirror);
-	if (r == -1)
-	  {
-	     marx_close_rdb_file (rdb);
-	     return -1;
-	  }
-
-	if ((-1 == get_rdb_value (rdb, r, "x0", &h->osac_x0_h))
-	    || (-1 == get_rdb_value (rdb, r, "y0", &h->osac_y0_h))
-	    || (-1 == get_rdb_value (rdb, r, "z0", &h->osac_z0_h))
-	    || (-1 == get_rdb_value (rdb, r, "p", &h->osac_p_h))
-	    || (-1 == get_rdb_value (rdb, r, "k", &h->osac_k_h))
-	    || (-1 == get_rdb_value (rdb, r, "rho0", &h->osac_r_h))
-	    || (-1 == get_rdb_value (rdb, r, "az_mis", &h->osac_az_h))
-	    || (-1 == get_rdb_value (rdb, r, "el_mis", &h->osac_el_h))
-	    || (-1 == get_rdb_value (rdb, r, "l", &h->length_h)))
-	  {
-	     marx_close_rdb_file (rdb);
-	     return -1;
-	  }
-	
-	h++;
+	marx_free ((char *)m);
+	return NULL;
      }
-   
-   marx_close_rdb_file (rdb);
-   return 0;
+   return m;
 }
+
 
 /*{{{ conic section routines */
 
@@ -499,10 +272,6 @@ static int compute_conic_intersection (double a, double b, double c,
 static int reflect_from_conic (double a, double b, double c,
 			       JDMVector_Type *x, JDMVector_Type *p, 
 			       double xmin, double xmax, 
-#if MARX_HAS_WFOLD
-			       Marx_WFold_Table_Type *wfold,
-			       double scattering_factor,
-#endif
 			       double blur,
 			       double energy, double beta, double delta,
 			       double correction_factor)
@@ -510,10 +279,7 @@ static int reflect_from_conic (double a, double b, double c,
    JDMVector_Type normal;
    double p_dot_n;
    double r, rfl;
-#if MARX_HAS_WFOLD
-   double sin_grazing;
-   double delta_grazing;
-#endif
+
    if (-1 == compute_conic_intersection (a, b, c,
 					 x, *p, &normal,
 					 xmin, xmax))
@@ -524,7 +290,7 @@ static int reflect_from_conic (double a, double b, double c,
 
    p_dot_n = JDMv_pdot_prod (p, &normal);
    
-   if (HRMA_Is_Ideal == 0)
+   if (Mirror_Is_Ideal == 0)
      {
 	r = JDMrandom ();
 	rfl = marx_reflectivity (fabs(p_dot_n), beta, delta);
@@ -535,23 +301,6 @@ static int reflect_from_conic (double a, double b, double c,
    /* If p is normaized, then this transformation will keep it normalized. */
    *p = JDMv_pax1_bx2 (1.0, p, -2.0 * p_dot_n, &normal);
 
-#if MARX_HAS_WFOLD
-   if (Use_Wfold_Tables == 0)
-     return 0;
-   
-   sin_grazing = -p_dot_n;
-   r = JDMrandom ();
-   delta_grazing = marx_wfold_table_interp (wfold, energy, sin_grazing, r);
-   delta_grazing *= scattering_factor;
-
-   if (delta_grazing > PI/4) return -1;
-   
-   if (JDMrandom () < 0.5) delta_grazing = -delta_grazing;
-
-   *p = JDMv_rotate_unit_vector (*p,
-				 JDMv_pcross_prod (p, &normal),
-				 delta_grazing);
-#endif
    return 0;
 }
 
@@ -562,15 +311,15 @@ static int reflect_from_conic (double a, double b, double c,
 
 static int get_shell_geometry (Param_File_Type *pf, int shell) /*{{{*/
 {
-   HRMA_Type *h;
+   Wolter1_Type *h;
    int id;
    double cap_pos;
 
    (void) pf;
-   h = HRMA_Mirrors + shell;
+   h = IXO_Mirrors->shell_info + shell;
    id = h->mirror_number;
 
-   cap_pos = _Marx_HRMA_Cap_Position + h->xoffset;
+   cap_pos = IXO_Cap_Position + h->xoffset;
 
    h->conic_c_p = h->osac_r_p * h->osac_r_p;
    h->conic_b_p = -2.0 * h->osac_k_p;
@@ -614,93 +363,26 @@ static int get_shell_geometry (Param_File_Type *pf, int shell) /*{{{*/
 }
 
 /*}}}*/
-#if MARX_HAS_WFOLD
-static Marx_WFold_Table_Type *get_fold_table (Param_File_Type *pf, /*{{{*/
-					      char *fmt, int id) 
-{
-   char pname[80];
-   char *file, filebuf[PF_MAX_LINE_LEN];
-   Marx_WFold_Table_Type *t;
-   
-   sprintf (pname, fmt, id);
-   if (-1 == pf_get_file (pf, pname, filebuf, sizeof (filebuf)))
-     return NULL;
 
-   if (NULL == (file = marx_make_data_file_name (filebuf)))
-     return NULL;
-
-   marx_message ("\t%s\n", file);
-   
-   t = marx_read_wfold_file (file);
-
-   marx_free (file);
-   
-   return t;
-}
-
-/*}}}*/
-
-static int get_shell_wfold_tables (Param_File_Type *pf, unsigned int shell) /*{{{*/
-{
-   HRMA_Type *h;
-   int id;
-   
-   h = HRMA_Mirrors + shell;
-   id = h->mirror_number;
-   
-   if (h->p_wfold_table != NULL)
-     {
-	marx_free_wfold_table (h->p_wfold_table);
-	h->p_wfold_table = NULL;
-     }
-
-   if (h->h_wfold_table != NULL)
-     {
-	marx_free_wfold_table (h->h_wfold_table);
-	h->h_wfold_table = NULL;
-     }
-   
-   if (NULL == (h->p_wfold_table = get_fold_table (pf, "WFold_P%d_File", id)))
-     return -1;
-   
-   if (NULL == (h->h_wfold_table = get_fold_table (pf, "WFold_H%d_File", id)))
-     {
-	marx_free_wfold_table (h->p_wfold_table);
-	h->p_wfold_table = NULL;
-	return -1;
-     }
-   
-   return 0;
-}
-
-/*}}}*/
-#endif				       /* HAS_WFOLD */
-
-static int init_hrma_shells (Param_File_Type *pf) /*{{{*/
+static int init_mirror_shells (Param_File_Type *pf) /*{{{*/
 {
    unsigned int i;
-   HRMA_Type *h;
+   Wolter1_Type *h, *shell_info;
    double total_area;
-   
+   unsigned int num_shells;
+
    /* Note: the area_fraction is really the cumulative area fraction. */
    
-#if MARX_HAS_WFOLD
-   if (Use_Wfold_Tables)
-     marx_message ("Reading scattering tables\n");
-#endif
-     
+   num_shells = IXO_Mirrors->num_shells;
+   shell_info = IXO_Mirrors->shell_info;
+   
    total_area = 0.0;
-   for (i = 0; i < MARX_NUM_MIRRORS; i++)
+   for (i = 0; i < num_shells; i++)
      {
 	if (-1 == get_shell_geometry (pf, i))
 	  return -1;
 
-	if (Use_Wfold_Tables)
-	  {
-	     if (-1 == get_shell_wfold_tables (pf, i))
-	       return -1;
-	  }
-	h = HRMA_Mirrors + i;
+	h = shell_info + i;
 	
 	/* For now use back of parabola as min radius and front as max */
 #if 1
@@ -717,19 +399,15 @@ static int init_hrma_shells (Param_File_Type *pf) /*{{{*/
 	 * of the conic.  Assume that the maximum off-axis angle of interest
 	 * is 40'.  Use: dr/length=tan(theta)
 	 */
-	h->min_radius -= h->length_p * tan (0.67 * PI/180);
+	/* h->min_radius -= h->length_p * tan (0.67 * PI/180); */
+	total_area += (h->max_radius - h->min_radius) * (h->max_radius + h->min_radius);
 
-	if (h->num_open_shutters)
-	  {
-	     total_area += (h->num_open_shutters / 4.0) *
-	       (h->max_radius - h->min_radius) * (h->max_radius + h->min_radius);
-	  }
 	h->area_fraction = total_area;
      }
    
    if (total_area <= 0.0)
      {
-	marx_error ("The mirror geometric area is 0.  Check shutters.");
+	marx_error ("The mirror geometric area <= 0.");
 	return -1;
      }
 
@@ -739,9 +417,9 @@ static int init_hrma_shells (Param_File_Type *pf) /*{{{*/
    Marx_Mirror_Geometric_Area = (total_area * PI) / 100.0;
    
    /* Now normalize the cumulative area fraction. */
-   for (i = 0; i < MARX_NUM_MIRRORS; i++) 
+   for (i = 0; i < num_shells; i++) 
      {
-	h = HRMA_Mirrors + i;
+	h = shell_info + i;
 	h->area_fraction = h->area_fraction / total_area;
      }
    return 0;
@@ -764,14 +442,14 @@ static void free_optical_constants (void)
 }
 
 
-static int read_hrma_opt_constants (void)
+static int read_opt_constants (void)
 {
    unsigned int nread;
    char *file;
    
    free_optical_constants ();
    
-   file = HRMA_Opt_File;
+   file = IXO_Opt_File;
    if ((file == NULL) || (*file == 0))
      return 0;
 
@@ -795,60 +473,16 @@ static int read_hrma_opt_constants (void)
    return 0;
 }
 
-static void free_correction_factors (HRMA_Type *h)
-{
-   marx_free ((char *) h->correction_factors);
-   marx_free ((char *) h->correction_energies);
-   h->correction_energies = NULL;
-   h->correction_factors = NULL;
-   h->num_correction_factors = 0;
-}
-
-static int read_hrma_correction_factors (void)
-{
-   char *file;
-   char filebuf[32];
-   HRMA_Type *h, *hmax;
-   
-   h = HRMA_Mirrors;
-   hmax = HRMA_Mirrors + MARX_NUM_MIRRORS;
-   
-   while (h < hmax)
-     {
-	free_correction_factors (h);
-
-	sprintf (filebuf, "hrma/corr_%d.dat", h->mirror_number);
-	if (NULL == (file = marx_make_data_file_name (filebuf)))
-	  return -1;
-
-	marx_message ("\t%s\n", file);
-   
-	if (-1 == marx_f_read_bdat (file, &h->num_correction_factors, 2, 
-				    &h->correction_energies, 
-				    &h->correction_factors))
-	  {
-	     marx_free (file);
-	     return -1;
-	  }
-	marx_free (file);
-
-	h++;
-     }
-   return 0;
-}
-
 /*}}}*/
-
-int _Marx_Gratings_Locked_To_Hrma = 0;
 
 #if MARX_HAS_HRMA_PITCH_YAW
 static int init_yaw_pitch (void)
 {
-   HRMA_Type *h, *hmax;
+   Wolter1_Type *h, *hmax;
 
-   h = HRMA_Mirrors;
-   hmax = HRMA_Mirrors + MARX_NUM_MIRRORS;
-   
+   h = IXO_Mirrors->shell_info;
+   hmax = h + IXO_Mirrors->num_shells;
+
    while (h < hmax)
      {
 	JDMVector_Type new_y_axis;
@@ -900,124 +534,35 @@ static int init_yaw_pitch (void)
 }
 #endif
 
-#if MARX_HRMA_HAS_STRUTS
-typedef struct
-{
-   double xpos;			       /* offset from cap */
-   double half_width;
-}
-HRMA_Strut_Type;
-
-#define NUM_PRECOLIMATOR_STRUTS	2
-static HRMA_Strut_Type Precolimator_Struts [NUM_PRECOLIMATOR_STRUTS] =
-{
-   {1492.060,	0.5*0.5*25.4},
-   {942.266,	0.5*0.5*25.4}	       /* FAP strut */
-};
-#define NUM_CAP_STRUTS	2
-static HRMA_Strut_Type Cap_Struts [NUM_CAP_STRUTS] =
-{
-   {0.5*1.965*25.4, 0.5*0.75*25.4},
-   {-0.5*1.965*25.4, 0.5*0.75*25.4}
-};
-
-#define NUM_POSTCOLIMATOR_STRUTS 2
-static HRMA_Strut_Type Postcolimator_Struts [NUM_POSTCOLIMATOR_STRUTS] =
-{
-   {-1050.353, 0.5*0.5*25.4},
-   {-1271.333, 0.5*0.5*25.4}
-};
-      
-static int intersects_struts (Marx_Photon_Attr_Type *at, HRMA_Strut_Type *s, unsigned int num)
-{
-   double theta = 30.0*(PI/180.0);
-   double cos_theta = cos(theta);
-   double sin_theta = sin(theta);
-   HRMA_Strut_Type *smax = s + num;
-   unsigned int i, num_rotations = 3;
-
-   while (s < smax)
-     {
-	double half_width = s->half_width;
-	double x, y, z;
-	double px, py, pz;
-	double t;
-
-	x = at->x.x; y = at->x.y; z = at->x.z;
-	px = at->p.x; py = at->p.y; pz = at->p.z;
-
-	t = (s->xpos + _Marx_HRMA_Cap_Position - x)/px;
-	y += py*t; z += pz*t;
-
-	for (i = 0; i < num_rotations; i++)
-	  {
-	     if (i != 0)
-	       {
-		  double tmp = cos_theta*y - sin_theta*z;
-		  z = sin_theta*y + cos_theta*z;
-		  y = tmp;
-	       }
-
-	     if (((-half_width < y) && (y < half_width))
-		 || ((-half_width < z) && (z < half_width)))
-	       {
-		  at->flags |= PHOTON_MIRROR_VBLOCKED;
-		  return 1;
-	       }
-	  }
-	s++;
-     }
-   return 0;
-}
-
-static int intersects_precolimator_struts (Marx_Photon_Attr_Type *at)
-{
-   return intersects_struts (at, Precolimator_Struts, NUM_PRECOLIMATOR_STRUTS);
-}
-static int intersects_cap_struts (Marx_Photon_Attr_Type *at)
-{
-   return intersects_struts (at, Cap_Struts, NUM_CAP_STRUTS);
-}
-static int intersects_postcolimator_struts (Marx_Photon_Attr_Type *at)
-{
-   return intersects_struts (at, Postcolimator_Struts, NUM_POSTCOLIMATOR_STRUTS);
-}
-#endif
-
-static int project_photon_to_hrma (Marx_Photon_Attr_Type *at, /*{{{*/
-				   double source_distance)
+static int project_photon_to_mirror (Marx_Photon_Attr_Type *at, /*{{{*/
+				     double source_distance)
 {
    double r;
    unsigned int i;
-   HRMA_Type *h;
+   Wolter1_Type *shell_info;
+   unsigned int num_shells;
    
+   num_shells = IXO_Mirrors->num_shells;
+   shell_info = IXO_Mirrors->shell_info;
+
+   /* FIXME: Use a lookup table!!! */
    while (1) 
      {
 	r = JDMrandom ();
-	for (i = 0; i < MARX_NUM_MIRRORS; i++)
+	for (i = 0; i < num_shells; i++)
 	  {
-	     h = HRMA_Mirrors + i;
-	     
+	     Wolter1_Type *h = shell_info + i;
+
 	     if (r < h->area_fraction)
 	       {
 		  double theta, radius;
-		  unsigned int bitmap, quad;
 
 		  at->mirror_shell = i;
 		  
 		  radius = h->min_radius 
 		    + (h->max_radius - h->min_radius) * JDMrandom ();
 		  
-		  bitmap = h->shutter_bitmap;
-   
-		  do
-		    {
-		       theta = JDMrandom ();
-		       quad = (unsigned int) (4.0 * theta);   /* 0, 1, 2, 3 */
-		    }
-		  while (0 == (bitmap & (1 << quad)));
-		  
-		  theta = (2.0 * PI) * (theta - 1.0 / 8.0);
+		  theta = (2.0 * PI) * JDMrandom();
 		  
 		  at->x.z = radius * cos (theta);
 		  at->x.y = radius * sin (theta);
@@ -1040,12 +585,6 @@ static int project_photon_to_hrma (Marx_Photon_Attr_Type *at, /*{{{*/
 		       at->p = JDMv_ax1_bx2 (1.0, at->x, source_distance, at->p);
 		       JDMv_normalize (&at->p);
 		    }
-
-#if MARX_HRMA_HAS_STRUTS
-		  if (HRMA_Use_Struts
-		      && (1 == intersects_precolimator_struts (at)))
-		    return -1;
-#endif
 		  return 0;
 	       }
 	  }
@@ -1097,51 +636,183 @@ static void blur_normal (JDMVector_Type *n, double blur, double energy) /*{{{*/
 
 /*}}}*/
 
-int _marx_hrma_mirror_init (Param_File_Type *p) /*{{{*/
+static int read_mirror_geometry_file (char *file)
 {
-   unsigned int j;
+   JDFits_Row_Type *r;
+   JDFits_Type *f;
+   unsigned int num_cols = 8;
+   static char *columns[8] =
+     {
+	"i:shell", "d:d", "d:e", "d:a", 
+	"d:zmin", "d:zmax", "d:h_zmin", "d:h_zmax"
+     };
+#define GEOM_COLUMN_shell	0
+#define GEOM_COLUMN_d		1
+#define GEOM_COLUMN_e		2
+#define GEOM_COLUMN_a		3
+#define GEOM_COLUMN_zmin	4
+#define GEOM_COLUMN_zmax	5
+#define GEOM_COLUMN_h_zmin	6
+#define GEOM_COLUMN_h_zmax	7
+
+   char *extname = "IXO_MIRROR_GEOM";
+   unsigned int i, num_rows;
+   Wolter1_Type *shell_info;
+   IXO_Mirror_Type *mirror;
+
+   if (IXO_Mirrors != NULL)
+     {
+	deallocate_ixo_mirror (IXO_Mirrors);
+	IXO_Mirrors = NULL;
+     }
+
+   marx_message ("Opening IXO Mirror Geometry fits file %s\n", file);
+   if (NULL == (f = jdfits_open_binary_table (file, extname)))
+     {
+	marx_error ("Unable to find a binary table called %s in %s\n", 
+		    extname, file);
+	return -1;
+     }
+
+   if (NULL == (r = jdfits_bintable_aopen_rows (f, num_cols, columns)))
+     {
+	marx_error ("Unable to open a %s as an IXO Mirror Geometry file\n", file);
+	jdfits_close_file (f);
+	return -1;
+     }
+   
+   num_rows = r->num_rows;
+   
+   if (NULL == (mirror = allocate_ixo_mirror (num_rows)))
+     goto return_error;
+   shell_info = mirror->shell_info;
+
+   for (i = 0; i < num_rows; i++)
+     {
+	JDFits_Col_Data_Type *c;
+	double d, e, a, zmin, zmax, h_zmin, h_zmax;
+	double z0;
+	int shell;
+
+	if (1 != jdfits_read_next_row (f, r))
+	  {
+	     marx_error ("Unexpected end of IXO Mirror Geom table %s", file);
+	     goto return_error;
+	  }
+	
+	c = r->col_data;
+	shell =c[GEOM_COLUMN_shell].data.i[0];
+	d = c[GEOM_COLUMN_d].data.d[0];
+	e = c[GEOM_COLUMN_e].data.d[0];
+	a = c[GEOM_COLUMN_a].data.d[0];
+	zmin = c[GEOM_COLUMN_zmin].data.d[0];
+	zmax = c[GEOM_COLUMN_zmax].data.d[0];
+	h_zmin = c[GEOM_COLUMN_h_zmin].data.d[0];
+	h_zmax = c[GEOM_COLUMN_h_zmax].data.d[0];
+	
+	shell_info->mirror_number = shell;
+	shell_info->length_p = zmax - zmin;
+	shell_info->length_h = h_zmax - h_zmin;
+	
+	/* For the paraboloid, The IXO mirror prescription uses:
+	 *   r^2 = (d+a+z)^2 - (a+z)^2
+	 * Where z is measured from the focus.
+	 * In contrast, SAOSAC uses
+	 *   r^2 = r0^2 + 2*k*z' - p*z'^2
+	 * where z' is measured from the body center of the optic and increases
+	 * towards the narrow end of the optic, i.e., to the focus.  Let
+	 * z0=(zmin+zmax)/2 in the IXO system, which corresponds to z'=0 in
+	 * the SAOSAC system.  Then z = z0 - z'.
+	 * ==> 
+	 *   r^2 = (d+a+z0-z')^2 - (a+z0-z')^2
+	 *       = d^2 + 2*d*(a+z0-z')
+	 *       = d^2 + 2*d*(a+z0) - 2*d*z'
+	 * ==> r0^2 = d*(d+2*(a+z0)), k = -d, p = 0
+	 */
+	z0 = 0.5*(zmin+zmax);
+	shell_info->osac_p_p = 0.0;
+	shell_info->osac_k_p = -d;
+	shell_info->osac_r_p = sqrt(d*(d+2.0*(a+z0)));
+	shell_info->osac_z0_p = -(z0 - IXO_Cap_Position);
+	shell_info->osac_x0_p = 0.0;
+	shell_info->osac_y0_p = 0.0;
+
+	/* For the hyperbolid, the IXO mirror prescription uses:
+	 *  r^2 = e^2*(d+z)^2 - z^2
+	 *      = e^2*(d+z0-z')^2 - (z0-z')^2
+	 *      = e^2*(d+z0)^2 - 2*e^2*(d+z0)*z' + e^2*z'^2 - (z0^2-2*z0*z'+z'^2)
+	 *      = e^2*(d+z0)^2 - z0^2 - 2*z'*(e^2*(d+z0)-z0) - (1-e^2)z'^2
+	 * ==> r0^2 = e^2*(d+z0)^2 - z0^2
+	 *          = e^2*(d^2 + 2*d*z0 + z0^2) - z0^2
+	 *          = e^2*d*(d+2*z0) + z0^2*(e^2-1)
+	 *        k = z0 - e^2*(d+z0) = z0*(1-e^2) - e^2*d
+	 *        p = (1-e^2)
+	 */
+	z0 = 0.5*(h_zmin + h_zmax);
+	shell_info->osac_p_h = (1.0+e)*(1.0-e);
+	shell_info->osac_k_h = z0*(1+e)*(1-e) - e*e*d;
+	shell_info->osac_r_h = sqrt(e*e*d*(d+2.0*z0) + z0*z0*(e-1)*(e+1));
+	shell_info->osac_z0_h = -(z0 - IXO_Cap_Position);
+	shell_info->osac_x0_h = 0.0;
+	shell_info->osac_y0_h = 0.0;
+	
+	shell_info->p_blur = IXO_Mirror_Blur;
+	shell_info->h_blur = IXO_Mirror_Blur;
+	shell_info->osac_az_p = Az_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_el_p = El_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_az_h = Az_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_el_h = El_Blur_Sigma * JDMgaussian_random();
+	
+	shell_info->osac_x0_p += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_y0_p += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_z0_p += Defocus_Blur_Sigma * JDMgaussian_random();
+
+	shell_info->osac_x0_h += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_y0_h += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_z0_h += Defocus_Blur_Sigma * JDMgaussian_random();
+	shell_info++;
+     }
+   jdfits_bintable_close_rows (r);
+   jdfits_close_file (f);
+   IXO_Mirrors = mirror;
+   return 0;
+
+return_error:
+   jdfits_bintable_close_rows (r);
+   jdfits_close_file (f);
+   deallocate_ixo_mirror (mirror);
+   return -1;
+}
+
+int _marx_ixo_mirror_init (Param_File_Type *p) /*{{{*/
+{
    char *file;
 
-   if (-1 == pf_get_parameters (p, HRMA_Parm_Table))
+   if (-1 == pf_get_parameters (p, IXOMirror_Parm_Table))
      return -1;
 
-   if (HRMA_Is_Ideal)
+   if (Mirror_Is_Ideal)
      {
-	Use_Blur_Factors = 0;
-	Use_Wfold_Tables = 0;
+	/* Use_Blur_Factors = 0; */
      }
 
    if (NULL == (file = marx_make_data_file_name (Geometry_File)))
      return -1;
 
-   if (-1 == read_hrma_geometry_file (file))
+   if (-1 == read_mirror_geometry_file (file))
      {
 	marx_free (file);
 	return -1;
      }
    marx_free (file);
    
-   for (j = 0; j < MARX_NUM_MIRRORS; j++)
+   if (Mirror_Is_Ideal == 0)
      {
-	if (-1 == _marx_parse_shutter_string (Mirror_Shutters[j], 
-					      &HRMA_Mirrors[j].shutter_bitmap, 
-					      &HRMA_Mirrors[j].num_open_shutters))
+	if (-1 == read_opt_constants ())
 	  return -1;
      }
 
-   if (HRMA_Is_Ideal == 0)
-     {
-	if (-1 == read_hrma_opt_constants ())
-	  return -1;
-	
-	if (Use_Scale_Factors)
-	  {
-	     if (-1 == read_hrma_correction_factors ())
-	       return -1;
-	  }
-     }
-
-   if (-1 == init_hrma_shells (p))
+   if (-1 == init_mirror_shells (p))
      return -1;
 
 #if MARX_HAS_HRMA_PITCH_YAW
@@ -1157,8 +828,7 @@ int _marx_hrma_mirror_init (Param_File_Type *p) /*{{{*/
 
 /*}}}*/
 
-
-int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
+int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 {
    Marx_Photon_Attr_Type *photon_attributes, *at;
    double *photon_energies;
@@ -1166,7 +836,8 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
    double last_energy;
    double beta = 0.0, delta = 0.0, correction_factor = 1.0;
    double source_distance;
-   HRMA_Type *last_h;
+   Wolter1_Type *last_h;
+   Wolter1_Type *shell_info;
 
    if (pt->history & MARX_MIRROR_SHELL_OK)
      return 0;			       /* been here already */
@@ -1180,12 +851,12 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
    /* First of all, apply vignetting factor to kill a certain percentage
     * of photons.
     */
-   if (HRMA_Is_Ideal == 0) 
+   if (Mirror_Is_Ideal == 0) 
      {
 	for (i = 0; i < n; i++)
 	  {
 	     at = photon_attributes + sorted_index[i];
-	     if (JDMrandom () > HRMA_Vignetting_Factor)
+	     if (JDMrandom () > IXO_Vignetting_Factor)
 	       {
 		  at->flags |= PHOTON_MIRROR_VBLOCKED;
 	       }
@@ -1201,19 +872,20 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 
    /* source_distance is in mm */
    source_distance = pt->source_distance;
-   
+
    last_energy = -1.0;
    last_h = NULL;
+   shell_info = IXO_Mirrors->shell_info;
    for (i = 0; i < n; i++)
      {
-	HRMA_Type *h;
+	Wolter1_Type *h;
 	double energy; 
 	int status;
 
 	at = photon_attributes + sorted_index[i];
-	project_photon_to_hrma (at, source_distance);
+	project_photon_to_mirror (at, source_distance);
 
-	h = HRMA_Mirrors + at->mirror_shell;
+	h = shell_info + at->mirror_shell;
 
 	/* The conic intersection/reflection routines are expressed in a 
 	 * coordinate system whose origin is at the center of the conic.  
@@ -1250,15 +922,6 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 		  beta = JDMinterpolate_f (energy, Energies, Betas, Num_Energies);
 		  delta= JDMinterpolate_f (energy, Energies, Deltas, Num_Energies);
 	       }
-	
-	     if (Use_Scale_Factors)
-	       {
-		  if ((energy != last_energy) || (h != last_h))
-		    {
-		       correction_factor = JDMinterpolate_f (energy, h->correction_energies, h->correction_factors, h->num_correction_factors);
-		       correction_factor = sqrt (correction_factor);
-		    }
-	       }
 	  }
 
 	last_energy = energy;
@@ -1267,10 +930,6 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	status = reflect_from_conic (h->conic_a_p, h->conic_b_p, h->conic_c_p,
 				     &at->x, &at->p, 
 				     h->conic_xmin_p, h->conic_xmax_p,
-#if MARX_HAS_WFOLD
-				     h->p_wfold_table,
-				     h->p_scat_factor,
-#endif
 				     h->p_blur,
 				     energy, beta, delta, correction_factor);
 	if (status == -1)
@@ -1296,11 +955,6 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	/* Now go back to our coordinate system and then into OSAC for hyperbola */
 	at->x = JDMv_diff (at->x, h->to_osac_p);
 
-#if MARX_HRMA_HAS_STRUTS
-	if (HRMA_Use_Struts
-	    && (1 == intersects_cap_struts (at)))
-	  continue;
-#endif
 	at->x = JDMv_sum (at->x, h->to_osac_h);
 
 #if MARX_HAS_HRMA_PITCH_YAW
@@ -1313,10 +967,6 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	if (0 != reflect_from_conic (h->conic_a_h, h->conic_b_h, h->conic_c_h, 
 				     &at->x, &at->p,
 				     h->conic_xmin_h, h->conic_xmax_h,
-#if MARX_HAS_WFOLD
-				     h->h_wfold_table,
-				     h->h_scat_factor,
-#endif
 				     h->h_blur,
 				     energy, beta, delta, correction_factor))
 	  {
@@ -1330,13 +980,6 @@ int _marx_hrma_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 #endif
 
 	at->x = JDMv_diff (at->x, h->to_osac_h);
-
-#if MARX_HRMA_HAS_STRUTS
-	if (HRMA_Use_Struts
-	    && (1 == intersects_postcolimator_struts (at)))
-	  continue;
-#endif
-
      }
    return 0;
 }

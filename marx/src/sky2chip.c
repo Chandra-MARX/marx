@@ -66,7 +66,7 @@ int main (int argc, char **argv)
    mnc.y = -cos (dec) * sin (ra);
    mnc.z = -sin (dec);
 
-   for (i = det->first_chip_id; i <= det->last_chip_id;	i++)
+   for (i = det->first_facet_id; i <= det->last_facet_id; i++)
      {
 	Marx_Chip_To_MNC_Type *chip_mnc;
 	double x, y;

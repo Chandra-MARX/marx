@@ -83,14 +83,14 @@ typedef struct
    
    float pi;
    short pulse_height;		       /* channel num */
-   SIGNED_CHAR ccd_num;		       /* ccd number photon hit */
-   
-   SIGNED_CHAR detector_region;      /* region of a (HRC) detector */
-   SIGNED_CHAR mirror_shell;	       /* describes which mirror the
+   unsigned int mirror_shell;	       /* describes which mirror the
 					* reflected off.  This same number
 					* determines which grating the photon
 					* will hit.
 					*/
+   SIGNED_CHAR ccd_num;		       /* ccd number photon hit */
+   
+   SIGNED_CHAR detector_region;      /* region of a (HRC) detector */
    SIGNED_CHAR order;			       /* diffraction order */
    SIGNED_CHAR support_orders[4];	       /* diffraction orders from support */
 
@@ -361,14 +361,18 @@ extern int marx_grating_diffract (Marx_Photon_Type *, int);
 #define MARX_DETECTOR_ACIS_S	3
 #define MARX_DETECTOR_ACIS_I	4
 #define MARX_DETECTOR_PLANE	5
+#define MARX_DETECTOR_IXO_CATGS_CCD	6
+#define MARX_DETECTOR_IXO_XMS	7
 #define MARX_MAX_DETECTORS	10
 
 #define MARX_MIRROR_EA		1
 #define MARX_MIRROR_HRMA	2
 #define MARX_MIRROR_FFIELD	3
+#define MARX_MIRROR_IXO		4
 
 #define MARX_GRATING_HETG	1
 #define MARX_GRATING_LETG	2
+#define MARX_GRATING_CATGS	3
 
 
 typedef struct 
@@ -389,64 +393,63 @@ extern int marx_mnc_to_fpc (Marx_FP_Coord_Type *,
 			    JDMVector_Type *,
 			    double *, double *);
 
-typedef struct
+typedef struct _Marx_Dectector_Geometry_Type
 {
+   struct _Marx_Dectector_Geometry_Type *next;
    int id;
-   /* The next few values are used to convert to tiled-detector coords */
-   float tdet_xoff;
-   float tdet_yoff;
-   
-   JDMVector_Type x_ll, x_lr, x_ur, x_ul;   /* corners */
+   double x_pixel_size, y_pixel_size;  /* mm */
+   unsigned int num_x_pixels;
+   unsigned int num_y_pixels;
 
    /* Pixel values at LL corner */
    double xpixel_offset;
    double ypixel_offset;
 
-   /* The rest are computed during run-time */
-   /* Note: xhat, yhat, normal form an orthonormal coord system. */
+   JDMVector_Type x_ll, x_lr, x_ur, x_ul;   /* corners */
+
+   /* xhat, yhat, normal form an orthonormal coord system. */
    JDMVector_Type normal;
    JDMVector_Type xhat, yhat;
-   double xlen, ylen;
-   double x_pixel_size, y_pixel_size;
+   double xlen, ylen;		       /* mm */
+
+   /* methods */
+   int (*pha_fun) (struct _Marx_Dectector_Geometry_Type *, double, double, double, float *);
+   int (*qe_fun) (struct _Marx_Dectector_Geometry_Type *, double en, double cx, double cy, double *qep);
+
+#ifdef MARX_DET_FACET_PRIVATE_DATA
+   MARX_DET_FACET_PRIVATE_DATA
+#endif
 } 
 Marx_Detector_Geometry_Type;
 
 typedef struct _Marx_Detector_Type
 {
    int detector_type;
-   unsigned int num_x_pixels;
-   unsigned int num_y_pixels;
-   double x_pixel_size;		       /* mm */
-   double y_pixel_size;		       /* mm */
+   int is_initialized;
 
    int (*tiled_pixel_map_fun) (struct _Marx_Detector_Type *,
 			       Marx_Detector_Geometry_Type *,
 			       int, unsigned int, unsigned int, 
 			       unsigned int *, unsigned int *);
-   int first_chip_id;
-   int last_chip_id;
-   unsigned int num_chips;
-   
-   /* The following quantities have units of mm */
-   
-   Marx_Detector_Geometry_Type *geom; 
-   /* After a call to marx_get_detector_info, this structure will be 
-    * expressed in the STF system at the nominal aimpoint.
-    */
 
-   JDMVector_Type stt_lsi_offset;
-   /* origin of LSI in STT system.  This comes from table 18 of JMcD's
-    * coordinate memo.
-    */
-
-   JDMVector_Type stf_stt_offset;      
-   /* origin of STT in STF at nominal aimpoint for the detector.  This
-    * value comes from table 19 of JMcD's coord memo.
-    */
+   /* linked list of facets */
+   Marx_Detector_Geometry_Type *facet_list;
+   int first_facet_id, last_facet_id;
 
    char *fp_system_name;	       /* focal plane system for detector */
    Marx_FP_Coord_Type *fp_coord_info;
-   int is_initialized;
+   
+   /* Detector specific offset (stf_stt_offset for chandra) */
+   JDMVector_Type aimpoint_offset;
+
+   int (*print_info)(struct _Marx_Detector_Type *, FILE *);
+
+   /* After a call to marx_get_detector_info, this structure will be 
+    * expressed in the STF system at the nominal aimpoint.
+    */
+#ifdef MARX_DETECTOR_TYPE_PRIVATE_DATA
+   MARX_DETECTOR_TYPE_PRIVATE_DATA
+#endif
 }
 Marx_Detector_Type;
 
@@ -574,6 +577,7 @@ extern int marx_apply_acis_rmf (int ccd_id, float x, float y,
 extern int marx_map_energy_to_acis_pha (int ccd_id, int x, int y, double energy, short *phap);
 extern int marx_init_acis_s_rmf (Param_File_Type *p);
 extern int marx_init_acis_i_rmf (Param_File_Type *p);
+extern int marx_init_ixo_ccd_rmf (Param_File_Type *p);
 
 extern int marx_set_time (double, double);
 

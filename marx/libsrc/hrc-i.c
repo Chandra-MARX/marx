@@ -46,9 +46,7 @@ static _Marx_HRC_QE_Type MCP_QEs [_MARX_NUM_HRC_I_CHIPS];
 static _Marx_HRC_QE_Type Filter_QEs [NUM_FILTER_REGIONS];
 
 static double HRC_I_Blur;
-static double X_Pixel_Size;
-static double Y_Pixel_Size;
-static Marx_Detector_Geometry_Type *HRC_I_Geom;
+static Marx_Detector_Geometry_Type *HRC_I_MCP;
 
 static Param_Table_Type Parm_Table [] =
 {
@@ -163,7 +161,7 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 			    &_Marx_Det_XForm_Matrix);
 
 	d = _marx_intersect_with_detector (at->x, at->p,
-					   HRC_I_Geom, _MARX_NUM_HRC_I_CHIPS,
+					   HRC_I_MCP,
 					   &at->x, &dx, &dy);
 	if (d == NULL)
 	  {
@@ -184,20 +182,6 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	     (void) _marx_hrc_i_compute_pixel (dx, dy, &dx, &dy);
 	     at->y_pixel = dx;
 	     at->z_pixel = dy;
-#if 0	     
-	     at->y_pixel = dx / X_Pixel_Size;
-	     at->z_pixel = dy / Y_Pixel_Size;
-	     
-	     /* Hack to make aimpoint agree with SMs email about 
-	      * latest best guess geometry of HRC-I.
-	      * Thu Nov  5 16:56:49 1998
-	      * 
-	      * Apparantly, the "true" value will not be known until it is
-	      * in flight.
-	      */
-	     at->y_pixel += (7669.5 - 7201.74);
-	     at->z_pixel += (7723.5 - 7201.74);
-#endif
 	  }
 	
 	/* Transform detected photon back to original system */
@@ -229,9 +213,7 @@ _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
    if (NULL == (hrc = marx_get_detector_info ("HRC-I")))
      return -1;
 
-   HRC_I_Geom = hrc->geom;
-   X_Pixel_Size = hrc->x_pixel_size;
-   Y_Pixel_Size = hrc->y_pixel_size;
+   HRC_I_MCP = hrc->facet_list;
 
    marx_message ("Reading binary HRC-I QE/UVIS data files:\n");
 

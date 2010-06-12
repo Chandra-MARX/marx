@@ -27,6 +27,7 @@
 #include <math.h>
 #include <jdmath.h>
 
+#include "hrc.h"
 #include "marx.h"
 #include "_marx.h"
 
@@ -110,19 +111,17 @@ static int setup_coordinate_xforms (void)
 }
 
 
-int _marx_patch_hrc_i_geom (Marx_Detector_Type *d)
+static int patch_hrc_i_geom (Marx_Detector_Type *d)
 {
    Marx_Detector_Geometry_Type *g;
 
    if (-1 == _marx_hrc_i_geom_init (NULL))
      return -1;
 
-   d->y_pixel_size = Y_Pixel_Size;
-   d->x_pixel_size = X_Pixel_Size;
-   d->first_chip_id = 0;
-   d->last_chip_id = 0;
+   /* d->y_pixel_size = Y_Pixel_Size; */
+   /* d->x_pixel_size = X_Pixel_Size; */
 
-   g = d->geom;
+   g = d->facet_list;
 
    g->id = 0;
 
@@ -203,5 +202,84 @@ int _marx_hrc_i_geom_init (Param_File_Type *pf)
    return 0;
 }
 
+static int
+hrc_i_to_tiled (Marx_Detector_Type *det, 
+		Marx_Detector_Geometry_Type *g,
+		int chip, unsigned int x, unsigned int y,
+		unsigned int *xp, unsigned int *yp)
+{
+   float xf, yf;
+
+   (void) chip;
+   (void) det;
+   (void) g;
+
+   xf = (x + g->tdet_xoff);
+   yf = (y + g->tdet_yoff);
+
+   if (xf < 0.0) xf = 0.0;
+   if (yf < 0.0) yf = 0.0;
+
+   *xp = (unsigned int) xf;
+   *yp = (unsigned int) yf;
+   return 0;
+}
+
+static Marx_Detector_Type HRC_I_Detector;
+static Marx_Detector_Geometry_Type HRC_I_Geom[_MARX_NUM_HRC_I_CHIPS];
+
+static int print_info (Marx_Detector_Type *det, FILE *fp)
+{
+   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+		   det->stt_lsi_offset.x,
+		   det->stt_lsi_offset.y,
+		   det->stt_lsi_offset.z);
+   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+		   det->stf_stt_offset.x,
+		   det->stf_stt_offset.y,
+		   det->stf_stt_offset.z);
+   return 0;
+}
+
+Marx_Detector_Type *_marx_get_hrc_i_detector (void)
+{
+   Marx_Detector_Type *d;
+   Marx_Detector_Geometry_Type *g;
+
+   d = &HRC_I_Detector;
+   if (d->is_initialized)
+     return d;
+
+   d->detector_type = MARX_DETECTOR_HRC_I;
+   d->tiled_pixel_map_fun = &hrc_i_to_tiled;
+   d->facet_list = _marx_link_detector_facet_list (HRC_I_Geom, _MARX_NUM_HRC_I_CHIPS, sizeof(Marx_Detector_Geometry_Type));
+   d->fp_system_name = "AXAF-FP-2.1";
+   d->first_facet_id = 0;
+   d->last_facet_id = 0;
+   d->print_info = print_info;
+
+   g = d->facet_list;
+   g->id = 0;
+   g->tdet_xoff = 0;
+   g->tdet_yoff = 0;
+   g->num_x_pixels = 16384;
+   g->num_y_pixels = 16384;
+   g->x_pixel_size = 6.429e-3;
+   g->y_pixel_size = 6.429e-3;
    
+   if (-1 == patch_hrc_i_geom (d))
+     return NULL;
+
+   if (-1 == _marx_caldb_patch_aimpoint (d))
+     return NULL;
    
+   if (-1 == _marx_compute_detector_basis (d))
+     return NULL;
+
+   if (NULL == (d->fp_coord_info = marx_get_fp_system_info (d->fp_system_name)))
+     return NULL;
+
+   d->is_initialized = 1;
+
+   return d;
+}

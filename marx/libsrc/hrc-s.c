@@ -66,7 +66,7 @@ JDMVector_Type _Marx_HRC_Geometric_Center;
  *
  *---------------------------------------------------------------------------*/
 static double HRC_S_Blur;
-static Marx_Detector_Geometry_Type *HRC_S_Geom;
+static Marx_Detector_Geometry_Type *HRC_S_MCPs;
 
 static double Shield_OffsetT;   /* mm */
 static double Shield_OffsetL;   /* mm */
@@ -269,7 +269,7 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 			    &_Marx_Det_XForm_Matrix);
 
 	d = _marx_intersect_with_detector (at->x, at->p,
-					   HRC_S_Geom, _MARX_NUM_HRC_S_CHIPS,
+					   HRC_S_MCPs,
 					   &at->x, &dx, &dy);
 
 	if (d == NULL)
@@ -371,6 +371,7 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
 {
    unsigned int i;
    Marx_Detector_Type *hrc;
+   Marx_Detector_Geometry_Type *middle_mcp;
    char *file;
 
    if (-1 == pf_get_parameters (p, HRC_Parm_Table))
@@ -396,8 +397,16 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
    if (NULL == (hrc = marx_get_detector_info ("HRC-S")))
      return -1;
 
-   HRC_S_Geom = hrc->geom;
-   
+   HRC_S_MCPs= hrc->facet_list;
+   if (NULL == (middle_mcp = _marx_find_detector_facet (hrc, 2)))
+     {
+	marx_error ("Internal error: Unable to find HRC-S with id=2");
+	return -1;
+     }
+
+   while ((middle_mcp != NULL) && (middle_mcp->id != 2))
+     middle_mcp = middle_mcp->next;
+
    marx_message ("Reading binary HRC-S QE/UVIS data files:\n");
 
    for (i = 0; i < _MARX_NUM_HRC_S_CHIPS; i++)
@@ -414,16 +423,16 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
    
    /* Now compute geometric center position */
 #if 0
-   Shield_OffsetS = (HRC_S_Geom[1].x_lr.y
-		     - HRC_S_Geom[1].x_ll.y) / 2.0;
+   Shield_OffsetS = (middle_mcp->x_lr.y
+		     - middle_mcp->x_ll.y) / 2.0;
 #endif
 
    _Marx_HRC_Geometric_Center 
      = JDMv_sum (JDMv_vector (_Marx_Det_XForm_Matrix.dx,
 			      _Marx_Det_XForm_Matrix.dy,
 			      _Marx_Det_XForm_Matrix.dz),
-		 JDMv_ax1_bx2 (0.5, HRC_S_Geom[1].x_ll,
-			       0.5, HRC_S_Geom[1].x_ur));
+		 JDMv_ax1_bx2 (0.5, middle_mcp->x_ll,
+			       0.5, middle_mcp->x_ur));
    
    Shield_Y_Center = _Marx_HRC_Geometric_Center.y;
    Shield_Z_Center = _Marx_HRC_Geometric_Center.z;

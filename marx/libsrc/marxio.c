@@ -307,7 +307,7 @@ static int open_files (char *dir, unsigned long write_mask, int new_file) /*{{{*
 	     break;
 	   case MARX_MIRROR_SHELL_OK:
 	     filename = "mirror.dat";
-	     data_type = 'A';
+	     data_type = 'I';
 	     col_name = "MIRROR";
 	     break;
 	   case MARX_HRC_REGION_OK:
@@ -446,13 +446,13 @@ int marx_write_photons (Marx_Photon_Type *p, unsigned long write_mask, /*{{{*/
 	at = attr + i;
 	if (at->flags & BAD_PHOTON_MASK)
 	  {
-#define OUTPUT_DRAKE_BLOCKED 0
-#if OUTPUT_DRAKE_BLOCKED
-	     if (0 == (at->flags & PHOTON_DRAKE_BLOCKED))
+#define OUTPUT_ABSORBED	0
+#if OUTPUT_ABSORBED
+	     if (0 == (at->flags & OUTPUT_ABSORBED))
 #endif
 	       continue;
 	  }
-#if OUTPUT_DRAKE_BLOCKED
+#if OUTPUT_ABSORBED
 	else continue;
 #endif
 
@@ -533,7 +533,7 @@ int marx_write_photons (Marx_Photon_Type *p, unsigned long write_mask, /*{{{*/
 		  
 		case MARX_MIRROR_SHELL_OK:
 		  tiny_int = at->mirror_shell;
-		  one = fwrite (&tiny_int, 1, 1, fp);
+		  one = JDMwrite_int16 (&small_int, 1, fp);
 		  break;
 
 		case MARX_HRC_REGION_OK:

@@ -71,21 +71,11 @@ int main (int argc, char **argv)
      usage ();
    
    fprintf (stdout, " Detector Name: %s\n", name);
-   fprintf (stdout, "  Num X Pixels: %u (per chip)\n", det->num_x_pixels);
-   fprintf (stdout, "  Num Y Pixels: %u (per chip)\n", det->num_y_pixels);
-   fprintf (stdout, "  X Pixel Size: % 10.4e (mm)\n", det->x_pixel_size);
-   fprintf (stdout, "  Y Pixel Size: % 10.4e (mm)\n", det->y_pixel_size);
-   fprintf (stdout, " First Chip id: %d\n", det->first_chip_id);
-   fprintf (stdout, "  Last Chip id: %d\n", det->last_chip_id);
-   fprintf (stdout, "     Num Chips: %u\n", det->num_chips);
-   fprintf (stdout, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
-	    det->stt_lsi_offset.x,
-	    det->stt_lsi_offset.y,
-	    det->stt_lsi_offset.z);
-   fprintf (stdout, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
-	    det->stf_stt_offset.x,
-	    det->stf_stt_offset.y,
-	    det->stf_stt_offset.z);
+   fprintf (stdout, " First Chip id: %d\n", det->first_facet_id);
+   fprintf (stdout, "  Last Chip id: %d\n", det->last_facet_id);
+
+   if (det->print_info != NULL)
+     (void) (*det->print_info)(det, stdout);
 
    if (sky == 0)
      dump_physical_geometry (det);
@@ -131,20 +121,25 @@ static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
    int i;
    unsigned int min_x_pixel, max_x_pixel;
    unsigned int min_y_pixel, max_y_pixel;
+   Marx_Detector_Geometry_Type *g;
 
    fprintf (stdout, "\nSky RA/Dec Geometry Follows (with respect to nominal)");
 
    min_x_pixel = 0;
    min_y_pixel = 0;
-   max_x_pixel = det->num_x_pixels;
-   max_y_pixel = det->num_y_pixels;
 
-   for (i = det->first_chip_id; i <= det->last_chip_id;	i++)
+   g = det->facet_list;
+   
+   while (g != NULL)
      {
 	Marx_Chip_To_MNC_Type *chip_mnc;
 	double ra, dec;
 	double tx, ty;
-	
+
+	i = g->id;
+	max_x_pixel = g->num_x_pixels;
+	max_y_pixel = g->num_y_pixels;
+
 	fprintf (stdout, "\nChip %d:\n", i);
 	fprintf (stdout, " Location of corners: (RA, Dec, RA--TAN, Dec--TAN (arc-min))\n");
 
@@ -155,18 +150,19 @@ static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
 	  exit (1);
 
 	compute_ra_dec (chip_mnc, min_x_pixel, min_y_pixel, &ra, &dec, &tx, &ty);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t% 10.4e\t(LL)\n", ra, dec, tx, ty);
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e % 16.10e\t(LL)\n", ra, dec, tx, ty);
 
 	compute_ra_dec (chip_mnc, max_x_pixel, min_y_pixel, &ra, &dec, &tx, &ty);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t% 10.4e\t(LR)\n", ra, dec, tx, ty);
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e % 16.10e\t(LR)\n", ra, dec, tx, ty);
 
 	compute_ra_dec (chip_mnc, max_x_pixel, max_y_pixel, &ra, &dec, &tx, &ty);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t% 10.4e\t(UR)\n", ra, dec, tx, ty);
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e % 16.10e\t(UR)\n", ra, dec, tx, ty);
 
 	compute_ra_dec (chip_mnc, min_x_pixel, max_y_pixel, &ra, &dec, &tx, &ty);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t% 10.4e\t(UL)\n", ra, dec, tx, ty);
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e % 16.10e\t(UL)\n", ra, dec, tx, ty);
 	
 	marx_free_chip_to_mnc (chip_mnc);
+	g = g->next;
      }
 }
 
@@ -174,29 +170,32 @@ static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
    
 static void dump_physical_geometry (Marx_Detector_Type *det)
 {
-   unsigned int i;
    Marx_Detector_Geometry_Type *g;
 
    fprintf (stdout, "\nPhysical Geometry Follows (STF coords at nominal aimpoint, units in mm)\n");
 
-   g = det->geom;
+   g = det->facet_list;
 
-   for (i = 0; i < det->num_chips; i++)
+   while (g != NULL)
      {
 	fprintf (stdout, "\nChip %d:\n", g->id);
-	fprintf (stdout, " X Length: % 10.4e (pixel-size: % 10.4e)\n", g->xlen, g->x_pixel_size);
-	fprintf (stdout, " Y Length: % 10.4e (pixel-size: % 10.4e)\n", g->ylen, g->y_pixel_size);
+	fprintf (stdout, " Num X Pixels: %u (per chip)\n", g->num_x_pixels);
+	fprintf (stdout, " Num Y Pixels: %u (per chip)\n", g->num_y_pixels);
+	fprintf (stdout, " X Pixel Size: % 16.10e (mm)\n", g->x_pixel_size);
+	fprintf (stdout, " Y Pixel Size: % 16.10e (mm)\n", g->y_pixel_size);
+	fprintf (stdout, " X Length: % 16.10e (pixel-size: % 16.10e)\n", g->xlen, g->x_pixel_size);
+	fprintf (stdout, " Y Length: % 16.10e (pixel-size: % 16.10e)\n", g->ylen, g->y_pixel_size);
 	fprintf (stdout, " Location of corners:\n");
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t(LL)\n",
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e\t(LL)\n",
 		 g->x_ll.x, g->x_ll.y, g->x_ll.z);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t(LR)\n",
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e\t(LR)\n",
 		 g->x_lr.x, g->x_lr.y, g->x_lr.z);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t(UR)\n",
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e\t(UR)\n",
 		 g->x_ur.x, g->x_ur.y, g->x_ur.z);
-	fprintf (stdout, "\t% 10.4e\t% 10.4e\t% 10.4e\t(UL)\n",
+	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e\t(UL)\n",
 		 g->x_ul.x, g->x_ul.y, g->x_ul.z);
 	
-	g++;
+	g = g->next;
      }
 }
 

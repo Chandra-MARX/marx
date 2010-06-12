@@ -27,88 +27,213 @@
 #include <math.h>
 #include <jdmath.h>
 
+#include "acis.h"
 #include "marx.h"
 #include "_marx.h"
 
-#if 0
-static char *Geom_File = "pixlib/pix_corner_lsi.par";
+static Marx_Detector_Type ACIS_I_Detector;
+static Marx_Detector_Type ACIS_S_Detector;
 
-static int patch_acis_geom_internal (Marx_Detector_Geometry_Type *g,
-				     char i_or_s, 
-				     unsigned int first, unsigned last,
-				     Param_File_Type *pf)
+static Marx_Detector_Geometry_Type ACIS_S_Geom [_MARX_NUM_ACIS_S_CHIPS];
+static double ACIS_S_TDet_Xoffs[_MARX_NUM_ACIS_S_CHIPS] =
+  {791, 1833, 2875, 3917, 4959, 6001};
+static double ACIS_S_TDet_Yoffs[_MARX_NUM_ACIS_S_CHIPS] =
+  {1702, 1702, 1702, 1702, 1702, 1702};
+static double ACIS_S_Pixel_Size = 0.024;   /* mm */
+
+static Marx_Detector_Geometry_Type ACIS_I_Geom [_MARX_NUM_ACIS_I_CHIPS];
+static double ACIS_I_TDet_Xoffs[_MARX_NUM_ACIS_I_CHIPS] =
+  {3061, 5131, 3061, 5131};
+static double ACIS_I_TDet_Yoffs[_MARX_NUM_ACIS_I_CHIPS] =
+  {5131, 4107, 4085, 3061};
+static double ACIS_I_Pixel_Size = 0.024;   /* mm */
+
+/* This is necessary because the corners defined in the pixlib parameter
+ * file do not produce a detector whose size is 1024 * 0.024.
+ */
+static void tweak_acis_pixel_size (Marx_Detector_Type *det)
 {
-   char parm[32];
-   unsigned int i;
+   Marx_Detector_Geometry_Type *d;
 
-   for (i = first; i <= last; i++)
+   d = det->facet_list;
+
+   while (d != NULL)
      {
-	sprintf (parm, "ACIS-%c%u-LL", i_or_s, i);
-	if (-1 == _marx_get_vector_parm (pf, parm, &g->x_ll))
-	  return -1;
-
-	sprintf (parm, "ACIS-%c%u-LR", i_or_s, i);
-	if (-1 == _marx_get_vector_parm (pf, parm, &g->x_lr))
-	  return -1;
-
-	sprintf (parm, "ACIS-%c%u-UL", i_or_s, i);
-	if (-1 == _marx_get_vector_parm (pf, parm, &g->x_ul))
-	  return -1;
-
-	sprintf (parm, "ACIS-%c%u-UR", i_or_s, i);
-	if (-1 == _marx_get_vector_parm (pf, parm, &g->x_ur))
-	  return -1;
-
-	g++;
+	d->x_pixel_size = d->xlen / 1024.0;
+	d->y_pixel_size = d->ylen / 1024.0;
+	
+	d = d->next;
      }
+}
+
+static int print_info (Marx_Detector_Type *det, FILE *fp)
+{
+   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+		   det->stt_lsi_offset.x,
+		   det->stt_lsi_offset.y,
+		   det->stt_lsi_offset.z);
+   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+		   det->stf_stt_offset.x,
+		   det->stf_stt_offset.y,
+		   det->stf_stt_offset.z);
    return 0;
 }
 
-
-static int patch_acis_geom (Marx_Detector_Type *d, char i_or_s,
-			    unsigned int first, unsigned int last)
+static int post_init_acis_detector (Marx_Detector_Type *d)
 {
-   char *file;
-   Param_File_Type *pf;
-   int status;
-
-   
-   if (NULL == (file = marx_make_data_file_name (Geom_File)))
+   if (-1 == _marx_caldb_patch_acis_geom (d))
      return -1;
 
-   /* marx_message ("\t%s\n", file); */
-   pf = pf_open_parameter_file (file, "rQ");
-   if (pf == NULL)
+   if (-1 == _marx_caldb_patch_aimpoint (d))
+     return -1;
+   
+   if (-1 == _marx_compute_detector_basis (d))
+     return -1;
+
+   tweak_acis_pixel_size (d);
+
+   if (NULL == (d->fp_coord_info = marx_get_fp_system_info (d->fp_system_name)))
+     return -1;
+
+   d->print_info = print_info;
+
+   d->is_initialized = 1;
+   return 0;
+}
+
+/* 01
+ * 23
+ * Note that the (0,0) pixel is not at the lower left of all these chips.
+ * For chips 0 and 2, it is at the upper left with the xpixel running down
+ * and the y pixel running to the right.
+ */
+
+static int
+acis_i_to_tiled (Marx_Detector_Type *det,
+		 Marx_Detector_Geometry_Type *g,
+		 int chip, unsigned int x, unsigned int y,
+		 unsigned int *xp, unsigned int *yp)
+{
+   float xf, yf;
+
+   (void) det;
+   switch (chip)
      {
-	marx_error ("Unable to open %s", file);
-	marx_free (file);
-	return -1;
+      case 0:
+      case 2:
+	xf = g->tdet_xoff + y;
+	yf = g->tdet_yoff - x;
+	break;
+
+      case 1:
+      case 3:
+      default:
+	xf = g->tdet_xoff - y;
+	yf = g->tdet_yoff + x;
+	break;
+     }
+
+   if (xf < 0.0) xf = 0.0;
+   if (yf < 0.0) yf = 0.0;
+   
+   *xp = (unsigned int) xf;
+   *yp = (unsigned int) yf;
+
+   return 0;
+}
+
+Marx_Detector_Type *_marx_get_acis_i_detector (void)
+{
+   Marx_Detector_Type *d;
+   Marx_Detector_Geometry_Type *g;
+   int ccd_id;
+
+   d = &ACIS_I_Detector;
+   if (d->is_initialized)
+     return d;
+
+   d->detector_type = MARX_DETECTOR_ACIS_I;
+   d->tiled_pixel_map_fun = &acis_i_to_tiled;
+   d->facet_list = _marx_link_detector_facet_list (ACIS_I_Geom, _MARX_NUM_ACIS_I_CHIPS, sizeof(Marx_Detector_Geometry_Type));
+   d->fp_system_name = "AXAF-FP-1.1";
+   d->first_facet_id = 0;
+   d->last_facet_id = 3;
+
+   g = d->facet_list;
+   for (ccd_id = 0; ccd_id <= 3; ccd_id++)
+     {
+	g->id = ccd_id;
+	g->tdet_xoff = ACIS_I_TDet_Xoffs[ccd_id];
+	g->tdet_yoff = ACIS_I_TDet_Yoffs[ccd_id];
+	g->x_pixel_size = ACIS_I_Pixel_Size;
+	g->y_pixel_size = ACIS_I_Pixel_Size;
+	g->num_x_pixels = 1024;
+	g->num_y_pixels = 1024;
+	g++;
      }
    
-   status = patch_acis_geom_internal (d->geom, i_or_s, first, last, pf);
-   (void) pf_close_parameter_file (pf);
-   marx_free (file);
-   return status;
+   if (-1 == post_init_acis_detector (d))
+     return NULL;
+
+   return d;
 }
 
-int _marx_patch_acis_i_geom (Marx_Detector_Type *d)
+static int acis_s_to_tiled (Marx_Detector_Type *det,
+			    Marx_Detector_Geometry_Type *g,
+			    int chip, unsigned int x, unsigned int y,
+			    unsigned int *xp, unsigned int *yp)
 {
-   return patch_acis_geom (d, 'I', 0, 3);
+   float xf, yf;
+
+   (void) det;
+   (void) chip;
+
+   xf = x + g->tdet_xoff;
+   if (xf < 0.0)
+     xf = 0.0;
+
+   yf = y + g->tdet_yoff;
+   if (yf < 0.0) 
+     yf = 0.0;
+
+   *xp = (unsigned int) xf;
+   *yp = (unsigned int) yf;
+   return 0;
 }
 
-int _marx_patch_acis_s_geom (Marx_Detector_Type *d)
+Marx_Detector_Type *_marx_get_acis_s_detector (void)
 {
-   return patch_acis_geom (d, 'S', 0, 5);
+   int ccd_id;
+   Marx_Detector_Type *d;
+   Marx_Detector_Geometry_Type *g;
+
+   d = &ACIS_S_Detector;
+   if (d->is_initialized)
+     return d;
+
+   d->detector_type = MARX_DETECTOR_ACIS_S;
+   d->tiled_pixel_map_fun = &acis_s_to_tiled;
+   d->facet_list = _marx_link_detector_facet_list (ACIS_S_Geom, _MARX_NUM_ACIS_S_CHIPS, sizeof(Marx_Detector_Geometry_Type));
+   d->fp_system_name = "AXAF-FP-1.1";
+   d->first_facet_id = 4;
+   d->last_facet_id = 9;
+
+   g = d->facet_list;
+   for (ccd_id = 4; ccd_id <= 9; ccd_id++)
+     {
+	g->id = ccd_id;
+	g->tdet_xoff = ACIS_S_TDet_Xoffs[ccd_id-4];
+	g->tdet_yoff = ACIS_S_TDet_Yoffs[ccd_id-4];
+	g->x_pixel_size = ACIS_S_Pixel_Size;
+	g->y_pixel_size = ACIS_S_Pixel_Size;
+	g->num_x_pixels = 1024;
+	g->num_y_pixels = 1024;
+	g++;
+     }
+
+   if (-1 == post_init_acis_detector (d))
+     return NULL;
+   
+   return d;
 }
 
-#else
-int _marx_patch_acis_i_geom (Marx_Detector_Type *d)
-{
-   return _marx_caldb_patch_acis_geom (d);
-}
-
-int _marx_patch_acis_s_geom (Marx_Detector_Type *d)
-{
-   return _marx_caldb_patch_acis_geom (d);
-}
-#endif

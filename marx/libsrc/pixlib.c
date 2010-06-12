@@ -98,14 +98,19 @@ marx_allocate_chip_to_mnc (char *name, int id)
 {
    Marx_Detector_Type *det;
    Marx_Chip_To_MNC_Type *chip2mnc;
-   Marx_Detector_Geometry_Type *g, *gmax;
+   Marx_Detector_Geometry_Type *g;
 
    if (NULL == (det = marx_get_detector_info (name)))
      return NULL;
    
-   
-   if ((id < det->first_chip_id)
-       || (id > det->last_chip_id))
+   g = det->facet_list;
+   while (g != NULL)
+     {
+	if (g->id == id) 
+	  break;
+	g = g->next;
+     }
+   if (g == NULL)
      {
 	marx_error ("marx_allocate_chip_to_mnc: chip_id out of range");
 	return NULL;
@@ -118,27 +123,12 @@ marx_allocate_chip_to_mnc (char *name, int id)
    memset ((char *) chip2mnc, 0, sizeof (Marx_Chip_To_MNC_Type));
    
    chip2mnc->det = det;
-   
-   g = det->geom;
-   gmax = g + det->num_chips;
-   while (g < gmax)
-     {
-	if (g->id == id) 
-	  break;
-	g++;
-     }
-   if (g == gmax)
-     {
-	marx_error ("Detector Geometry Ids improperly set");
-	return NULL;
-     }
-	
    chip2mnc->geom = g;
 
    chip2mnc->min_x_pixel = 0;
-   chip2mnc->max_x_pixel = det->num_x_pixels;
+   chip2mnc->max_x_pixel = g->num_x_pixels;
    chip2mnc->min_y_pixel = 0;
-   chip2mnc->max_y_pixel = det->num_y_pixels;
+   chip2mnc->max_y_pixel = g->num_y_pixels;
 
    return chip2mnc;
 }

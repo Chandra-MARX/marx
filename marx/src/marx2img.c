@@ -174,7 +174,8 @@ static int read_marx_par_file (void)
    char *marx_par;
    char buf [PF_MAX_LINE_LEN];
    Param_File_Type *pf;
-   
+   int detector_type;
+
    marx_par = make_marx_filename ("marx.par");
    
    pf = pf_open_parameter_file (marx_par, "r");
@@ -201,20 +202,32 @@ static int read_marx_par_file (void)
      }
 
    Detector = marx_get_detector_info (buf);
-   if (Detector == NULL)
+   detector_type = (Detector == NULL) ? -1 : Detector->detector_type;
+   switch (detector_type)
      {
-	fprintf (stderr, "DetectorType %s not supported.\n", buf);
+      case MARX_DETECTOR_HRC_S:
+	Num_X_Pixels = 4096;
+	Num_Y_Pixels = 16384;
+	break;
+
+      case MARX_DETECTOR_HRC_I:
+	Num_X_Pixels = 16384;
+	Num_Y_Pixels = 16384;
+	break;
+
+      case MARX_DETECTOR_ACIS_S:
+      case MARX_DETECTOR_ACIS_I:
+	Num_Y_Pixels = 1024;
+	Num_X_Pixels = 1024;
+	break;
+
+      default:
+	  fprintf (stderr, "DetectorType %s not supported.\n", buf);
 	return -1;
      }
 
-   First_Chip_Id = Detector->first_chip_id;
-   Last_Chip_Id = Detector->last_chip_id;
-   Num_X_Pixels = Detector->num_x_pixels;
-   Num_Y_Pixels = Detector->num_y_pixels;
-
-   /* HRC-I geometry bug quick-fix */
-   if (Num_X_Pixels == 0) Num_X_Pixels = 16384;
-   if (Num_Y_Pixels == 0) Num_Y_Pixels = 16384;
+   First_Chip_Id = Detector->first_facet_id;
+   Last_Chip_Id = Detector->last_facet_id;
    
    if (Use_This_Chip >= 0)
      {

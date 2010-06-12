@@ -421,10 +421,13 @@ int main (int argc, char **argv) /*{{{*/
 	usage (pgm);
 	return 1;
      }
-   
-   if (-1 == check_simulation_parameters ())
-     return 1;
-   
+
+   if (Force_Flag == 0)
+     {
+	if (-1 == check_simulation_parameters ())
+	  return 1;
+     }
+
    if (NULL == (energy_df = open_marx_file ("energy.dat", 'E', &en_fp)))
      goto return_error;
 

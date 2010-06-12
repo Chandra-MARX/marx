@@ -92,7 +92,7 @@ int marx_dump_rayfile (char *file) /*{{{*/
 	fprintf (stdout, "%f\t%f\t%f\t", at.p.x, at.p.y, at.p.z);
 	fprintf (stdout, "%f\t%f\t", at.y_pixel, at.z_pixel);
 	
-	fprintf (stdout, "%d\t%d\t%d\t%d",
+	fprintf (stdout, "%d\t%u\t%d\t%d",
 		 at.order, at.mirror_shell, at.ccd_num, at.detector_region);
 	
 	putc ('\n', stdout);

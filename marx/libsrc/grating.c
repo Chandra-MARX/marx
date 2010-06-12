@@ -54,6 +54,8 @@ int marx_grating_init (Param_File_Type *pf) /*{{{*/
      type = MARX_GRATING_LETG;
    else if (!strcmp (buf, "HETG"))
      type = MARX_GRATING_HETG;
+   else if (!strcmp (buf, "CATGS"))
+     type = MARX_GRATING_CATGS;
    else if (!strcmp (buf, "NONE"))
      type = 0;
    else
@@ -71,6 +73,11 @@ int marx_grating_init (Param_File_Type *pf) /*{{{*/
 	
       case MARX_GRATING_LETG:
 	if (-1 == _marx_letg_init (pf))
+	  type = -1;
+	break;
+
+      case MARX_GRATING_CATGS:
+	if (-1 == _marx_catgs_init (pf))
 	  type = -1;
 	break;
      }
@@ -101,7 +108,12 @@ int marx_grating_diffract (Marx_Photon_Type *pt, int verbose) /*{{{*/
 	if (verbose) marx_message ("Diffracting from HETG.\n");
 	status = _marx_hetg_diffract (pt);
 	break;
-	
+
+      case MARX_GRATING_CATGS:
+	if (verbose) marx_message ("Diffracting from CATGS.\n");
+	status = _marx_catgs_diffract (pt);
+	break;
+
       case 0:
 	status = 0;
 	break;

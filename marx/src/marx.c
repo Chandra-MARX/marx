@@ -1052,9 +1052,9 @@ static int write_obs_par (double total_time)
 
    if (d != NULL)
      {
-	sim_x = DetOffset_X + d->stf_stt_offset.x;
-	sim_y = DetOffset_Y + d->stf_stt_offset.y;
-	sim_z = DetOffset_Z + d->stf_stt_offset.z;
+	sim_x = DetOffset_X + d->aimpoint_offset.x;
+	sim_y = DetOffset_Y + d->aimpoint_offset.y;
+	sim_z = DetOffset_Z + d->aimpoint_offset.z;
      }
    else
      {

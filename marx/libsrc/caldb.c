@@ -29,9 +29,10 @@
 #include <jdmath.h>
 #include <jdfits.h>
 
+#include "chandra.h"
+
 #include "marx.h"
 #include "_marx.h"
-
 
 static char *Caldb_Index_File = "marxcaldb.par";
 
@@ -190,16 +191,14 @@ static void set_vector (JDMVector_Type *v, double *xyz)
 }
 
 
-static int set_corner_data (Marx_Detector_Geometry_Type *g, unsigned int n, 
+static int set_corner_data (Marx_Detector_Geometry_Type *g,
 			    JDFits_Col_Data_Type *c)
 {
    int chip_id;
-   Marx_Detector_Geometry_Type *gmax;
 
-   gmax = g + n;
    chip_id = c[0].data.i[0];
    
-   while (g < gmax)
+   while (g != NULL)
      {
 	if (g->id == chip_id)
 	  {
@@ -210,9 +209,9 @@ static int set_corner_data (Marx_Detector_Geometry_Type *g, unsigned int n,
 	     /* tweak_chip (g); */
 	     return 0;
 	  }
-	g++;
+	g = g->next;
      }
-   
+
    return 0;
 }
 
@@ -224,10 +223,6 @@ static int patch_detector_geom (Marx_Detector_Type *d,
    JDFits_Row_Type *r;
    JDFits_Col_Data_Type *c;
    Marx_Detector_Geometry_Type *g;
-   unsigned int num_ccds;
-				
-   g = d->geom;
-   num_ccds = d->num_chips;
 
    if (NULL == (file = _marx_caldb_get_file ("GEOM")))
      return -1;
@@ -251,9 +246,10 @@ static int patch_detector_geom (Marx_Detector_Type *d,
        || (-1 == check_repeat (c, 3, 4)))
      goto return_error;
 
+   g = d->facet_list;
    while (1 == jdfits_read_next_row (ft, r))
      {
-	if (-1 == set_corner_data (g, num_ccds, c))
+	if (-1 == set_corner_data (g, c))
 	  goto return_error;
      }
 
@@ -434,10 +430,26 @@ static int patch_origin (Marx_Detector_Type *d)
 
 int _marx_caldb_patch_aimpoint (Marx_Detector_Type *d)
 {
+   Marx_Detector_Geometry_Type *g;
+   JDMVector_Type ofs;
+
    if ((-1 == patch_origin (d))
        || (-1 == patch_aimpoint (d)))
      return -1;
-   
+
+   d->aimpoint_offset = d->stf_stt_offset;
+   ofs = JDMv_sum (d->stf_stt_offset, d->stt_lsi_offset);
+
+   g = d->facet_list;
+   while (g != NULL)
+     {
+	g->x_lr = JDMv_sum (g->x_lr, ofs);
+	g->x_ll = JDMv_sum (g->x_ll, ofs);
+	g->x_ur = JDMv_sum (g->x_ur, ofs);
+	g->x_ul = JDMv_sum (g->x_ul, ofs);
+
+	g = g->next;
+     }
    return 0;
 }
 

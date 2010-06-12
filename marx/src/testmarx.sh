@@ -7,9 +7,10 @@ use_valgrind=1
 #bindir=/tmp/marxroot/bin
 #bindir=./${ARCH}objs
 #bindir=/nfs/cxc/a1/i686/opt/packages/marx-4.3.0/bin
-bindir=$HOME/sys/linux/opt/marx4.5/bin
+#bindir=$HOME/sys/linux/opt/marx4.5/bin
+bindir=/nfs/cxc/h1/davis/sys/linux/test/bin
 
-output_dir="/tmp/marxout"
+output_dir="/tmp/marxout1"
 mkdir $output_dir
 mkdir $output_dir/uparm
 valgrind_dir=$output_dir/valgrind
@@ -33,6 +34,8 @@ detectors="ACIS-S ACIS-I HRC-S HRC-I"
 gratings="NONE HETG LETG"
 count=1
 #VALGRIND="valgrind -v --leak-check=yes"
+#valgrind="gdb --args"
+#use_valgrind=0
 for det in $detectors
 do
    for grat in $gratings

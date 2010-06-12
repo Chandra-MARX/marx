@@ -104,5 +104,23 @@ int _marx_get_parameters (Param_File_Type *p, _Marx_Parameter_Table_Type *table)
 
 /*}}}*/
 
-	     
-	     
+int _marx_get_vector_parm (Param_File_Type *pf, char *parm, JDMVector_Type *v)
+{
+   char buf[256];
+   JDMVector_Type vv;
+
+   if (-1 == pf_get_string (pf, parm, buf, sizeof (buf)))
+     {
+	marx_error ("Error getting parameter value for %s", parm);
+	return -1;
+     }
+   
+   if (3 != sscanf (buf, "(%lf%*[ ,]%lf%*[ ,]%lf)", &vv.x, &vv.y, &vv.z))
+     {
+	marx_error ("Parameter %s does not have the proper format", parm);
+	return -1;
+     }
+   
+   *v = vv;
+   return 0;
+}

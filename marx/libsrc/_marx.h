@@ -127,7 +127,7 @@ extern int _marx_get_simple_specrum_parms (Param_File_Type *, Marx_Source_Type *
 
 extern Marx_Detector_Geometry_Type 
  *_marx_intersect_with_detector (JDMVector_Type, JDMVector_Type,
-				 Marx_Detector_Geometry_Type *, unsigned int,
+				 Marx_Detector_Geometry_Type *,
 				 JDMVector_Type *, double *, double *);
 
 #if MARX_HAS_DITHER
@@ -156,6 +156,10 @@ extern int _marx_hrc_i_init (Param_File_Type *);
 extern int _marx_acis_s_init (Param_File_Type *);
 extern int _marx_acis_i_init (Param_File_Type *);
 
+extern int _marx_ixoccd_init (Param_File_Type *);
+extern int _marx_ixoccd_detect (Marx_Photon_Type *);
+extern int _marx_ixoxms_detect (Marx_Photon_Type *);
+
 extern int _marx_hrc_s_compute_pixel (int id, double, double,
 				      double *, double *, double *, double *);
 extern int _marx_patch_hrc_s_geom (Marx_Detector_Type *);
@@ -180,6 +184,11 @@ extern int _marx_letg_init (Param_File_Type *);
 extern int _marx_letg_diffract (Marx_Photon_Type *);
 extern int _marx_hetg_diffract (Marx_Photon_Type *);
 
+extern int _marx_ixo_mirror_init (Param_File_Type *);
+extern int _marx_ixo_mirror_reflect (Marx_Photon_Type *);
+extern int _marx_catgs_init (Param_File_Type *);
+extern int _marx_catgs_diffract (Marx_Photon_Type *);
+extern int _marx_ixoxms_init (Param_File_Type *p);
 
 extern int _marx_init_acis_i_gain_map (Param_File_Type *);
 extern int _marx_init_acis_s_gain_map (Param_File_Type *);
@@ -213,5 +222,22 @@ extern double _Marx_TStart_MJDsecs;
 
 extern int _marx_check_monotonicity_f (float *, unsigned int);
 extern int _marx_check_monotonicity_d (double *, unsigned int);
+
+extern int _marx_compute_detector_basis (Marx_Detector_Type *);
+extern Marx_Detector_Geometry_Type *_marx_find_detector_facet (Marx_Detector_Type *, int);
+extern Marx_Detector_Geometry_Type *_marx_link_detector_facet_list (Marx_Detector_Geometry_Type *, unsigned int, unsigned int);
+
+extern Marx_Detector_Type *_marx_get_acis_s_detector (void);
+extern Marx_Detector_Type *_marx_get_acis_i_detector (void);
+extern Marx_Detector_Type *_marx_get_hrc_s_detector (void);
+extern Marx_Detector_Type *_marx_get_hrc_i_detector (void);
+extern Marx_Detector_Type *_marx_get_ixo_ccd_detector (void);
+extern Marx_Detector_Type *_marx_get_ixo_xms_detector (void);
+
+typedef struct _Marx_QE_Type Marx_QE_Type;
+extern void _marx_qe_free (Marx_QE_Type *);
+extern double _marx_qe_compute (Marx_QE_Type *qeinfo, double energy);
+extern void _marx_qe_inc_ref (Marx_QE_Type *qeinfo);
+extern Marx_QE_Type *_marx_qe_read_file (char *file, char *ext, char *encol, char *qecol, char *filtercol);
 
 #endif /* _M_MARX_H_ */

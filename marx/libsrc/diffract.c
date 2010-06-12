@@ -1130,6 +1130,8 @@ static int get_pfile_parms (Param_File_Type *pfile)
    LEG_Grating_Info.theta_blur *= (PI / 180.0) / 60.0;
    MEG_Grating_Info.theta_blur *= (PI / 180.0) / 60.0;
 
+   if (Use_Unit_Efficiencies) Use_File_Efficiencies = 0;
+
    return 0;
 }
 
@@ -1642,8 +1644,6 @@ int _marx_hetg_init (Param_File_Type *pf)
    if (-1 == grating_pre_init (pf))
      return -1;
    
-   if (Use_Unit_Efficiencies) Use_File_Efficiencies = 0;
-
    if (Use_Hetg_Sector_Files)
      {
 	if (-1 == read_sector_files (pf, "HETG"))
@@ -1684,8 +1684,6 @@ int _marx_letg_init (Param_File_Type *pf)
 
    if (-1 == grating_pre_init (pf))
      return -1;
-
-   if (Use_Unit_Efficiencies) Use_File_Efficiencies = 0;
 
    if (Use_Letg_Sector_Files)
      {

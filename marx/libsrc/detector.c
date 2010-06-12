@@ -52,48 +52,56 @@ static Param_Table_Type Det_Parm_Table [] =
 
 Marx_Detector_Geometry_Type *
 _marx_intersect_with_detector (JDMVector_Type x0, JDMVector_Type p, /*{{{*/
-			       Marx_Detector_Geometry_Type *d, unsigned int n,
+			       Marx_Detector_Geometry_Type *g,
 			       JDMVector_Type *x, double *dx, double *dy)
 {
    JDMVector_Type normal, r;
    double pdotn;
    double rx, ry;
-   Marx_Detector_Geometry_Type *dmax;
-   
-   for (dmax = d + n; d < dmax; d++)
+
+   while (g != NULL)
      {
-	normal = d->normal;
+	normal = g->normal;
 	pdotn = JDMv_pdot_prod (&p, &normal);
 
 	if (pdotn == 0)
-	  continue;
+	  {
+	     g = g->next;
+	     continue;
+	  }
 	
-	r = JDMv_diff (x0, d->x_ll);
+	r = JDMv_diff (x0, g->x_ll);
 	
 	r = JDMv_pax1_bx2 (1.0, &r, 
 			   -1.0 * JDMv_pdot_prod (&r, &normal)/pdotn, &p);
 	/* This r is defined in the plane of the detector with origin 
-	 * at d->x_ll.
+	 * at g->x_ll.
 	 */
 	
 	/* Now check to see if the coordinates in the plane of the detector
 	 * chip is within the boundaries of the chip.  Here we assume the 
 	 * chip is rectangular.
 	 */
-	
-	rx = JDMv_dot_prod (r, d->xhat);
-	if ((rx < 0.0) || (rx >= d->xlen))
-	  continue;
-	
-	ry = JDMv_dot_prod (r, d->yhat);
-	if ((ry < 0.0) || (ry >= d->ylen))
-	  continue;
-	
-	*x = JDMv_sum (r, d->x_ll);
+
+	rx = JDMv_dot_prod (r, g->xhat);
+	if ((rx < 0.0) || (rx >= g->xlen))
+	  {
+	     g = g->next;
+	     continue;
+	  }
+
+	ry = JDMv_dot_prod (r, g->yhat);
+	if ((ry < 0.0) || (ry >= g->ylen))
+	  {
+	     g = g->next;
+	     continue;
+	  }
+
+	*x = JDMv_sum (r, g->x_ll);
 	*dx = rx;
 	*dy = ry;
-	
-	return d;
+
+	return g;
      }
 
    /* Missed */
@@ -171,6 +179,8 @@ static Detector_Cap_Type Detector_Caps [] =
    {"HRC-S", _marx_hrc_s_init, _marx_hrc_s_detect, MARX_DETECTOR_HRC_S},
    {"HRC-I", _marx_hrc_i_init, _marx_hrc_i_detect, MARX_DETECTOR_HRC_I},
    {"PLANE", plane_init, plane_detect, MARX_DETECTOR_PLANE},
+   {"IXOCCD", _marx_ixoccd_init, _marx_ixoccd_detect, MARX_DETECTOR_IXO_CATGS_CCD},
+   {"IXOXMS", _marx_ixoxms_init, _marx_ixoxms_detect, MARX_DETECTOR_IXO_XMS},
    {"NONE", NULL, NULL, 0},
    {NULL, NULL, NULL, 0}
 };
@@ -316,3 +326,59 @@ int marx_detect (Marx_Photon_Type *pt, int verbose) /*{{{*/
 
 /*}}}*/
 
+int _marx_compute_detector_basis (Marx_Detector_Type *det)
+{
+   Marx_Detector_Geometry_Type *d;
+
+   d = det->facet_list;
+
+   while (d != NULL)
+     {
+	d->xhat = JDMv_diff (d->x_lr, d->x_ll);
+	d->yhat = JDMv_diff (d->x_ul, d->x_ll);
+	d->xlen = JDMv_length (d->xhat);
+	d->ylen = JDMv_length (d->yhat);
+	JDMv_normalize (&(d->xhat));
+	JDMv_normalize (&(d->yhat));
+	d->normal = JDMv_cross_prod (d->xhat, d->yhat);
+
+	d = d->next;
+     }
+   return 0;
+}
+
+Marx_Detector_Geometry_Type *_marx_find_detector_facet (Marx_Detector_Type *det, int id)
+{
+   Marx_Detector_Geometry_Type *g = det->facet_list;
+   
+   while (g != NULL)
+     {
+	if (g->id == id)
+	  return g;
+	g = g->next;
+     }
+   return g;
+}
+
+Marx_Detector_Geometry_Type *
+_marx_link_detector_facet_list (Marx_Detector_Geometry_Type *list, unsigned int num, unsigned int sizeof_elem)
+{
+   Marx_Detector_Geometry_Type *l = list;
+
+   while (num > 1)
+     {
+	Marx_Detector_Geometry_Type *next;
+	
+	next = (Marx_Detector_Geometry_Type *)((char *)l + sizeof_elem);
+	l->next = next;
+	l = next;
+	num--;
+     }
+   
+   if (num == 1)
+     l->next = NULL;
+   
+   return list;
+}
+
+   

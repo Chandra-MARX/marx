@@ -330,7 +330,7 @@ int main (int argc, char **argv)
 	       }
 	  }
 	
-#if 1
+#if 0
 	if (hypot (ypos[i], zpos[i]) > 0.1)
 	  continue;
 #endif

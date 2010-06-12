@@ -46,7 +46,7 @@
 #define USE_CALDB_FILES
 
 static _Marx_Acis_Chip_Type Acis_CCDS [_MARX_NUM_ACIS_S_CHIPS];
-static Marx_Detector_Geometry_Type *ACIS_S_Geom;
+static Marx_Detector_Geometry_Type *ACIS_S_Chips;
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
 static char *FsBs_Configuration;
 #endif
@@ -215,7 +215,7 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	
 	/* See if the photon will hit the CCD and if so, which one. */
 	d = _marx_intersect_with_detector (at->x, at->p,
-					   ACIS_S_Geom, _MARX_NUM_ACIS_S_CHIPS,
+					   ACIS_S_Chips,
 					   &at->x, &dx, &dy);
 	if (d == NULL)
 	  {
@@ -228,7 +228,7 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->y_pixel = dx / d->x_pixel_size;
 	     at->z_pixel = dy / d->y_pixel_size;
 	     
-	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d - ACIS_S_Geom)], at))
+	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d->id - 4)], at))
 	       {
 #if MARX_HAS_ACIS_STREAK
 		  (void) _marx_acis_apply_streak (tstart, at, d);
@@ -435,7 +435,7 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
    if (NULL == (acis_s = marx_get_detector_info ("ACIS-S")))
      return -1;
 
-   ACIS_S_Geom = acis_s->geom;
+   ACIS_S_Chips = acis_s->facet_list;
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
    /* Check FsBs configuration */
    if (strlen (FsBs_Configuration) != _MARX_NUM_ACIS_S_CHIPS)
