@@ -1,0 +1,99 @@
+#!/usr/bin/env isis-script
+
+private variable Script_Version_String = "0.1.0";
+
+require ("cmdopt");
+
+private define exit_version ()
+{
+   () = fprintf (stdout, "Version: %S\n", Script_Version_String);
+   exit (0);
+}
+
+private define exit_usage ()
+{
+   variable fp = stderr;
+   variable pgm = path_basename (__argv[0]);
+   () = fprintf (fp, "Usage: %s [options] isis-par-file flux-file\n", pgm);
+
+   variable opts = 
+     [
+      "Options:\n",
+      " -v|--version               Print version\n",
+      " -h|--help                  This message\n",
+      " -e|--energy grid           Energy grid (keV)\n",
+      " -l|--lambda grid           Wavelength grid (Angstroms)\n",
+      " -s|--script                Script file\n",
+      " -b|--bin-integral          Integrate the flux over bins\n",
+      "\n",
+      "The isis-par-file may be created using save_par in isis.\n",
+      "The optional script may define the model if needed.\n",
+      "If the energy grid is not specified, '[0.03:10:0.001]' will be used.\n",
+      "\nExample:\n",
+      "$pgm --energy '[0.01:12.0:0.03] powerlaw.p flux.dat\n"$,
+     ];
+
+   foreach (opts)
+     {
+	variable opt = ();
+	() = fputs (opt, fp);
+     }
+   exit (1);
+}
+
+define isis_main ()
+{
+   variable egrid = "[0.03:10.0:0.001]";
+   variable lgrid = NULL;
+   variable script = NULL;
+   variable use_bin_integral = 0;
+
+   variable c = cmdopt_new ();
+
+   c.add("h|help", &exit_usage);
+   c.add("v|version", &exit_version);
+   c.add("s|script", &script; type="str");
+   c.add("e|energy", &egrid; type="str");
+   c.add("l|lambda", &lgrid; type="str");
+   c.add("b|bin-integral", &use_bin_integral);
+
+   variable i = c.process (__argv, 1);
+
+   if (i + 2 != __argc)
+     exit_usage ();
+   
+   variable par_file = __argv[i];
+   variable out_file = __argv[i+1];
+
+   if (script != NULL)
+     {
+	if (0 == path_is_absolute (script))
+	  script = path_concat (".", script);
+	() = evalfile (script);
+     }
+   
+   if (lgrid != NULL)
+     egrid = "_A($lgrid)"$;
+
+   try
+     {
+	egrid = eval(egrid);
+	if (typeof (egrid) != Array_Type)
+	  throw TypeMismatchError, "Expecting an array";
+     }
+   catch AnyError:
+     {
+	() = fprintf (stderr, "Error parsing the energy grid spec as an array\n");
+	exit (1);
+     }
+
+   load_par (par_file);
+   variable egrid_hi = shift (egrid, 1);
+   egrid_hi[-1] = egrid_hi[-2] + (egrid[-1]-egrid[-2]);
+
+   variable s = eval_fun (_A(egrid, egrid_hi));
+   if (use_bin_integral == 0)
+     s = reverse(s)/(egrid_hi-egrid);
+
+   writecol (out_file, egrid, s);
+}
