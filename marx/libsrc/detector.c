@@ -179,8 +179,12 @@ static Detector_Cap_Type Detector_Caps [] =
    {"HRC-S", _marx_hrc_s_init, _marx_hrc_s_detect, MARX_DETECTOR_HRC_S},
    {"HRC-I", _marx_hrc_i_init, _marx_hrc_i_detect, MARX_DETECTOR_HRC_I},
    {"PLANE", plane_init, plane_detect, MARX_DETECTOR_PLANE},
+#ifdef MARX_DETECTOR_IXO_CATGS_CCD
    {"IXOCCD", _marx_ixoccd_init, _marx_ixoccd_detect, MARX_DETECTOR_IXO_CATGS_CCD},
+#endif
+#ifdef MARX_DETECTOR_IXO_XMS
    {"IXOXMS", _marx_ixoxms_init, _marx_ixoxms_detect, MARX_DETECTOR_IXO_XMS},
+#endif
    {"NONE", NULL, NULL, 0},
    {NULL, NULL, NULL, 0}
 };

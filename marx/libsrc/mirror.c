@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -49,31 +48,33 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 {
    int type;
    char buf[PF_MAX_LINE_LEN];
-   
+
    if (-1 == pf_get_string (pf, "MirrorType", buf, sizeof (buf)))
      return -1;
-   
+
    if (!strcmp (buf, "HRMA"))
      type = MARX_MIRROR_HRMA;
    else if (!strcmp (buf, "EA-MIRROR"))
      type = MARX_MIRROR_EA;
    else if (!strcmp (buf, "FLATFIELD"))
      type = MARX_MIRROR_FFIELD;
+#ifdef MARX_MIRROR_IXO
    else if (!strcmp (buf, "IXO"))
      type = MARX_MIRROR_IXO;
+#endif
    else
      {
 	marx_error ("MirrorType %s not supported.", buf);
 	return -1;
      }
-   
+
    switch (type)
      {
       case MARX_MIRROR_EA:
 	if (-1 == _marx_ea_mirror_init (pf))
 	  type = -1;
 	break;
-	
+
       case MARX_MIRROR_HRMA:
 	if (-1 == _marx_hrma_mirror_init (pf))
 	  type = -1;
@@ -83,24 +84,25 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 	if (-1 == _marx_ff_mirror_init (pf))
 	  type = -1;
 	break;
-
+#ifdef MARX_MIRROR_IXO
       case MARX_MIRROR_IXO:
 	if (-1 == _marx_ixo_mirror_init (pf))
 	  type = -1;
 	break;
+#endif
      }
-   
+
    if (type == -1)
      {
 	marx_error ("Error initializing MirrorType %s.", buf);
      }
-   
+
    Mirror = type;
    return type;
 }
 
 /*}}}*/
-       
+
 int marx_mirror_reflect (Marx_Photon_Type *p, int verbose) /*{{{*/
 {
    switch (Mirror)
@@ -108,20 +110,21 @@ int marx_mirror_reflect (Marx_Photon_Type *p, int verbose) /*{{{*/
       case MARX_MIRROR_HRMA:
 	if (verbose) marx_message ("Reflecting from HRMA\n");
 	return _marx_hrma_mirror_reflect (p);
-	
+
       case MARX_MIRROR_EA:
 	if (verbose) marx_message ("Reflecting from EA-MIRROR\n");
 	return _marx_ea_mirror_reflect (p);
-	
+
       case MARX_MIRROR_FFIELD:
 	if (verbose) marx_message ("Flat Fielding Rays\n");
 	return _marx_ff_mirror_reflect (p);
-
+#ifdef MARX_MIRROR_IXO
       case MARX_MIRROR_IXO:
 	if (verbose) marx_message ("Reflecting from IXO\n");
 	return _marx_ixo_mirror_reflect (p);
+#endif
      }
-   
+
    marx_error ("Mirror not initialized.");
    return -1;
 }
@@ -132,10 +135,10 @@ int _marx_parse_shutter_string (char *str, unsigned int *bitmap, unsigned int *n
 {
    unsigned int count;
    char ch;
-   
+
    *bitmap = 0;			       /* all closed */
    *num_open = 0;
-   
+
    count = 0;
    while ((ch = *str++) != 0)
      {

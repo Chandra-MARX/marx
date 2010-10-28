@@ -65,7 +65,7 @@ static char *skip_white (char *p)
 {
    while (isspace (*p))
      p++;
-   
+
    return p;
 }
 
@@ -73,7 +73,7 @@ static char *skip_non_white (char *p)
 {
    while (*p && (0 == isspace (*p)))
      p++;
-   
+
    return p;
 }
 
@@ -92,7 +92,7 @@ static int cmdline_to_argv_argc (char *cmd, char ***argvp, int *argcp)
 	p = skip_white (p);
 	argc++;
      }
-   
+
    if (NULL == (argv = (char **) marx_malloc (sizeof (char *) * (argc + 1))))
      return -1;
 
@@ -102,20 +102,19 @@ static int cmdline_to_argv_argc (char *cmd, char ***argvp, int *argcp)
      {
 	argv [argc] = p;
 	argc++;
-	
+
 	p = skip_non_white (p);
 	if (*p != 0) *p++ = 0;
-	
+
 	p = skip_white (p);
      }
    argv [argc] = NULL;
-   
+
    *argcp = argc;
    *argvp = argv;
-   
+
    return 0;
 }
-
 
 static int open_source (Marx_Source_Type *st) /*{{{*/
 {
@@ -147,7 +146,7 @@ static int close_source (Marx_Source_Type *st) /*{{{*/
    User_Close_Source = NULL;
    User_Generate_Ray = NULL;
    User_Start_Iteration = NULL;
-   
+
    if (User_Argv != NULL)
      {
 	marx_free ((char *) User_Argv);
@@ -176,7 +175,7 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 	     return 0;
 	  }
      }
-   
+
    at = pt->attributes;
    efun = st->spectrum.energy_function;
 
@@ -225,7 +224,7 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 		       | MARX_P2_VECTOR_OK
 		       | MARX_P3_VECTOR_OK);
      }
-	     
+
    return 0;
 }
 
@@ -239,21 +238,20 @@ static Fun_Ptr get_dlsym (char *name, int is_required)
 
    if (User_Handle == NULL)
      return NULL;
-   
+
    f = (Fun_Ptr) dlsym (User_Handle, name);
    if ((f == NULL) && is_required)
      {
 	char *err = (char *)dlerror ();
 
 	if (err == NULL) err = "Unknown";
-	marx_error ("Unable to get symbol '%s'\nReason: %s\n", 
+	marx_error ("Unable to get symbol '%s'\nReason: %s\n",
 		    name, err);
 	return NULL;
      }
    return f;
 }
 
-   
 int marx_select_user_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 			     char *name, unsigned int source_id)
 {
@@ -261,13 +259,13 @@ int marx_select_user_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    char *handle;
 
    (void) source_id;
-   
+
    if (-1 == pf_get_file (p, "UserSourceFile", file, sizeof (file)))
      {
 	marx_error ("Unable to find parameter 'UserSourceFile'");
 	return -1;
      }
-   
+
    User_Cmd_String [0] = 0;
    if (-1 == pf_get_string (p, "UserSourceArgs", User_Cmd_String, sizeof (User_Cmd_String)))
      return -1;
@@ -278,10 +276,10 @@ int marx_select_user_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    if (handle == NULL)
      {
 	char *err;
-	
+
 	err = (char *) dlerror ();
 	if (err == NULL) err = "UNKNOWN";
-	
+
 	marx_error ("Error linking to %s\nReason: %s", file, err);
 	return -1;
      }
@@ -292,8 +290,8 @@ int marx_select_user_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 
    if (NULL == (User_Close_Source = (void (*)(void)) get_dlsym ("user_close_source", 1)))
      return -1;
-   
-   if (NULL == (User_Generate_Ray = (int (*)(double *, double *, 
+
+   if (NULL == (User_Generate_Ray = (int (*)(double *, double *,
 					     double *, double *, double *))
 		get_dlsym ("user_create_ray", 1)))
      return -1;
@@ -317,7 +315,7 @@ int marx_select_user_source (Marx_Source_Type *st, Param_File_Type *p,
    (void) p;
    (void) name;
    (void) source_id;
-   
+
    marx_error ("This version of MARX does not support dynmamic linking");
    return -1;
 }

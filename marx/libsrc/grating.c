@@ -46,16 +46,18 @@ int marx_grating_init (Param_File_Type *pf) /*{{{*/
 {
    int type;
    char buf[PF_MAX_LINE_LEN];
-   
+
    if (-1 == pf_get_string (pf, "GratingType", buf, sizeof (buf)))
      return -1;
-   
+
    if (!strcmp (buf, "LETG"))
      type = MARX_GRATING_LETG;
    else if (!strcmp (buf, "HETG"))
      type = MARX_GRATING_HETG;
+#ifdef MARX_GRATING_CATGS
    else if (!strcmp (buf, "CATGS"))
      type = MARX_GRATING_CATGS;
+#endif
    else if (!strcmp (buf, "NONE"))
      type = 0;
    else
@@ -63,30 +65,32 @@ int marx_grating_init (Param_File_Type *pf) /*{{{*/
 	marx_error ("GratingType %s not supported.", buf);
 	return -1;
      }
-   
+
    switch (type)
      {
       case MARX_GRATING_HETG:
 	if (-1 == _marx_hetg_init (pf))
 	  type = -1;
 	break;
-	
+
       case MARX_GRATING_LETG:
 	if (-1 == _marx_letg_init (pf))
 	  type = -1;
 	break;
 
+#ifdef MARX_GRATING_CATGS
       case MARX_GRATING_CATGS:
 	if (-1 == _marx_catgs_init (pf))
 	  type = -1;
 	break;
+#endif
      }
-   
+
    if (type == -1)
      {
 	marx_error ("Error initializing GratingType %s.", buf);
      }
-   
+
    Grating = type;
    return type;
 }
@@ -109,10 +113,12 @@ int marx_grating_diffract (Marx_Photon_Type *pt, int verbose) /*{{{*/
 	status = _marx_hetg_diffract (pt);
 	break;
 
+#ifdef MARX_GRATING_CATGS
       case MARX_GRATING_CATGS:
 	if (verbose) marx_message ("Diffracting from CATGS.\n");
 	status = _marx_catgs_diffract (pt);
 	break;
+#endif
 
       case 0:
 	status = 0;

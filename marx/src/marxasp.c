@@ -124,7 +124,7 @@ typedef struct
 #define H_PSTR	4
 #define H_COM	5
 #define H_ENV	6
-#define H_INT	7
+/* #define H_INT	7 */
 #define H_SMARX	8		       /* read from parameter file */
 #define H_DMARX	8		       /* read from parameter file */
 #define H_FILE	10   		       /* read from a header info file */
@@ -134,6 +134,9 @@ typedef struct
 }
 Fits_Header_Table_Type;
 
+static int Int_Value_0 = 0;
+static int Int_Value_1 = 1;
+static int Int_Value_1024 = 1024;
 
 static Fits_Header_Table_Type CC_NULL_Component [] =
 {
@@ -191,7 +194,7 @@ static Fits_Header_Table_Type Timing_Component [] =
 
      {1,"TIMEREF",	H_STR,	"LOCAL",	"Time is local for data"},
      {1,"TASSIGN",	H_STR,	"SATELLITE",	"Source of time assignment"},
-     {3,"CLOCKAPP",	H_LOG,	(void *)1,	"Clock correction applied"},
+     {3,"CLOCKAPP",	H_LOG,	&Int_Value_1,	"Clock correction applied"},
 
      {1,"TIERRELA",	H_FILE,	NULL,	"Short term clock stability"},
      {1,"TIERABSO",	H_FILE,	NULL,	"Absolute precision of clock correction"},
@@ -201,7 +204,7 @@ static Fits_Header_Table_Type Timing_Component [] =
      {3,"TSTART",	H_FILE,	NULL,		"As in the TIME column: raw space craft clock"},
      {3,"TSTOP",	H_FILE,	NULL,		"  add TIMEZERO and MJDREF for absolute TT"},
 
-     {1,"TIMEPIXR",H_INT,	(void *)0,	"Time stamp refers to start of bin"},
+     {1,"TIMEPIXR",	H_PINT,	&Int_Value_0,	"Time stamp refers to start of bin"},
      {3,"TIMEDEL", 	H_PFLT,	&Delta_Time,	"Time resolution of data in seconds"},
      {3,"DTASPSOL", 	H_PFLT,	&Delta_Time,	"Time resolution of data in seconds"},
      {3,"ASPTYPE", 	H_STR,	"kalman",	"Simulated by marxasp"},
@@ -211,11 +214,11 @@ static Fits_Header_Table_Type Timing_Component [] =
 
 static Fits_Header_Table_Type Acis_Timing_Component [] = 
 {
-     {1,"STARTMJF", H_INT, (void *)0,	"Major frame count at start"},
-     {1,"STARTMNF", H_INT, (void *)0,	"Minor frame count at start"},
-     {1,"STARTOBT", H_INT, (void *)0,	"Onboard MET close to STARTMJF and STARTMNF"},
-     {1,"STOPMJF", H_INT, (void *)0,	"Major frame count at stop"},
-     {1,"STOPMNF", H_INT, (void *)0,	"Minor frame count at stop"},
+     {1,"STARTMJF", H_PINT, &Int_Value_0,	"Major frame count at start"},
+     {1,"STARTMNF", H_PINT, &Int_Value_0,	"Minor frame count at start"},
+     {1,"STARTOBT", H_PINT, &Int_Value_0,	"Onboard MET close to STARTMJF and STARTMNF"},
+     {1,"STOPMJF", H_PINT, &Int_Value_0,	"Major frame count at stop"},
+     {1,"STOPMNF", H_PINT, &Int_Value_0,	"Minor frame count at stop"},
      {0,NULL, 0, NULL, NULL}
 };
 
@@ -264,8 +267,8 @@ static Fits_Header_Table_Type Acis_Faint_Header_Keywords [] =
      {3,"COMMENT",	H_COM,	NULL, "\nAXAF FITS Event File: ACIS Level 1\n\n"},
      {3,"READMODE",	H_STR,	"TIMED",	"CCD exposure mode"},
 
-     {3,"FIRSTROW",	H_INT,	(void *)1,	"Index of first row of CCD readout"},
-     {3,"NROWS",	H_INT,	(void *)1024,	"Number of rows in readout"},
+     {3,"FIRSTROW",	H_PINT,	&Int_Value_1,	"Index of first row of CCD readout"},
+     {3,"NROWS",	H_PINT,	&Int_Value_1024,	"Number of rows in readout"},
      {3, "EXPTIME",	H_PFLT,	(void *)&ACIS_Exposure_Time,	"Commanded exposure time in secs"},
 
      {3,"COMMENT",	H_COM,	NULL, "\nApplied event correction/flagging reference files\n\n"},
@@ -305,7 +308,7 @@ static Fits_Header_Table_Type Hrc_Header_Keywords [] =
 #if 0
 static Fits_Header_Table_Type GoodTime_Header_Keywords [] =
 {
-     {2,"EXTVER",	H_INT,	(void *)1,	"Convention for HDUCLASS"},
+     {2,"EXTVER",	H_PINT,	&Int_Value_1,	"Convention for HDUCLASS"},
 #if 0
      {2,"HDUCLASS",	H_STR,	"OGIP",	"Convention for HDUCLASS"},
      {2,"HDUCLAS1",	H_STR,	"GTI",	"File contains good time intervals"},
@@ -313,10 +316,10 @@ static Fits_Header_Table_Type GoodTime_Header_Keywords [] =
 #endif
 #if 0
      {2,"COMMENT",	H_COM,	NULL,		"\nData model support keywords"},
-     {2,"CFIELDS",	H_INT,	(void *)1,"Number of ASC Table Columns"},
+     {2,"CFIELDS",	H_PINT,	&Int_Value_1,"Number of ASC Table Columns"},
      {2,"CNAM1",	H_STR,	"TIME",	"Time"},
    
-     {2,"CNC1",		H_INT,	(void *)2,"Number of FITS cols for ASC col 1"},
+     {2,"CNC1",		H_PINT,	&Int_Value_2,"Number of FITS cols for ASC col 1"},
      {2,"CETYP1",	H_STR,	"R",	"Data is an interval"},
      {2,"CITYP1",	H_STR,	"[)",	"Interval is semi-open"},
      {2,"TDISP1",	H_STR,	"F20.6","Display format for FITS col 1"},
@@ -692,17 +695,18 @@ static int write_extra_headers (JDFits_Type *ft,
 	     else d = *(double *) h->value;
 	     ret = jdfits_write_header_double (ft, h->keyword, d, h->comment);
 	     break;
-
+#ifdef H_INT
 	   case H_INT:
 	     if (h->value == NULL) i = 0;
 	     else i = (int) h->value;
 	     
 	     ret = jdfits_write_header_integer (ft, h->keyword, i, h->comment);
 	     break;
+#endif
 
 	   case H_LOG:
 	     if (h->value == NULL) i = 0;
-	     else i = (int) h->value;
+	     else i = *(int *) h->value;
 	     
 	     ret = jdfits_write_header_logical (ft, h->keyword, i, h->comment);
 	     break;
@@ -730,7 +734,10 @@ static int write_extra_headers (JDFits_Type *ft,
 	if (h->value == NULL)
 	  {
 	     if ((h->type != H_COM) && (h->type != H_FILE)
-		 && (h->type != H_INT))
+#ifdef H_INT
+		 && (h->type != H_INT)
+#endif
+		)
 	       fprintf (stderr, "Warning: Fits keyword %s has no value\n",
 			h->keyword);
 	  }
