@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -42,12 +41,10 @@
 # define SLFREE free
 #endif
 
-
 #include "pfile.h"
 #include "_pfile.h"
 
-
-static int _pf_set_pf_value (Param_File_Type *p, Param_Type *pf, 
+static int _pf_set_pf_value (Param_File_Type *p, Param_Type *pf,
 			     char *value, unsigned int mode)
 {
    mode |= _pf_get_effective_mode (p, pf);
@@ -58,7 +55,7 @@ static int _pf_set_pf_value (Param_File_Type *p, Param_Type *pf,
 	     SLFREE (pf->value);
 	     pf->value = NULL;
 	  }
-   
+
 	if (NULL == (pf->value = _pf_create_string (value)))
 	  return -1;
 
@@ -84,17 +81,25 @@ static int _pf_set_pf_value (Param_File_Type *p, Param_Type *pf,
 	     pf->value = save_value;
 	     return -1;
 	  }
-	
+
 	pf->value = save_value;
      }
-   
+
    /* Look for the mode parameter and re-initialize the mode based on it. */
    if (!strcmp (pf->name, "mode"))
      {
+	unsigned int force_bits = p->mode & (PF_FORCE_LEARN_MODE|PF_NEVER_QUERY_MODE);
 	if (-1 == _pf_parse_mode (pf->value, &p->mode))
 	  {
-	     return _pf_get_value (p, pf, PF_QUERY_MODE);
+	     if (force_bits & PF_NEVER_QUERY_MODE)
+	       {
+		  pf_error ("Unable to parse the mode parameter");
+		  return -1;
+	       }
+	     if (-1 == _pf_get_value (p, pf, PF_QUERY_MODE))
+	       return -1;
 	  }
+	p->mode |= force_bits;
      }
    return 0;
 }
@@ -102,7 +107,7 @@ static int _pf_set_pf_value (Param_File_Type *p, Param_Type *pf,
 static int set_value (Param_File_Type *p, char *name, char *value, unsigned int mode)
 {
    Param_Type *pf;
-   
+
    pf = _pf_locate_param_by_type (p, name, 0);
    if (pf == NULL)
      {
@@ -127,15 +132,13 @@ int pf_learn_value (Param_File_Type *p, char *name, char *value)
    return set_value (p, name, value, PF_LEARN_MODE);
 }
 
-
 Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, char **argv)
 {
    int i;
    Param_File_Type *p;
    Param_Type *pf;
    char *f;
-   
-   
+
    if (file == NULL)
      {
 	/* derive from argv[0] */
@@ -144,14 +147,14 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 	if (file != NULL) file++;
 	else file = argv[0];
      }
-   
+
    /* argv[0] not needed anymore (only used if file is NULL) */
    if (argc)
      {
 	argc--;
 	argv++;
      }
-   
+
    if ((argc == 1) && (0 == strcmp ("--help", argv[0])))
      {
 	pf_usage (file, 0);
@@ -170,20 +173,19 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 	     argc--;
 	  }
      }
-   
-	
+
    if (NULL == (p = pf_open_parameter_file (file, mode)))
      {
 	pf_error ("Unable to open parameter file %s.", file);
 	return NULL;
      }
-   
+
    pf = p->pf;
    while ((pf != NULL) && (pf->type == PF_COMMENT_TYPE))
      pf = pf->next;
-   
+
    /* The way this works is that as long as the options do not have = signs,
-    * they serve to initialize the current pf.  I do not know how the 
+    * they serve to initialize the current pf.  I do not know how the
     * parameter interface handles string values with embedded equal signs.
     * It probably doesn't.  So, for simplicity I will not until I find out
     * otherwise.
@@ -195,11 +197,11 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 	char *str;
 #if 0
 	unsigned int nth = 0;
-#endif	
+#endif
 	/* The argument may be , separated.  break them out and handle
 	 * them one by one.
-	 * 
-	 * **** NOTE**** 
+	 *
+	 * **** NOTE****
 	 * The datamodel makes extensive use of commas in filename as part
 	 * of dm filters.  Just skip comma handling below.
 	 */
@@ -219,13 +221,13 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 		  SLFREE (value);
 		  continue;
 	       }
-	     
+
 	     if (pf != NULL)
 	       {
 		  if (NULL == _pf_strchr (value, '='))
 		    {
 		       unsigned int len = strlen (value);
-		       
+
 		       if (len && (value[len - 1] == '!'))
 			 {
 			    value[len - 1] = 0;
@@ -240,13 +242,13 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 			 }
 		       else if (-1 == _pf_set_pf_value (p, pf, value, 0))
 			 {
-			    pf_error ("Error setting %s's value to %s.", 
+			    pf_error ("Error setting %s's value to %s.",
 				      pf->name, value);
 			    SLFREE (value);
 			    (void) pf_close_parameter_file (p);
 			    return NULL;
 			 }
-		       
+
 		       SLFREE (value);
 		       pf = pf->next;
 		       while ((pf != NULL) && (pf->type == PF_COMMENT_TYPE))
@@ -255,7 +257,7 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 		    }
 		  pf = NULL;
 	       }
-	     
+
 	     /* Now we have value=str pairs. */
 	     str = _pf_strchr (value, '=');
 	     if (str == NULL)
@@ -266,7 +268,7 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 		  (void) pf_close_parameter_file (p);
 		  return NULL;
 	       }
-	     
+
 	     *str++ = 0;	       /* value is malloced so knock out = */
 	     if (-1 == pf_set_value (p, value, str))
 	       {
@@ -275,11 +277,11 @@ Param_File_Type *pf_parse_cmd_line_no_exit (char *file, char *mode, int argc, ch
 		  (void) pf_close_parameter_file (p);
 		  return NULL;
 	       }
-	     
+
 	     SLFREE (value);
 	  }
      }
-   
+
    return p;
 }
 
@@ -298,14 +300,14 @@ This program uses an IRAF-style parameter file interface.  It searches for\n\
 the parameter file in the PFILES and UPARM directories.  If one is not\n\
 found, it will look in the current directory.\n",
 	  stderr);
-   
+
    if (file != NULL)
      {
 	fprintf (stderr, "\n\
 The name of the parameter file that this program uses is %s.\n",
 		 file);
      }
-   
+
    fputs ("\n\
 An alternative parameter file may be specified by prefixing the file name\n\
 with \"@@\" and using the resulting expression as the first command line\n\
@@ -324,31 +326,28 @@ See your program's user manual for more information.\n",
 
    fprintf (stderr, "pfile library version: %u.%u\n\n",
 	    PFILE_VERSION / 100, PFILE_VERSION % 100);
-   
+
    if (quit) exit (1);
 }
 
-
-	  
 int pf_learn_double (Param_File_Type *pf, char *parm, double x)
 {
    char buf[128];
-   
+
    sprintf (buf, "%.16g", x);
    return pf_learn_value (pf, parm, buf);
 }
 
 int pf_learn_int (Param_File_Type *pf, char *parm, int x)
-{   
+{
    char buf[128];
-   
+
    sprintf (buf, "%d", x);
    return pf_learn_value (pf, parm, buf);
 }
 
 int pf_learn_string (Param_File_Type *pf, char *parm, char *s)
-{   
+{
    return pf_learn_value (pf, parm, s);
 }
-
 

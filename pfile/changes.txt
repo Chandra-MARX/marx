@@ -1,3 +1,7 @@
+Changes since 2.4.0
+1. _pf_set_pf_value: if PF_FORCE_LEARN_MODE ('L') is used, then
+   always set this bit for mode values.
+
 Changes since 1.2
 1. If a parameter has the value "))cmd", then its value is replaced by 
    the execution of cmd in a shell.
