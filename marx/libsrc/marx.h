@@ -368,14 +368,14 @@ extern int marx_grating_diffract (Marx_Photon_Type *, int);
 #define MARX_MIRROR_EA		1
 #define MARX_MIRROR_HRMA	2
 #define MARX_MIRROR_FFIELD	3
-/* #define MARX_MIRROR_IXO		4 */
+#define MARX_MIRROR_IXO		4
 
 #define MARX_GRATING_HETG	1
 #define MARX_GRATING_LETG	2
-/* #define MARX_GRATING_CATGS	3 */
+#define MARX_GRATING_CATGS	3
 
 
-typedef struct 
+typedef struct
 {
    /* Focal Plane Coordinate system info.
     * This information is derived from section 7.2 of Rev 4.2 of the coord
@@ -575,6 +575,7 @@ extern int marx_apply_acis_rmf (int ccd_id, float x, float y,
 				double energy, float *pip, short *phap);
 
 extern int marx_map_energy_to_acis_pha (int ccd_id, int x, int y, double energy, short *phap);
+
 extern int marx_init_acis_s_rmf (Param_File_Type *p);
 extern int marx_init_acis_i_rmf (Param_File_Type *p);
 extern int marx_init_ixo_ccd_rmf (Param_File_Type *p);
