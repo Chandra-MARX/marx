@@ -58,9 +58,11 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
      type = MARX_MIRROR_EA;
    else if (!strcmp (buf, "FLATFIELD"))
      type = MARX_MIRROR_FFIELD;
-#ifdef MARX_MIRROR_IXO
+#if MARX_HAS_IXO_SUPPORT
+# ifdef MARX_MIRROR_IXO
    else if (!strcmp (buf, "IXO"))
      type = MARX_MIRROR_IXO;
+# endif
 #endif
    else
      {
@@ -84,11 +86,13 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 	if (-1 == _marx_ff_mirror_init (pf))
 	  type = -1;
 	break;
-#ifdef MARX_MIRROR_IXO
+#if MARX_HAS_IXO_SUPPORT
+# ifdef MARX_MIRROR_IXO
       case MARX_MIRROR_IXO:
 	if (-1 == _marx_ixo_mirror_init (pf))
 	  type = -1;
 	break;
+# endif
 #endif
      }
 
@@ -118,10 +122,12 @@ int marx_mirror_reflect (Marx_Photon_Type *p, int verbose) /*{{{*/
       case MARX_MIRROR_FFIELD:
 	if (verbose) marx_message ("Flat Fielding Rays\n");
 	return _marx_ff_mirror_reflect (p);
-#ifdef MARX_MIRROR_IXO
+#if MARX_HAS_IXO_SUPPORT
+# ifdef MARX_MIRROR_IXO
       case MARX_MIRROR_IXO:
 	if (verbose) marx_message ("Reflecting from IXO\n");
 	return _marx_ixo_mirror_reflect (p);
+# endif
 #endif
      }
 

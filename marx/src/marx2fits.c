@@ -22,8 +22,8 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 /* The code in this file is very-VERY ugly.  It is a result of trying to keep
- * up with the ICDs and issues such as should marx produce a level 0 or a 
- * level 1 file.  If you think about it, this file implements much of the level 
+ * up with the ICDs and issues such as should marx produce a level 0 or a
+ * level 1 file.  If you think about it, this file implements much of the level
  * 1 pipeline.
  */
 
@@ -100,7 +100,7 @@ typedef struct /*{{{*/
    float64 dtt_time;
 
    /* marx xpixel, ypixel */
-   int16 dtt_chipx;		       
+   int16 dtt_chipx;
    int16 dtt_chipy;
 
    int32 dtt_hrc_u;
@@ -113,7 +113,7 @@ typedef struct /*{{{*/
    /* focal plane detector coords */
    float64 dtt_detx;
    float64 dtt_dety;
-   
+
    /* tangent plane coords */
    float64 dtt_xsky;
    float64 dtt_ysky;
@@ -248,12 +248,12 @@ static int close_detxy (Data_Def_Type *);
 #define MAX_BTABLE_COLUMNS 64
 
 /* This table is arranged in write order.  It is dynamically constructed
- * from Data_Def_Table using the ddt_column_number field.  The elements 
+ * from Data_Def_Table using the ddt_column_number field.  The elements
  * are pointers into Data_Def_Table.
  */
 static Data_Def_Type *Data_Def_Write_Table [MAX_BTABLE_COLUMNS + 1];
 
-/* The Data_Def_Table is arranged in the order necessary to compute 
+/* The Data_Def_Table is arranged in the order necessary to compute
  * values which depend upon other values.
  */
 static Data_Def_Type Data_Def_Table [] = /*{{{*/
@@ -280,7 +280,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0.0,			       /* ddt_max_float_value */
       0,			       /* ddt_min_int_value */
       0				       /* ddt_max_int_value */
-   },   
+   },
    {
       'I',			       /* type */
       &Data_Table.dtt_ccdid,	       /* pointer to value */
@@ -597,7 +597,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0,			       /* ddt_min_int_value */
       0				       /* ddt_max_int_value */
    },
-   
+
    {
       'J',			       /* type */
       &Data_Table.dtt_hrc_u,	       /* pointer to value */
@@ -804,7 +804,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0,			       /* ddt_min_int_value */
       0				       /* ddt_max_int_value */
    },
-   
+
    /* The rest have no files associated with them and their values
     * depend upon the previous.
     */
@@ -1203,7 +1203,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0.0,			       /* ddt_max_float_value */
       0,			       /* ddt_min_int_value */
       0,			       /* ddt_max_int_value */
-   },   
+   },
    {
       'I',			       /* type */
 	&Data_Table.dtt_status,	       /* pointer to value */
@@ -1234,7 +1234,6 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
 
 /*}}}*/
 
-
 static JDFits_BTable_Keyword_Type BTable_Keywords [MAX_BTABLE_COLUMNS];
 
 static char *Marx_Dir;
@@ -1245,7 +1244,7 @@ static char *make_marx_filename (char *f) /*{{{*/
 {
    static char file [1024];
    unsigned int len;
-   
+
    strcpy (file, Marx_Dir);
    if (0 != (len = strlen (file)))
      {
@@ -1268,9 +1267,9 @@ static int open_marx_file_internal (Data_Def_Type *ddt, int type) /*{{{*/
    char *file;
 
    file = make_marx_filename (ddt->ddt_filename);
-   
+
    fprintf (stdout, "Examining %s\n", file);
-   
+
    if (NULL == (dft = marx_open_read_dump_file (file)))
      {
 	if ((ddt->ddt_flags & DDT_REQUIRED) == 0)
@@ -1278,17 +1277,17 @@ static int open_marx_file_internal (Data_Def_Type *ddt, int type) /*{{{*/
 	     ddt->ddt_flags |= DDT_INVALID;
 	     return 0;
 	  }
-	
+
 	marx_error ("*** Unable to open %s.", file);
 	return -1;
      }
-      
+
    if (Num_Marx_File_Rows != 0)
      {
 	if (Num_Marx_File_Rows != dft->num_rows)
 	  {
 	     marx_close_read_dump_file (dft);
-	     marx_error ("*** File %s has different number of elements than expected", 
+	     marx_error ("*** File %s has different number of elements than expected",
 			 file);
 	     return -1;
 	  }
@@ -1331,18 +1330,18 @@ static int open_marx_byte_file (Data_Def_Type *ddt)
 static int open_marx_chip_file (Data_Def_Type *ddt)
 {
    int status;
-   
+
    status = open_marx_file_internal (ddt, 'E');
    if (status == -1)
      return -1;
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	ddt->ddt_min_max_type = 'I';
 	ddt->ddt_min_int_value = 2;
 	ddt->ddt_max_int_value = 1023;
      }
-   
+
    return 0;
 }
 
@@ -1350,7 +1349,7 @@ static int open_marx_sky_file (Data_Def_Type *ddt)
 {
    if (Simulation_Used_Dither == 0)
      return 0;
-   
+
    return open_marx_f32_file (ddt);
 }
 
@@ -1371,7 +1370,7 @@ static int close_data_def_table (void) /*{{{*/
 {
    Data_Def_Type *ddt;
    int ret = 0;
-   
+
    ddt = Data_Def_Table;
 
    while (ddt->ddt_value_ptr != NULL)
@@ -1388,25 +1387,25 @@ static int close_data_def_table (void) /*{{{*/
 static int open_data_def_table (void) /*{{{*/
 {
    Data_Def_Type *ddt;
-   
+
    ddt = Data_Def_Table;
 
    while (ddt->ddt_value_ptr != NULL)
      {
 	unsigned int flags = ddt->ddt_flags;
-	
+
 	if (((flags & DDT_NEED_GRATING) && (Simulation_Grating_Type == 0))
 	    || ((flags & DDT_NOT_FOR_PILEUP) && Pileup_Mode)
 	    || ((flags & DDT_NEED_PILEUP) && (Pileup_Mode == 0))
 
-	    || ((flags & DDT_NEED_ACIS) 
+	    || ((flags & DDT_NEED_ACIS)
 		&& (0 == (Simulation_Detector_Type & DETECTOR_ACIS)))
 
-	    || ((flags & DDT_NEED_HRC) 
+	    || ((flags & DDT_NEED_HRC)
 		&& (0 == (Simulation_Detector_Type & DETECTOR_HRC)))
 
 	    || ((flags & DDT_NEED_MIRROR) && Simulation_Used_No_Mirror)
-	    || ((flags & DDT_NEED_HRC_S) 
+	    || ((flags & DDT_NEED_HRC_S)
 		&& (0 == (Simulation_Detector_Type & DETECTOR_HRC_S))))
 	  {
 	     ddt->ddt_flags |= DDT_INVALID;
@@ -1427,7 +1426,7 @@ static int open_data_def_table (void) /*{{{*/
 static int compute_table_values (void) /*{{{*/
 {
    Data_Def_Type *ddt;
-   
+
    ddt = Data_Def_Table;
 
    while (ddt->ddt_value_ptr != NULL)
@@ -1440,7 +1439,7 @@ static int compute_table_values (void) /*{{{*/
 			 ddt->ddt_ttype);
 	     return -1;
 	  }
-	
+
 	ddt++;
      }
    return 0;
@@ -1450,7 +1449,7 @@ static int compute_table_values (void) /*{{{*/
 static int write_table_values (JDFits_Type *ft) /*{{{*/
 {
    Data_Def_Type **ddtp, *ddt;
-   
+
    ddtp = Data_Def_Write_Table;
    while (NULL != (ddt = *ddtp))
      {
@@ -1466,11 +1465,10 @@ static int write_table_values (JDFits_Type *ft) /*{{{*/
 }
 /*}}}*/
 
-
 static int data_def_table_cmp (Data_Def_Type **ap, Data_Def_Type **bp)
 {
    Data_Def_Type *a, *b;
-   
+
    a = *ap;
    b = *bp;
 
@@ -1486,7 +1484,7 @@ static int data_def_table_cmp (Data_Def_Type **ap, Data_Def_Type **bp)
 
    if (b->ddt_column_number == 0)
      return -1;
-   
+
    if (b->ddt_column_number > a->ddt_column_number)
      return -1;
    if (b->ddt_column_number < a->ddt_column_number)
@@ -1498,17 +1496,16 @@ static int data_def_table_cmp (Data_Def_Type **ap, Data_Def_Type **bp)
    return -1;
 }
 
-   
 static int init_data_def_write_table (void) /*{{{*/
 {
    Data_Def_Type *ddt, **ddtp;
    void (*qsort_fun) (Data_Def_Type **, unsigned int, unsigned int,
 		      int (*)(Data_Def_Type**, Data_Def_Type **));
    unsigned int num_columns;
-   
+
    ddtp = Data_Def_Write_Table;
    ddt = Data_Def_Table;
-   
+
    num_columns = 0;
    while (ddt->ddt_value_ptr != NULL)
      {
@@ -1523,10 +1520,10 @@ static int init_data_def_write_table (void) /*{{{*/
      }
 
    *ddtp = NULL;
-   
+
    qsort_fun = (void (*)(Data_Def_Type **, unsigned int, unsigned int,
 			 int (*)(Data_Def_Type**, Data_Def_Type **))) qsort;
-   
+
    if (num_columns > 1)
      (*qsort_fun) (Data_Def_Write_Table, num_columns, sizeof (Data_Def_Type *),
 		   data_def_table_cmp);
@@ -1556,7 +1553,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     ddt->ddt_min_int_value = 0;
 	     ddt->ddt_max_int_value = 0;
 	  }
-	
+
 	return;
      }
 
@@ -1579,10 +1576,10 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     else
 	       ddt->ddt_max_int_value = 16384;
 	  }
-	
+
 	return;
      }
-   
+
 /*}}}*/
 
    if (0 == strcmp (ttype, "TDETY")) /*{{{*/
@@ -1602,7 +1599,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     else
 	       ddt->ddt_max_int_value = 16384;
 	  }
-	
+
 	return;
      }
 
@@ -1626,7 +1623,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     else
 	       ddt->ddt_max_float_value = 32768.5;
 	  }
-	
+
 	return;
      }
 
@@ -1667,7 +1664,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     ddt->ddt_min_int_value = 1;
 	     ddt->ddt_max_int_value = 16384;
 	  }
-	
+
 	return;
      }
 
@@ -1686,7 +1683,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     ddt->ddt_min_int_value = 0;
 	     ddt->ddt_max_int_value = 255;
 	  }
-	
+
 	return;
      }
 
@@ -1703,7 +1700,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	     ddt->ddt_min_int_value = 1;
 	     ddt->ddt_max_int_value = 1024;
 	  }
-	
+
 	return;
      }
 
@@ -1711,15 +1708,15 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 
    fprintf (stderr, "***WARNING: Column %s does not have TLMIN/TLMAX specified.\n",
 	    ttype);
-   
+
 }
 
-static int get_column_wcs_info (Data_Def_Type *ddt, 
+static int get_column_wcs_info (Data_Def_Type *ddt,
 				double *crval, double *crpix, double *cdelt)
 {
    char *ttype;
    ttype = ddt->ddt_ttype;
-   
+
    if ((0 == strcmp (ttype, "X"))
 	|| (0 == strcmp (ttype, "Y")))
      {
@@ -1742,16 +1739,15 @@ static int get_column_wcs_info (Data_Def_Type *ddt,
 
 	return 0;
      }
-   
+
    return -1;
 }
-
 
 static int create_btable_keywords (void) /*{{{*/
 {
    JDFits_BTable_Keyword_Type *bkw;
    Data_Def_Type **ddtp, *ddt;
-   
+
    bkw = BTable_Keywords;
    ddtp = Data_Def_Write_Table;
    while ((ddt = *ddtp) != NULL)
@@ -1761,7 +1757,7 @@ static int create_btable_keywords (void) /*{{{*/
 	bkw->ttype = ddt->ddt_ttype;
 	bkw->tform = ddt->ddt_tform;
 	bkw->tunit = ddt->ddt_tunit;
-	
+
 	bkw->tunit_comment = NULL;
 	bkw->tform_comment = NULL;
 	bkw->ttype_comment = ddt->ddt_ttype_comment;
@@ -1778,7 +1774,7 @@ static int create_btable_keywords (void) /*{{{*/
 	   default:
 	     bkw->min_max_type = 0;
 	     break;
-	     
+
 	   case 'I':
 	   case 'J':
 	     bkw->min_value.j_val = ddt->ddt_min_int_value;
@@ -1802,7 +1798,7 @@ static int create_btable_keywords (void) /*{{{*/
 
    return 0;
 }
-   
+
 /*}}}*/
 
 typedef struct /*{{{*/
@@ -1810,7 +1806,7 @@ typedef struct /*{{{*/
    unsigned int location;	       /* a bitmapped quantity */
 #define FULL_COMPONENT	1
 #define SHORT_COMPONENT	2
-   
+
    char *keyword;
    int type;
 #define H_PINT	1
@@ -1819,11 +1815,10 @@ typedef struct /*{{{*/
 #define H_PSTR	4
 #define H_COM	5
 #define H_ENV	6
-#define H_INT	7
-#define H_SMARX	8		       /* read from parameter file */
+#define H_SMARX	7		       /* read from parameter file */
 #define H_DMARX	8		       /* read from parameter file */
-#define H_FILE	10   		       /* read from obs.par file */
-#define H_LOG	11		       /* logical */
+#define H_FILE	9   		       /* read from obs.par file */
+#define H_LOG	10		       /* logical */
    void *value;
    char *comment;
 }
@@ -1858,6 +1853,10 @@ static double Focal_Length = 10079.77;
 static double Frame_Exposure_Time;/* = 0.0000001; */
 static double TimeDel;	       /* time between exposures */
 static double Time_Start;
+static double Int_0 = 0;
+static double Int_1 = 1;
+/* static double Int_2 = 2; */
+static double Int_1024 = 1024;
 
 static Fits_Header_Table_Type CC_NULL_Component [] =
 {
@@ -1875,7 +1874,7 @@ static Fits_Header_Table_Type CC_NULL_Component [] =
      {3,"HDUCLASS",	H_PSTR,	&HDU_Class,		NULL},
      {3,"HDUCLAS1",	H_PSTR,	&HDU_Class1,		NULL},
      {3,"HDUCLAS2",	H_PSTR,	&HDU_Class2,		NULL},
-   
+
      {0,NULL, 0, NULL, NULL}
 };
 
@@ -1890,7 +1889,7 @@ static Fits_Header_Table_Type CC_Component [] =
      {3, "DATASUM",	H_STR,	"0", NULL},
 #endif
      {3,"CONTENT",	H_PSTR,	&Content_Hdr,	NULL},
-   
+
      {3,"HDUNAME",	H_PSTR,	&HDU_Name_Hdr,		NULL},
      {1,"HDUSPEC",	H_STR,	"Level 1 Data Products ICD",		NULL},
      {3,"HDUDOC",	H_STR,	"ASC-FITS-2.0",		NULL},
@@ -1899,13 +1898,13 @@ static Fits_Header_Table_Type CC_Component [] =
      {3,"HDUCLASS",	H_PSTR,	&HDU_Class,		NULL},
      {3,"HDUCLAS1",	H_PSTR,	&HDU_Class1,		NULL},
      {3,"HDUCLAS2",	H_PSTR,	&HDU_Class2,		NULL},
-   
+
      {1,"LONGSTRN",	H_STR, "OGIP 1.0",	"Unofficial Convention"},
-   
+
      {0,NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type Timing_Component [] = 
+static Fits_Header_Table_Type Timing_Component [] =
 {
      {3,"COMMENT",	H_COM,	NULL,	"\n-------- Timing Component -------\n\n"},
      {3,"DATE",		H_STR,	Todays_Date,	"Date and time of file creation (UTC)"},
@@ -1933,19 +1932,19 @@ static Fits_Header_Table_Type Timing_Component [] =
      {3,"TSTART",	H_FILE,	NULL,		"As in the TIME column: raw space craft clock"},
      {3,"TSTOP",	H_FILE,	NULL,		"  add TIMEZERO and MJDREF for absolute TT"},
 
-     {1,"TIMEPIXR",H_INT,	(void *)0,	"Time stamp refers to start of bin"},
+     {1,"TIMEPIXR",	H_PINT,	(void *)&Int_0,	"Time stamp refers to start of bin"},
      {1,"TIMEDEL",	H_PFLT,	(void *)&TimeDel,	"Time resolution of data in seconds"},
 
      {0,NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type Acis_Timing_Component [] = 
+static Fits_Header_Table_Type Acis_Timing_Component [] =
 {
-     {1,"STARTMJF", H_INT, (void *)0,	"Major frame count at start"},
-     {1,"STARTMNF", H_INT, (void *)0,	"Minor frame count at start"},
-     {1,"STARTOBT", H_INT, (void *)0,	"Onboard MET close to STARTMJF and STARTMNF"},
-     {1,"STOPMJF", H_INT, (void *)0,	"Major frame count at stop"},
-     {1,"STOPMNF", H_INT, (void *)0,	"Minor frame count at stop"},
+     {1,"STARTMJF", H_PINT, (void *)&Int_0,	"Major frame count at start"},
+     {1,"STARTMNF", H_PINT, (void *)&Int_0,	"Minor frame count at start"},
+     {1,"STARTOBT", H_PINT, (void *)&Int_0,	"Onboard MET close to STARTMJF and STARTMNF"},
+     {1,"STOPMJF", H_PINT, (void *)&Int_0,	"Major frame count at stop"},
+     {1,"STOPMNF", H_PINT, (void *)&Int_0,	"Minor frame count at stop"},
      {0,NULL, 0, NULL, NULL}
 };
 
@@ -1990,7 +1989,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {0,NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type Acis_Obs_Info_Component [] = 
+static Fits_Header_Table_Type Acis_Obs_Info_Component [] =
 {
    {1,"DATAMODE",	H_FILE,	NULL,	"telemetry mode"},
    {1,"CYCLE",		H_STR,	"P",	"Events from Primary exposures"},
@@ -2028,7 +2027,7 @@ static Fits_Header_Table_Type Acis_S_Obs_Info_Component [] =
    {1,"4DSVAL1",	H_STR,	"6:6",		NULL},
    {1,"5DSVAL1",	H_STR,	"8:8",		NULL},
    {1,"6DSVAL1",	H_STR,	"9:9",		NULL},
-   
+
    {1,"DSTYP3",		H_STR,	"time",		NULL},
    {1,"DSVAL3",		H_STR,	"TABLE", 	NULL},
    {1,"DSFORM3",	H_STR,	"D", 		NULL},
@@ -2108,8 +2107,8 @@ static Fits_Header_Table_Type Acis_Faint_Header_Keywords [] =
      {3,"COMMENT",	H_COM,	NULL, "\nAXAF FITS Event File: ACIS Level 1\n\n"},
      {3,"READMODE",	H_STR,	"TIMED",	"CCD exposure mode"},
 
-     {3,"FIRSTROW",	H_INT,	(void *)1,	"Index of first row of CCD readout"},
-     {3,"NROWS",	H_INT,	(void *)1024,	"Number of rows in readout"},
+     {3,"FIRSTROW",	H_PINT,	(void *)&Int_1,	"Index of first row of CCD readout"},
+     {3,"NROWS",	H_PINT,	(void *)&Int_1024,	"Number of rows in readout"},
      {3, "EXPTIME",	H_PFLT,	(void *)&Frame_Exposure_Time,	"Commanded exposure time in secs"},
 
      {3,"COMMENT",	H_COM,	NULL, "\nApplied event correction/flagging reference files\n\n"},
@@ -2135,7 +2134,7 @@ static Fits_Header_Table_Type Acis_Faint_Header_Keywords [] =
      {0, NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type DM_Keywords [] = 
+static Fits_Header_Table_Type DM_Keywords [] =
 {
      {2, "MTYPE1",	H_STR,	"chip", "DM Keyword: Descriptor name"},
      {2, "MFORM1",	H_STR,	"chipx,chipy", "DM Keyword: Descriptor value"},
@@ -2159,7 +2158,6 @@ static Fits_Header_Table_Type Hrc_Header_Keywords [] =
      {0,NULL, 0, NULL, NULL}
 };
 
-
 static int Extver = 1;
 static Fits_Header_Table_Type GoodTime_Header_Keywords [] =
 {
@@ -2171,10 +2169,10 @@ static Fits_Header_Table_Type GoodTime_Header_Keywords [] =
 #endif
 #if 0
      {2,"COMMENT",	H_COM,	NULL,		"\nData model support keywords"},
-     {2,"CFIELDS",	H_INT,	(void *)1,"Number of ASC Table Columns"},
+     {2,"CFIELDS",	H_PINT,	(void *)&Int_1,"Number of ASC Table Columns"},
      {2,"CNAM1",	H_STR,	"TIME",	"Time"},
-   
-     {2,"CNC1",		H_INT,	(void *)2,"Number of FITS cols for ASC col 1"},
+
+     {2,"CNC1",		H_PINT,	(void *)&Int_2,"Number of FITS cols for ASC col 1"},
      {2,"CETYP1",	H_STR,	"R",	"Data is an interval"},
      {2,"CITYP1",	H_STR,	"[)",	"Interval is semi-open"},
      {2,"TDISP1",	H_STR,	"F20.6","Display format for FITS col 1"},
@@ -2206,13 +2204,13 @@ static Param_Table_Type Parm_Table [] = /*{{{*/
      {"DitherModel",	PF_STRING_TYPE,		&Dither_Model},
      {"MirrorType",	PF_STRING_TYPE,		&Mirror_Type},
      {"FocalLength",	PF_DOUBLE_TYPE,		&Focal_Length},
-   
+
      {"SourceRA",	PF_DOUBLE_TYPE,		&Target_RA},
      {"SourceDec",	PF_DOUBLE_TYPE,		&Target_Dec},
-   
+
      {"ACIS_Exposure_Time",	PF_REAL_TYPE,	&ACIS_Exposure_Time},
      {"ACIS_Frame_Transfer_Time",PF_REAL_TYPE,	&ACIS_Frame_Transfer_Time},
- 
+
      {NULL, 0, NULL}
 };
 
@@ -2222,7 +2220,7 @@ static int get_date (char *str) /*{{{*/
 {
    time_t tloc;
    struct tm *tms;
-   
+
    time (&tloc);
    tms = gmtime (&tloc);
 
@@ -2242,7 +2240,6 @@ static Param_Table_Type Pileup_Parm_Table [] =
      {NULL, 0, NULL}
 };
 
-
 static int read_pileup_parms (void)
 {
    char *file;
@@ -2257,20 +2254,20 @@ static int read_pileup_parms (void)
 	marx_error ("*** Unable to open %s\n", file);
 	return -1;
      }
-   
+
    if (-1 == pf_get_parameters (pf, Pileup_Parm_Table))
      {
 	pf_close_parameter_file (pf);
 	return -1;
      }
-   
+
 #ifdef VERY_OLD_PILEUP_MODEL
    if (-1 == pf_get_integer (pf, "CCDID", &ccdid))
      {
 	pf_close_parameter_file (pf);
 	return -1;
      }
-   
+
    Data_Table.dtt_ccdid = (int16) ccdid;
 #endif
    pf_close_parameter_file (pf);
@@ -2279,21 +2276,21 @@ static int read_pileup_parms (void)
 }
 
 #if 0
-static 
+static
 int _marx_strcasecmp (char *a, char *b)
 {
    while (1)
      {
 	char cha, chb;
-	
+
 	cha = *a;
 	chb = *b;
 	if (toupper(cha) != toupper(chb))
 	  return (int)cha - (int)chb;
-	
+
 	if (cha == 0)
 	  return 0;
-	
+
 	a++;
 	b++;
      }
@@ -2313,7 +2310,7 @@ static int get_marx_pfile_info (void) /*{{{*/
 	marx_error ("*** Unable to open %s\n", file);
 	return -1;
      }
-   
+
    if (-1 == pf_get_parameters (pf, Parm_Table))
      {
 	pf_close_parameter_file (pf);
@@ -2342,13 +2339,13 @@ static int get_marx_pfile_info (void) /*{{{*/
      Simulation_Detector_Type = DETECTOR_HRC_S;
    else if (0 == strcmp (DetectorType, "HRC-I"))
      Simulation_Detector_Type = DETECTOR_HRC_I;
-   
+
   if (0 == strcmp (GratingType, "HETG"))
      Simulation_Grating_Type = MARX_GRATING_HETG;
    else if (0 == strcmp (GratingType, "LETG"))
      Simulation_Grating_Type = MARX_GRATING_LETG;
    else Simulation_Grating_Type = 0;
-   
+
    The_Detector = marx_get_detector_info (DetectorType);
    if (The_Detector == NULL)
      {
@@ -2414,14 +2411,14 @@ static int get_marx_pfile_info (void) /*{{{*/
 	  Acis_PI_Factor = 14.6;
 
 	Acis_PI_Factor = 1.0 / Acis_PI_Factor;
-	
+
 	if ((-1 == pf_get_double (pf, "ACIS_Exposure_Time", &ACIS_Exposure_Time))
 	    || (-1 == pf_get_double (pf, "ACIS_Frame_Transfer_Time", &ACIS_Frame_Transfer_Time)))
 	  {
 	     pf_close_parameter_file (pf);
 	     return -1;
 	  }
-#if MARX_HAS_ACIS_FEF	
+#if MARX_HAS_ACIS_FEF
 #if 0
 	if (Pileup_Mode)
 	  {
@@ -2445,20 +2442,20 @@ static int get_marx_pfile_info (void) /*{{{*/
      }
 
    pf_close_parameter_file (pf);
-   
+
    if (Pileup_Mode)
      {
 	if (-1 == read_pileup_parms ())
 	  return -1;
      }
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	Frame_Exposure_Time = TimeDel = ACIS_Exposure_Time;
 	if ((ACIS_Exposure_Time > 0.0)
 	    && (ACIS_Frame_Transfer_Time > 0.0))
 	  TimeDel += ACIS_Frame_Transfer_Time;
-   
+
 	if (ACIS_Exposure_Time > 0)
 	  DT_Corr = ACIS_Exposure_Time / TimeDel;
      }
@@ -2518,40 +2515,40 @@ static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
 	ret = jdfits_write_header_double (f, name, d, h->comment);
 	break;
      }
-   
+
    return ret;
 }
 
-static int write_extra_headers (JDFits_Type *ft, 
+static int write_extra_headers (JDFits_Type *ft,
 				Fits_Header_Table_Type *h,
 				unsigned int mask) /*{{{*/
 {
    get_date (Todays_Date);
-   
+
    while (h->keyword != NULL)
      {
 	int ret;
 	char *str;
 	double d;
 	int i;
-	
+
 	if ((h->location & mask) == 0)
 	  {
 	     h++;
 	     continue;
 	  }
-	
+
 	switch (h->type)
 	  {
 	   case H_FILE:
 	     ret = write_parfile_value (ft, Obs_Par_Parms, h);
 	     break;
-	     
+
 	   case H_ENV:
 	     str = getenv ((char *) h->value);
 	     if (str == NULL)
 	       {
-		  fprintf (stderr, "Warning: Environment variable %s not set.\n", (char *) h->value); 
+		  fprintf (stderr, "Warning: Environment variable %s not set.\n", (char *) h->value);
 		  str = "Unknown";
 	       }
 	     ret = jdfits_write_header_string (ft, h->keyword, str, h->comment);
@@ -2564,61 +2561,51 @@ static int write_extra_headers (JDFits_Type *ft,
 
 	     ret = jdfits_write_header_string (ft, h->keyword, str, h->comment);
 	     break;
-	     
+
 	   case H_PSTR:
 	     if (h->value == NULL) str = "Unknown";
 	     else str = *(char **)h->value;
 	     ret = jdfits_write_header_string (ft, h->keyword, str, h->comment);
 	     break;
-	     
+
 	   case H_PFLT:
 	     if (h->value == NULL) d = 0.0;
 	     else d = *(double *) h->value;
 	     ret = jdfits_write_header_double (ft, h->keyword, d, h->comment);
 	     break;
 
-	   case H_INT:
-	     if (h->value == NULL) i = 0;
-	     else i = (int) h->value;
-	     
-	     ret = jdfits_write_header_integer (ft, h->keyword, i, h->comment);
-	     break;
-
 	   case H_LOG:
-	     if (h->value == NULL) i = 0;
-	     else i = (int) h->value;
-	     
+	     i = (h->value != NULL);
 	     ret = jdfits_write_header_logical (ft, h->keyword, i, h->comment);
 	     break;
 
 	   case H_PINT:
 	     if (h->value == NULL) i = 0;
 	     else i = *(int *) h->value;
-	     
+
 	     ret = jdfits_write_header_integer (ft, h->keyword, i, h->comment);
 	     break;
-	     
+
 	   case H_COM:
 	     ret = jdfits_write_header_comment (ft, h->keyword, h->comment);
 	     break;
-	     
+
 	   default:
 	     fprintf (stderr, "write_extra_headers: %s: type %d not supported.\n",
 		      h->keyword, h->type);
 	     ret = 0;
 	  }
-	
+
 	if (ret == -1)
 	  return -1;
-	
+
 	if (h->value == NULL)
 	  {
-	     if ((h->type != H_COM) && (h->type != H_FILE)
-		 && (h->type != H_INT))
+	     if ((h->type != H_COM) && (h->type != H_FILE) && (h->type != H_LOG))
 	       fprintf (stderr, "Warning: Fits keyword %s has no value\n",
 			h->keyword);
 	  }
-	
+
 	h++;
      }
    return 0;
@@ -2629,7 +2616,7 @@ static int write_extra_headers (JDFits_Type *ft,
 static int write_marx_par_comments (JDFits_Type *ft)
 {
    char *file = make_marx_filename ("marx.par");
-   return jdfits_add_comments_from_file (ft, file, 
+   return jdfits_add_comments_from_file (ft, file,
 					"COMMENT", "#@#", 0);
 }
 
@@ -2648,13 +2635,13 @@ static int init_marx_fits_file (JDFits_Type *ft) /*{{{*/
      return -1;
    if (-1 == write_extra_headers (ft, Timing_Component, 2))
      return -1;
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Timing_Component, 2))
 	  return -1;
      }
-   
+
    if (-1 == write_extra_headers (ft, Obs_Info_Component, 2))
      return -1;
 
@@ -2663,7 +2650,7 @@ static int init_marx_fits_file (JDFits_Type *ft) /*{{{*/
 	if (-1 == write_extra_headers (ft, Acis_Obs_Info_Component, 2))
 	  return -1;
      }
-   
+
    if (-1 == write_marx_par_comments (ft))
      return -1;
 
@@ -2678,10 +2665,10 @@ static int init_marx_fits_file (JDFits_Type *ft) /*{{{*/
 static int marx2fits (JDFits_Type *ft) /*{{{*/
 {
    int32 i;
-   
+
    if (-1 == create_btable_keywords ())
      return -1;
-   
+
    if (-1 == jdfits_create_btable_extension (ft,
 					     BTable_Keywords,
 					     Num_Marx_Data_Values,
@@ -2706,16 +2693,16 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
 	if (-1 == write_extra_headers (ft, Acis_Timing_Component, 3))
 	  return -1;
      }
-   
+
    if (-1 == write_extra_headers (ft, Obs_Info_Component, 3))
      return -1;
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Obs_Info_Component, 3))
 	  return -1;
      }
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS_I)
      {
 	if (-1 == write_extra_headers (ft, Acis_I_Obs_Info_Component, 3))
@@ -2732,7 +2719,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
      {
 	if (-1 == write_extra_headers (ft, Acis_Faint_Header_Keywords, 3))
 	  return -1;
-	
+
 	if (-1 == write_extra_headers (ft, Acis_Coord_Sys_Component, 3))
 	  return -1;
      }
@@ -2740,7 +2727,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
      {
 	if (-1 == write_extra_headers (ft, Hrc_Header_Keywords, 3))
 	  return -1;
-	
+
 	if (Simulation_Detector_Type & DETECTOR_HRC_I)
 	  {
 	     if (-1 == write_extra_headers (ft, HRC_I_Coord_Sys_Component, 3))
@@ -2755,7 +2742,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
 
    if (-1 == write_extra_headers (ft, DM_Keywords, 2))
      return -1;
-   
+
    if (-1 == write_marx_par_comments (ft))
      return -1;
 
@@ -2768,15 +2755,15 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
 	i--;
 	if (-1 == compute_table_values ())
 	  return -1;
-	
+
 	if (Data_Table.dtt_pha == -1)
 	  continue;
-	
+
 	if (-1 == write_table_values (ft))
 	  return -1;
-	
+
      }
-   
+
    return jdfits_end_data (ft);
 }
 
@@ -2822,7 +2809,7 @@ static int get_simulation_info (void) /*{{{*/
      }
 
    Num_Marx_Data_Values = (int) dft->num_rows;
-   
+
    if (is_pha)
      {
 	FILE *fp = dft->fp;
@@ -2842,7 +2829,7 @@ static int get_simulation_info (void) /*{{{*/
 		  ret = -1;
 		  break;
 	       }
-	
+
 	     for (i = 0; i < nread; i++)
 	       {
 		  if (phas[i] == -1) Num_Marx_Data_Values--;
@@ -2874,7 +2861,7 @@ static Param_File_Type *read_obspar_file (void)
 {
    char *file;
    Param_File_Type *pf;
-   
+
    file = make_marx_filename ("obs.par");
    pf = pf_open_parameter_file (file, "r");
    if (pf == NULL)
@@ -2882,7 +2869,7 @@ static Param_File_Type *read_obspar_file (void)
 	fprintf (stderr, "Unable to open obs.par file %s\n", file);
 	return NULL;
      }
-   
+
    if (-1 == pf_get_parameters (pf, Obspar_Parm_Table))
      {
 	pf_close_parameter_file (pf);
@@ -2891,7 +2878,7 @@ static Param_File_Type *read_obspar_file (void)
 
    if (DT_Corr == 0)
      DT_Corr = 1.0;
-   
+
    Exposure_Time *= DT_Corr;
    return pf;
 }
@@ -2904,38 +2891,38 @@ static int add_marx_par_to_file (JDFits_Type *ft)
    unsigned int nrows, ncols;
    JDFits_BTable_Keyword_Type keywords[2];
    char tform [32];
-   
+
    file = make_marx_filename ("marx.par");
    fp = fopen (file, "r");
-   
+
    if (fp == NULL)
      {
 	fprintf (stderr, "***Warning: %s not opened-- not added to fits file.\n",
 		 file);
 	return 0;
      }
-   
+
    nrows = 0;
    ncols = 0;
    while (NULL != fgets (line, sizeof(line), fp))
      {
 	unsigned int len;
-	
+
 	len = strlen (line);
-	if (len > ncols) 
+	if (len > ncols)
 	  ncols = len;
-	
+
 	nrows++;
      }
-   
+
    rewind (fp);
-   
+
    memset ((char *) keywords, 0, sizeof (keywords));
-   
+
    sprintf (tform, "%uA", ncols);
    keywords[0].tform = tform;
    keywords[0].ttype = "MARXPAR_LINE";
-   
+
    if (-1 == jdfits_create_btable_extension (ft, keywords,
 					     nrows, 0, 1,
 					     "MARX_PAR"))
@@ -2943,7 +2930,7 @@ static int add_marx_par_to_file (JDFits_Type *ft)
 	fclose (fp);
 	return -1;
      }
-   
+
    if (-1 == jdfits_end_header (ft))
      return -1;
 
@@ -2951,29 +2938,28 @@ static int add_marx_par_to_file (JDFits_Type *ft)
      {
 	unsigned int len;
 	memset (line, 0, sizeof (line));
-	
+
 	if (NULL == fgets (line, sizeof (line), fp))
 	  {
 	     fprintf (stderr, "Error reading %s.\n", file);
 	     fclose (fp);
 	     return -1;
 	  }
-	
+
 	len = strlen (line);
 	if (len && (line[len - 1] == '\n'))
 	  line[len - 1] = 0;
-		    
+
 	if (-1 == jdfits_write (ft, (unsigned char *) line, ncols))
 	  {
 	     fclose (fp);
 	     return -1;
 	  }
      }
-   
+
    fclose (fp);
    return jdfits_end_data (ft);
 }
-
 
 static int add_goodtime_extension_n (JDFits_Type *ft, int ccdid)
 {
@@ -2984,7 +2970,7 @@ static int add_goodtime_extension_n (JDFits_Type *ft, int ccdid)
    float64 tmin, tmax;
    float32 t;
    char gti_n[12];
-   
+
    file = make_marx_filename ("time.dat");
    dft = marx_open_read_dump_file (file);
 
@@ -2994,7 +2980,7 @@ static int add_goodtime_extension_n (JDFits_Type *ft, int ccdid)
 	return -1;
      }
    fp = dft->fp;
-   
+
    tmin = 0.0;
    tmax = 0.0;
    while (1 == JDMread_float32 (&t, 1, fp))
@@ -3004,9 +2990,9 @@ static int add_goodtime_extension_n (JDFits_Type *ft, int ccdid)
    tmax += Time_Start;
 
    marx_close_read_dump_file (dft);
-   
+
    memset ((char *) keywords, 0, sizeof (keywords));
-   
+
    keywords[0].tform = "1D";
    keywords[0].ttype = "START";
    keywords[0].tunit = "s";
@@ -3039,7 +3025,7 @@ static int add_goodtime_extension_n (JDFits_Type *ft, int ccdid)
    HDU_Class1 = "GTI";
    HDU_Class2 = "ALL";
    Content_Hdr = "GTI";
-   
+
    if (-1 == write_extra_headers (ft, CC_Component, 3))
      return -1;
 
@@ -3058,13 +3044,13 @@ static int add_goodtime_extension_n (JDFits_Type *ft, int ccdid)
 	    || (-1 == jdfits_write_header_integer (ft, "FEP_ID", ccdid, NULL)))
 	  return -1;
      }
-	  
+
    if (-1 == jdfits_end_header (ft))
      return -1;
-       
+
    (void) jdfits_write_float64 (ft, &tmin, 1);
    (void) jdfits_write_float64 (ft, &tmax, 1);
-   
+
    return jdfits_end_data (ft);
 }
 
@@ -3074,18 +3060,18 @@ static int add_goodtime_extensions (JDFits_Type *f)
 
    if (0 == (Simulation_Detector_Type & DETECTOR_ACIS))
      return add_goodtime_extension_n (f, -1);
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS_I)
      {
 	imin = 0;
 	imax = 3;
      }
-   else 
+   else
      {
 	imin = 4;
 	imax = 9;
      }
-   
+
    for (i = imin; i <= imax; i++)
      {
 	if (-1 == add_goodtime_extension_n (f, i))
@@ -3094,7 +3080,6 @@ static int add_goodtime_extensions (JDFits_Type *f)
    return 0;
 }
 
-   
 static int usage (void) /*{{{*/
 {
    fprintf (stderr, "%s:\n", Marx2fits_Pgm);
@@ -3115,12 +3100,12 @@ int main (int argc, char **argv) /*{{{*/
      {
       default:
 	return usage ();
-	
+
       case 3:
 	Marx_Dir = argv[1];
 	fits_file = argv[2];
 	break;
-	
+
       case 4:
 	if (strcmp ("--pileup", argv[1]))
 	  return usage ();
@@ -3128,11 +3113,11 @@ int main (int argc, char **argv) /*{{{*/
 	fits_file = argv[3];
 	Pileup_Mode = 1;
      }
-   
+
    if (-1 == get_simulation_info ())
      return 1;
-   
-   if (Pileup_Mode 
+
+   if (Pileup_Mode
        && (0 == (Simulation_Detector_Type & DETECTOR_ACIS)))
      {
 	fprintf (stderr, "The simulation does not appear to be an ACIS simulation\n");
@@ -3145,27 +3130,27 @@ int main (int argc, char **argv) /*{{{*/
 
    if (-1 == open_data_def_table ())
      return 1;
-   
+
    if (-1 == init_data_def_write_table ())
      {
 	(void) close_data_def_table ();
 	return 1;
      }
-   
+
    if (NULL == (ft = jdfits_open_file (fits_file, JDFITS_WRITE_MODE)))
      {
 	marx_error ("*** Unable to open output file %s\n", fits_file);
 	(void) close_data_def_table ();
 	return 1;
      }
-   
+
    if (-1 == init_marx_fits_file (ft))
      {
 	(void) jdfits_close_file (ft);
 	(void) close_data_def_table ();
 	return 1;
      }
-   
+
    if (-1 == marx2fits (ft))
      {
 	(void) jdfits_close_file (ft);
@@ -3179,7 +3164,6 @@ int main (int argc, char **argv) /*{{{*/
 	(void) close_data_def_table ();
 	return 1;
      }
-   
 
    if (-1 == add_marx_par_to_file (ft))
      return -1;
@@ -3189,10 +3173,10 @@ int main (int argc, char **argv) /*{{{*/
 	(void) close_data_def_table ();
 	return 1;
      }
-   
+
    if (-1 == close_data_def_table ())
      return 1;
-   
+
    return 0;
 }
 
@@ -3213,7 +3197,6 @@ static int write_int32 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
 }
 
 /*}}}*/
-
 
 static int write_float32 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
 {
@@ -3238,7 +3221,7 @@ static int write_pha_island (Data_Def_Type *ddt, JDFits_Type *ft)
 static int write_time (Data_Def_Type *ddt, JDFits_Type *ft)
 {
    float64 t;
-   
+
    t = *(float64 *)ddt->ddt_value_ptr;
    if (TimeDel > 0.0)
      t = TimeDel * Data_Table.dtt_expno;
@@ -3247,8 +3230,6 @@ static int write_time (Data_Def_Type *ddt, JDFits_Type *ft)
 
    return jdfits_write_float64 (ft,  &t, 1);
 }
-
-
 
 /*}}}*/
 
@@ -3259,7 +3240,7 @@ static int read_int16 (Data_Def_Type *ddt) /*{{{*/
 {
    if (1 != JDMread_int16 ((int16 *) ddt->ddt_value_ptr, 1, ddt->ddt_dft->fp))
      return -1;
-   
+
    return 0;
 }
 /*}}}*/
@@ -3281,13 +3262,12 @@ static int read_int16_add_1 (Data_Def_Type *ddt) /*{{{*/
 static int read_pha_island (Data_Def_Type *ddt) /*{{{*/
 {
    (void) ddt;
-   
+
    if (9 != JDMread_int16 (Data_Table.dtt_pha_island, 9, ddt->ddt_dft->fp))
      return -1;
-   
+
    return 0;
 }
-
 
 /*}}}*/
 #endif
@@ -3295,7 +3275,7 @@ static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    if (1 != JDMread_int32 ((int32 *) ddt->ddt_value_ptr, 1, ddt->ddt_dft->fp))
      return -1;
-   
+
    return 0;
 }
 
@@ -3304,13 +3284,12 @@ static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 static int read_float32_to_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    float32 f32;
-   
+
    if (1 != JDMread_float32 (&f32, 1, ddt->ddt_dft->fp))
      return -1;
-   
-   
+
    *(int32 *) ddt->ddt_value_ptr = (int32) f32;
-   
+
    return 0;
 }
 
@@ -3319,13 +3298,12 @@ static int read_float32_to_int32 (Data_Def_Type *ddt) /*{{{*/
 static int read_int16_to_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    int16 i16;
-   
+
    if (1 != JDMread_int16 (&i16, 1, ddt->ddt_dft->fp))
      return -1;
-   
-   
+
    *(int32 *) ddt->ddt_value_ptr = (int32) i16;
-   
+
    return 0;
 }
 
@@ -3334,14 +3312,13 @@ static int read_int16_to_int32 (Data_Def_Type *ddt) /*{{{*/
 static int read_float32_to_int16_1 (Data_Def_Type *ddt) /*{{{*/
 {
    float32 f32;
-   
+
    if (1 != JDMread_float32 (&f32, 1, ddt->ddt_dft->fp))
      return -1;
-   
 
    /* Add 1.0 so that any pixel value in range [0:1] comes out as 1 */
    *(int16 *) ddt->ddt_value_ptr = (int16) (f32 + 1.0);
-   
+
    return 0;
 }
 
@@ -3350,12 +3327,12 @@ static int read_float32_to_int16_1 (Data_Def_Type *ddt) /*{{{*/
 static int read_byte_to_int16 (Data_Def_Type *ddt) /*{{{*/
 {
    signed char ch;
-   
+
    if (1 != fread (&ch, 1, 1, ddt->ddt_dft->fp))
      return -1;
-   
+
    *(int16 *) ddt->ddt_value_ptr = (int16) ch;
-   
+
    return 0;
 }
 
@@ -3365,7 +3342,7 @@ static int read_float32 (Data_Def_Type *ddt) /*{{{*/
 {
    if (1 != JDMread_float32 ((float32 *) ddt->ddt_value_ptr, 1, ddt->ddt_dft->fp))
      return -1;
-   
+
    return 0;
 }
 
@@ -3374,10 +3351,10 @@ static int read_float32 (Data_Def_Type *ddt) /*{{{*/
 static int read_float32_to_float64 (Data_Def_Type *ddt) /*{{{*/
 {
    float32 f32;
-   
+
    if (1 != JDMread_float32 (&f32, 1, ddt->ddt_dft->fp))
      return -1;
-   
+
    *(float64 *) ddt->ddt_value_ptr = (float64) f32;
    return 0;
 }
@@ -3404,7 +3381,6 @@ static int compute_tdetxy (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 
-
 static Marx_Chip_To_MNC_Type **Chip_To_Mncs;
 static int First_Chip_Id;
 static int Last_Chip_Id;
@@ -3415,10 +3391,10 @@ static void delete_chip_to_mncs (void)
 
    if (Chip_To_Mncs == NULL)
      return;
-   
+
    m = Chip_To_Mncs;
    mmax = m + (Last_Chip_Id - First_Chip_Id + 1);
-   
+
    while (m < mmax)
      {
 	if (*m != NULL)
@@ -3431,8 +3407,6 @@ static void delete_chip_to_mncs (void)
    free ((char *) Chip_To_Mncs);
    Chip_To_Mncs = NULL;
 }
-
-   
 
 static int open_detxy (Data_Def_Type *ddt)
 {
@@ -3448,7 +3422,7 @@ static int open_detxy (Data_Def_Type *ddt)
 	fprintf (stderr, "open_detxy: internal error.\n");
 	return -1;
      }
-   
+
    Chip_To_Mncs = (Marx_Chip_To_MNC_Type **) malloc (sizeof (Marx_Chip_To_MNC_Type *) * num);
    if (NULL == Chip_To_Mncs)
      {
@@ -3456,18 +3430,18 @@ static int open_detxy (Data_Def_Type *ddt)
 	return -1;
      }
    memset ((char *) Chip_To_Mncs, 0, num * sizeof(Marx_Chip_To_MNC_Type *));
-   
+
    for (i = First_Chip_Id; i <= Last_Chip_Id; i++)
      {
 	Marx_Chip_To_MNC_Type *m;
-	
+
 	if (NULL == (m = marx_allocate_chip_to_mnc (DetectorType, i)))
 	  {
 	     delete_chip_to_mncs ();
 	     return -1;
 	  }
-	
-	if (-1 == marx_init_chip_to_mnc (m, Focal_Length, 
+
+	if (-1 == marx_init_chip_to_mnc (m, Focal_Length,
 					 DetOffset_X, DetOffset_Y, DetOffset_Z,
 					 0.0   /* theta */))
 	  {
@@ -3477,19 +3451,18 @@ static int open_detxy (Data_Def_Type *ddt)
 
 	Chip_To_Mncs[i - First_Chip_Id] = m;
      }
-   
+
    return 0;
 }
 
 static int close_detxy (Data_Def_Type *ddt)
 {
    (void) ddt;
-   
+
    delete_chip_to_mncs ();
    return 0;
 }
 
-   
 static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 {
    JDMVector_Type mnc;
@@ -3497,7 +3470,7 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
    Marx_Chip_To_MNC_Type *chip2mnc;
 
    (void) ddt;
-   
+
    chip2mnc = Chip_To_Mncs[Data_Table.dtt_ccdid - First_Chip_Id];
 
    /* Randomized within a pixel boundary.  Also, subtract 1 to go from a
@@ -3537,7 +3510,7 @@ static int compute_expno (Data_Def_Type *ddt) /*{{{*/
 	return 0;
      }
    Data_Table.dtt_expno = (long)(Data_Table.dtt_time / TimeDel);
-   
+
    return 0;
 }
 
@@ -3563,7 +3536,6 @@ static int compute_status (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 
-
 static int compute_grade (Data_Def_Type *ddt) /*{{{*/
 {
    (void) ddt;
@@ -3588,7 +3560,7 @@ static int compute_xy_sky (Data_Def_Type *ddt)
 
 	x = Data_Table.dtt_detx - f->fp_x0;
 	y = Data_Table.dtt_dety - f->fp_y0;
-	
+
 	Data_Table.dtt_xsky = f->fp_x0 + c*x + s*y;
 	Data_Table.dtt_ysky = f->fp_y0 - s*x + c*y;
 	return 0;
@@ -3597,10 +3569,10 @@ static int compute_xy_sky (Data_Def_Type *ddt)
    if ((1 != JDMread_d_float32 (&x, 1, ddt->ddt_dft->fp))
        || (1 != JDMread_d_float32 (&y, 1, (ddt + 1)->ddt_dft->fp)))
      return -1;
-   
+
    /* x, y are in radians.  Now convert them to aspect offsets */
    marx_compute_ra_dec_offsets (0, 0, x, y, &x, &y);
-   
+
    f = The_Detector->fp_coord_info;
    pixel_size = f->fp_delta_s0;
 
@@ -3611,7 +3583,6 @@ static int compute_xy_sky (Data_Def_Type *ddt)
 
    x = x/pixel_size + f->fp_x0;
    y = y/pixel_size + f->fp_y0;
-   
 
    Data_Table.dtt_xsky = x;
    Data_Table.dtt_ysky = y;
@@ -3621,7 +3592,7 @@ static int compute_xy_sky (Data_Def_Type *ddt)
 static int compute_pha_island (Data_Def_Type *ddt)
 {
    (void) ddt;
-   
+
    Data_Table.dtt_pha_island [4] = Data_Table.dtt_pha;
    return 0;
 }
@@ -3632,7 +3603,7 @@ static int compute_pileup_acis_energy (Data_Def_Type *dtt)
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
    double gain, offset, pha;
    int id;
-   
+
    (void) dtt;
    id = Data_Table.dtt_ccdid;
    if ((id < 0) || (id > MAX_ACIS_CCDID))
@@ -3640,11 +3611,11 @@ static int compute_pileup_acis_energy (Data_Def_Type *dtt)
 	marx_error ("*** CCD_ID is out of range: %d", id);
 	return -1;
      }
-   
+
    gain = Acis_PHA_Gains[id];
    offset = Acis_PHA_Offsets [id];
-   
-   /* Apply gain and offset to deduce energy from pha.  Apply a 
+
+   /* Apply gain and offset to deduce energy from pha.  Apply a
     * random value to the pha first.
     */
    pha = (double) Data_Table.dtt_pha + JDMrandom ();
@@ -3660,11 +3631,11 @@ static int compute_pileup_acis_energy (Data_Def_Type *dtt)
 static int compute_acis_energy (Data_Def_Type *dtt)
 {
    (void) dtt;
-   
+
    Data_Table.dtt_energy = Data_Table.dtt_benergy * 1e3;
    return 0;
 }
-   
+
 static int compute_pi (Data_Def_Type *dtt)
 {
    (void) dtt;

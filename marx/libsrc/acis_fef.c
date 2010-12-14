@@ -899,11 +899,12 @@ int marx_init_acis_s_rmf (Param_File_Type *p)
    return read_acis_fef (p, 4, 9);
 }
 
+#if MARX_HAS_IXO_SUPPORT
 int marx_init_ixo_ccd_rmf (Param_File_Type *p)
 {
    return read_acis_fef (p, 0, 0);
 }
-
+#endif
 
 static unsigned int Num_Gaussians;
 static Gauss_Parm_Type *Gaussians;
