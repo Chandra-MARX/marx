@@ -111,20 +111,20 @@ int marx_set_data_directory (char *dir) /*{{{*/
 	  }
 	dir = env;
      }
-   
+
    if (*dir == 0)
      {
 	marx_error ("Data Path is empty!");
 	return -1;
      }
-   
-   if (Data_Directory != NULL) 
+
+   if (Data_Directory != NULL)
      free (Data_Directory);
-   
-   Data_Directory = marx_malloc (strlen (dir) + 1);
+
+   Data_Directory = (char *)marx_malloc (strlen (dir) + 1);
    if (Data_Directory == NULL)
      return -1;
-   
+
    strcpy (Data_Directory, dir);
 
    return 0;

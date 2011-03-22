@@ -60,10 +60,10 @@ static void do_malloc_error (void) /*{{{*/
 
 /*}}}*/
 
-char *marx_malloc (unsigned int nbytes) /*{{{*/
+void *marx_malloc (unsigned int nbytes) /*{{{*/
 {
-   char *s;
-   
+   void *s;
+
    s = malloc (nbytes);
    if (s == NULL)
      do_malloc_error ();
@@ -72,10 +72,10 @@ char *marx_malloc (unsigned int nbytes) /*{{{*/
 
 /*}}}*/
 
-char *marx_calloc (unsigned int n, unsigned int size) /*{{{*/
+void *marx_calloc (unsigned int n, unsigned int size) /*{{{*/
 {
-   char *s;
-   
+   void *s;
+
    s = calloc (n, size);
    if (s == NULL)
      do_malloc_error ();
@@ -84,19 +84,18 @@ char *marx_calloc (unsigned int n, unsigned int size) /*{{{*/
 
 /*}}}*/
 
-
-char *marx_realloc (char *ptr, unsigned int size)
+void *marx_realloc (void *ptr, unsigned int size)
 {
    if (ptr == NULL)
      return marx_malloc (size);
-   
+
    ptr = realloc (ptr, size);
    if (ptr == NULL)
      do_malloc_error ();
    return ptr;
 }
 
-int marx_free (char *s) /*{{{*/
+int marx_free (void *s) /*{{{*/
 {
    if (s == NULL) return -1;
    free (s);
@@ -106,7 +105,7 @@ int marx_free (char *s) /*{{{*/
 /*}}}*/
 
 /* Concatenate dir and file to produce dir/file.  This routine works with or
- * without the trailing / on dir.  If file is "", then dir is simply 
+ * without the trailing / on dir.  If file is "", then dir is simply
  * returned.
  */
 char *marx_dircat (char *dir, char *file) /*{{{*/
@@ -114,21 +113,21 @@ char *marx_dircat (char *dir, char *file) /*{{{*/
    unsigned int dirlen;
    unsigned int filelen;
    char *filename;
-   
+
    if ((dir == NULL) && (file == NULL))
      return NULL;
-   
+
    dirlen = filelen = 0;
-   
+
    if (dir != NULL) dirlen = strlen (dir);
    if (file != NULL) filelen = strlen (file);
-   
-   if (NULL == (filename = malloc (dirlen + filelen + 2)))
+
+   if (NULL == (filename = (char *)malloc (dirlen + filelen + 2)))
      {
 	do_malloc_error ();
 	return NULL;
      }
-   
+
    if (dirlen)
      {
 	strcpy (filename, dir);
@@ -150,13 +149,13 @@ int marx_file_exists (char *file)
 {
    struct stat st;
    int m;
-   
+
 #ifdef _S_IFDIR
 # ifndef S_IFDIR
 #  define S_IFDIR _S_IFDIR
 # endif
 #endif
-   
+
 #ifndef S_ISDIR
 # ifdef S_IFDIR
 #  define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
@@ -164,10 +163,10 @@ int marx_file_exists (char *file)
 #  define S_ISDIR(m) 0
 # endif
 #endif
-   
+
    if (stat(file, &st) < 0) return 0;
    m = st.st_mode;
-   
+
    if (S_ISDIR(m)) return 2;
    return 1;
 }
@@ -180,22 +179,22 @@ char *marx_find_file_in_path (char *dirs, char *file, char colon)
 
    /* If file is absolute, try to find it. */
    if (file == NULL) return NULL;
-   
+
    if (*file == '/')
      {
 	if (1 == marx_file_exists (file))
 	  return marx_dircat (NULL, file);
      }
-   
+
    if (dirs == NULL)
      return NULL;
 
    dir0 = dirs;
-   
+
    while (*dir0)
      {
 	unsigned int len;
-	
+
 	dir1 = strchr (dir0, colon);
 	if (dir1 == NULL)
 	  {
@@ -210,21 +209,21 @@ char *marx_find_file_in_path (char *dirs, char *file, char colon)
 	  {
 	     strncpy (dir_buf, dir0, len);
 	     dir_buf[len] = 0;
-	     
+
 	     filename = marx_dircat (dir_buf, file);
 	     if (filename == NULL)
 	       return NULL;
-	     
+
 	     if (1 == marx_file_exists (filename))
 	       return filename;
-	     
+
 	     free (filename);
 	  }
-	
+
 	dir0 = dir1;
 	if (*dir0) dir0++;
      }
-   
+
    return NULL;
 }
 
@@ -235,11 +234,11 @@ int marx_set_time (double tyrs, double mjdsecs)
    return 0;
 }
 
-Param_File_Type *marx_pf_parse_cmd_line 
+Param_File_Type *marx_pf_parse_cmd_line
   (char *file, char *mode, int argc, char **argv)
 {
    Param_File_Type *pf;
-   
+
    pf = pf_parse_cmd_line_no_exit (file, mode, argc, argv);
    if (pf != NULL)
      return pf;

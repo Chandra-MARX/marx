@@ -2,15 +2,16 @@
 #set -v
 #MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
-use_valgrind=1
+use_valgrind=0
+use_gdb=1
 
 #bindir=/tmp/marxroot/bin
-#bindir=./objs
+bindir=./objs
 #bindir=/nfs/cxc/a1/i686/opt/packages/marx-4.3.0/bin
 #bindir=$HOME/sys/linux/opt/marx4.5/bin
 #bindir=/nfs/cxc/h1/davis/sys/linux/test/bin
 #bindir=/nfs/cxc/h1/davis/sys/linux/test/bin
-bindir=/nfs/cxc/h1/davis/sys/linux-x86_64/opt/marx5.0/bin
+#bindir=/nfs/cxc/h1/davis/sys/linux-x86_64/opt/marx5.0/bin
 
 output_dir="/tmp/marxout1"
 mkdir $output_dir
@@ -18,6 +19,15 @@ mkdir $output_dir/uparm
 valgrind_dir=$output_dir/valgrind
 mkdir $valgrind_dir
 valgrind="valgrind --tool=memcheck --leak-check=yes --error-limit=no --num-callers=25 --log-file=$valgrind_dir/%q{VGOUTPUT}"
+if [ $use_valgrind = 0 ] 
+then
+  unset valgrind
+fi
+
+if [ $use_gdb = 1 ]
+then
+  valgrind="gdb --args"
+fi
 
 PFILES=$output_dir/uparm
 
@@ -25,7 +35,8 @@ UPARM=$PFILES
 export PFILES UPARM
 cp ../par/marxasp.par ../par/marx.par ../par/marxpileup.par $output_dir/uparm 
 
-marx="$bindir/marx NumRays=1000 dNumRays=200 ExposureTime=0 DitherModel=INTERNAL"
+marx="$bindir/marx NumRays=1000 dNumRays=200 ExposureTime=0 \
+DitherModel=INTERNAL SourceRA=45 SourceDEC=30 RA_Nom=45 Dec_Nom=30 Roll_Nom=20"
 marx2fits="$bindir/marx2fits"
 marxasp="$bindir/marxasp"
 marxpileup="$bindir/marxpileup"
@@ -51,6 +62,7 @@ do
 	 then
 	    if [ $use_valgrind = 0 ]; then exit 1; fi
 	 fi
+
 #	 /bin/cp $purify $output_dir/marx$count/marx.purify
 
          export VGOUTPUT="marx2fits-$count.log"
@@ -69,6 +81,7 @@ do
 	 fi
 #	 /bin/cp $purify $output_dir/marx$count/marxasp.purify
         count=`expr $count + 1`
+	 if [ $use_gdb != "0" ]; then exit 0; fi
       done
    done
 done

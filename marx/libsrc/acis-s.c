@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -72,7 +71,7 @@ short _marx_acis_compute_fs_pha (_Marx_Acis_Chip_Type *ccd, float x, float y,
    (void) x;
    (void) y;
 
-   if (gain == 0.0) 
+   if (gain == 0.0)
      {
 	*pi = 0;
 	return 0;
@@ -80,10 +79,10 @@ short _marx_acis_compute_fs_pha (_Marx_Acis_Chip_Type *ccd, float x, float y,
 
    /* Eq 2.1 of ACIS-PSU-SOP-01 suggests the following: */
    da = gain * sqrt (noise * noise + ccd->fano_factor * energy / gain);
-   
+
    energy = energy + da * JDMgaussian_random ();
    if (energy < 0.0) energy = 0.0;
-   
+
    pha = (short) ((energy - ccd->ccd_offset)/ ccd->ccd_gain);
    if (pha < 0)
      pha = 0;
@@ -105,7 +104,7 @@ short _marx_acis_compute_bs_pha (_Marx_Acis_Chip_Type *ccd, float x, float y,
    (void) x;
    (void) y;
 
-   if (gain == 0.0) 
+   if (gain == 0.0)
      {
 	*pi = 0.0;
 	return 0.0;
@@ -116,14 +115,13 @@ short _marx_acis_compute_bs_pha (_Marx_Acis_Chip_Type *ccd, float x, float y,
     */
    da = energy;
    if (da < 1.0) da = 1.0;
-   
+
    /* Eq 2.1 of ACIS-PSU-SOP-01 suggests the following: */
    da = gain * sqrt (noise * noise + ccd->fano_factor * da / gain);
-   
+
    energy = energy + da * JDMgaussian_random ();
    if (energy < 0.0) energy = 0.0;
-   
-   
+
    pha = (short) ((energy - ccd->ccd_offset)/ ccd->ccd_gain);
    if (pha < 0)
      pha = 0;
@@ -145,17 +143,17 @@ int _marx_acis_apply_qe_and_pha (_Marx_Acis_Chip_Type *ccd, Marx_Photon_Attr_Typ
    if (_Marx_Det_Ideal_Flag == 0)
      {
 	r = JDMrandom ();
-	
+
 	if (ccd->qe_num_energies != 0)
 	  qe = JDMinterpolate_f (en, ccd->qe_energies, ccd->qe, ccd->qe_num_energies);
-	else 
+	else
 	  qe = 1.0;
-	
+
 	if (ccd->filter_num_energies != 0)
 	  qe_filter = JDMinterpolate_f (en, ccd->filter_energies, ccd->filter_qe, ccd->filter_num_energies);
-	else 
+	else
 	  qe_filter = 1.0;
-	
+
 	qe_contam = (*ccd->contam_fun)(ccd, en, at->y_pixel, at->z_pixel);
 
 	if (r >= qe * qe_filter * qe_contam)
@@ -183,10 +181,10 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
    double tstart;
 #endif
 
-   if (pt->history & MARX_CCD_NUM_OK)
+   if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_Y_PIXEL_OK | MARX_Z_PIXEL_OK | MARX_CCD_NUM_OK 
+
+   pt->history |= (MARX_DET_PIXEL_OK | MARX_DET_NUM_OK
 		   | MARX_PULSEHEIGHT_OK | MARX_PI_OK);
 
    marx_prune_photons (pt);
@@ -203,16 +201,16 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
      {
 	Marx_Detector_Geometry_Type *d;
 	double dx, dy;
-	
+
 	at = attrs + sorted_index[i];
-	
+
 #if MARX_HAS_DITHER
 	_marx_dither_detector (&at->dither_state);
 #endif
 	/* Transform ray into local system */
 	_marx_transform_ray (&at->x, &at->p,
 			     &_Marx_Det_XForm_Matrix);
-	
+
 	/* See if the photon will hit the CCD and if so, which one. */
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   ACIS_S_Chips,
@@ -227,7 +225,7 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->ccd_num = d->id;
 	     at->y_pixel = dx / d->x_pixel_size;
 	     at->z_pixel = dy / d->y_pixel_size;
-	     
+
 	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d->id - 4)], at))
 	       {
 #if MARX_HAS_ACIS_STREAK
@@ -242,7 +240,7 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	_marx_undither_detector (&at->dither_state);
 #endif
      }
-   
+
    return 0;
 }
 
@@ -252,7 +250,7 @@ void _marx_free_acis_chip_type (_Marx_Acis_Chip_Type *c)
 {
    if (c == NULL)
      return;
-   
+
    JDMfree_float_vector (c->qe_energies);
    JDMfree_float_vector (c->qe);
    JDMfree_float_vector (c->filter_qe);
@@ -260,12 +258,12 @@ void _marx_free_acis_chip_type (_Marx_Acis_Chip_Type *c)
 
    marx_free (c->qe_file);
    marx_free (c->filter_file);
-   
+
    memset ((char *) c, 0, sizeof (_Marx_Acis_Chip_Type));
 }
 
 #ifndef USE_CALDB_FILES
-static int read_efficiency_file (char *file, 
+static int read_efficiency_file (char *file,
 				 float **en, float **eff, unsigned int *num)
 {
    if ((file == NULL) || (*file == 0))
@@ -275,7 +273,7 @@ static int read_efficiency_file (char *file,
 	*en = NULL;
 	return 0;
      }
-   
+
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
 
@@ -289,13 +287,12 @@ static int read_efficiency_file (char *file,
 	marx_free (file);
 	return -1;
      }
-   
+
    marx_free (file);
    return 0;
 }
 #endif
-   
-   
+
 int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *chip)
 {
    if (chip == NULL)
@@ -310,7 +307,7 @@ int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *chip)
      return -1;
 
    if (-1 == read_efficiency_file (chip->filter_file,
-				   &chip->filter_energies, 
+				   &chip->filter_energies,
 				   &chip->filter_qe,
 				   &chip->filter_num_energies))
      return -1;
@@ -322,14 +319,14 @@ int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *chip)
 static int get_double_param (Param_File_Type *pf, char *fmt, int i, double *v)
 {
    char parm[128];
-   
+
    sprintf (parm, fmt, i);
    if (-1 == pf_get_double (pf, parm, v))
      {
 	marx_error ("Unable to get paramter %s", parm);
 	return -1;
      }
-   
+
    return 0;
 }
 #endif
@@ -338,22 +335,21 @@ static int get_file_param (Param_File_Type *pf, char *fmt, int i, char **v)
 {
    char parm[128];
    char file [PF_MAX_LINE_LEN];
-   
+
    sprintf (parm, fmt, i);
    if (-1 == pf_get_file (pf, parm, file, sizeof (file)))
      {
 	marx_error ("Unable to get paramter %s", parm);
 	return -1;
      }
-   
-   if (NULL == (*v = marx_malloc (strlen (file) + 1)))
+
+   if (NULL == (*v = (char *)marx_malloc (strlen (file) + 1)))
      return -1;
-   
+
    strcpy (*v, file);
    return 0;
 }
 
-  
 static int get_acis_parms (Param_File_Type *p)
 {
    int i;
@@ -363,13 +359,13 @@ static int get_acis_parms (Param_File_Type *p)
 
    if (-1 == pf_get_parameters (p, ACIS_Parm_Table))
      return -1;
-   
+
    for (i = 0; i < _MARX_NUM_ACIS_S_CHIPS; i++)
      {
 	_Marx_Acis_Chip_Type *ccd;
-	
+
 	ccd = &Acis_CCDS[i];
-	
+
 	ccd->ccd_id = i+4;
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
 	if (-1 == get_double_param (p, "ACIS_CCD%d_Gain", i+4, &ccd->ccd_gain))
@@ -377,8 +373,7 @@ static int get_acis_parms (Param_File_Type *p)
 	if (ccd->ccd_gain <= 0.0)
 	  ccd->ccd_gain = 4;
 	ccd->ccd_gain /= 1000.0;	       /* Convert to KeV */
-	
-	
+
 	if (-1 == get_double_param (p, "ACIS_CCD%d_Offset", i+4, &ccd->ccd_offset))
 	  return -1;
 	ccd->ccd_offset /= 1000.0;	       /* Convert to KeV */
@@ -398,7 +393,7 @@ static int get_acis_parms (Param_File_Type *p)
 	if (-1 == get_file_param (p, "ACIS-S%d-FilterFile", i, &ccd->filter_file))
 	  return -1;
      }
-   
+
    return 0;
 }
 
@@ -473,7 +468,7 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
 	   case 'B':
 	     ccd->pha_fun = _marx_acis_compute_bs_pha;
 	     break;
-	     
+
 	   default:
 	     marx_error ("FsBs Configuration character must be 'b' or 'f'");
 	     return -1;

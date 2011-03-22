@@ -236,12 +236,8 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
      start_time += this_time;
 
    pt->history |= (MARX_ENERGY_OK
-		   | MARX_X1_VECTOR_OK
-		   | MARX_X2_VECTOR_OK
-		   | MARX_X3_VECTOR_OK
-		   | MARX_P1_VECTOR_OK
-		   | MARX_P2_VECTOR_OK
-		   | MARX_P3_VECTOR_OK);
+		   | MARX_X_VECTOR_OK
+		   | MARX_P_VECTOR_OK);
 
    pt->history |= MARX_MIRROR_SHELL_OK;
    

@@ -68,7 +68,7 @@ static JDMBData_File_Type *allocate_bdata_file_type (unsigned int len)
    
    memset ((char *) h, 0, sizeof (JDMBData_File_Type));
 
-   if (NULL == (h->comment = _JDMmalloc (len + 1, NULL)))
+   if (NULL == (h->comment = (char *)_JDMmalloc (len + 1, NULL)))
      {
 	_JDMfree ((char *)h);
 	return NULL;

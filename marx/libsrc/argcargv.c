@@ -52,7 +52,7 @@ static char *argcargv_make_string (char *str) /*{{{*/
 {
    char *s;
    
-   s = malloc (strlen (str) + 1);
+   s = (char *)malloc (strlen (str) + 1);
    if (s != NULL) strcpy (s, str);
    return s;
 }

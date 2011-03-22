@@ -7,16 +7,17 @@
 CC_SHARED = gcc -shared -fPIC     # Linux
 RPATH_OPT = -Wl,-R
 # This is where we put cfitsio, etc.  What about you?
-PREFIX = /nfs/cxc/a1/$(ARCH)#
+PREFIX = /nfs/cxc/a1/$(CSR_CARCH)#
 
 # Where is your marx-dist directory?  Here is where we put ours:
 #MARXDIST_ROOT = /nfs/wiwaxia/d4/ASC/src/marx-dist
-MARXDIST_ROOT = $(HOME)/src
+MARXDIST_ROOT = /aluche/d2/src/marx-dist
 
 #---------------------------------------------------------------------------
 #CFLAGS =
-CFITSIO_LIB = -L$(PREFIX)/lib $(RPATH_OPT)$(PREFIX)/lib -lcfitsio
-CFITSIO_INC = -I$(PREFIX)/include
+CFITSIO_ROOT = /nfs/cxc/h1/davis/sys/linux-x86_64/opt/cfitsio
+CFITSIO_LIB = -L$(CFITSIO_ROOT)/lib $(RPATH_OPT)$(CFITSIO_ROOT)/lib -lcfitsio
+CFITSIO_INC = -I$(CFITSIO_ROOT)/include
 JDMATH_INC = -I$(MARXDIST_ROOT)/jdmath/src
 JDMATH_LIB = -L$(MARXDIST_ROOT)/jdmath/src/$(ARCH)objs -ljdmath
 MARX_INC = -I$(MARXDIST_ROOT)/marx/libsrc

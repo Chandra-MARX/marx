@@ -717,8 +717,9 @@ static int init_hrma_shells (Param_File_Type *pf) /*{{{*/
 	 * of the conic.  Assume that the maximum off-axis angle of interest
 	 * is 40'.  Use: dr/length=tan(theta)
 	 */
+#if 0
 	h->min_radius -= h->length_p * tan (0.67 * PI/180);
-
+#endif
 	if (h->num_open_shutters)
 	  {
 	     total_area += (h->num_open_shutters / 4.0) *

@@ -163,7 +163,6 @@ Molecule_Table_Type;
 
 Molecule_Table_Type *Molecule_Table;
 
-
 static int case_insensitive_strcmp (char *a, char *b)
 {
    return strcmp (a, b);
@@ -172,8 +171,8 @@ static int case_insensitive_strcmp (char *a, char *b)
 static char *do_malloc (unsigned int len, int do_memset)
 {
    char *s;
-   
-   s = malloc (len);
+
+   s = (char *)malloc (len);
    if (s == NULL)
      fprintf (stderr, "Out of memory.\n");
    if (do_memset)
@@ -184,13 +183,12 @@ static char *do_malloc (unsigned int len, int do_memset)
 static char *make_string (char *s)
 {
    char *s1;
-   
+
    s1 = do_malloc (strlen (s) + 1, 0);
    if (s1 != NULL)
      strcpy (s1, s);
    return s1;
 }
-
 
 /* Ok for outside routines to pass NULL. */
 static void free_henke_type (Henke_Type *h)
@@ -226,10 +224,10 @@ static void free_henke_cache_table (Cached_Henke_Table_Type *h)
 void henke_free_henke_table (Henke_Type *h)
 {
    Cached_Henke_Table_Type *ch, *last;
-   
+
    last = NULL;
    ch = Cached_Henke_Tables;
-  
+
    while (ch != NULL)
      {
 	if (ch->table == h)
@@ -237,7 +235,7 @@ void henke_free_henke_table (Henke_Type *h)
 	     ch->ref_count -= 1;
 	     if (ch->ref_count != 0)
 	       return;
-	     
+
 	     if (last != NULL)
 	       last->next = ch->next;
 	     else
@@ -249,18 +247,17 @@ void henke_free_henke_table (Henke_Type *h)
 	last = ch;
 	ch = ch->next;
      }
-   
+
    free_henke_type (h);
 }
 
-	     
 static Henke_Type *read_henke_file (char *file)
 {
    Henke_Type *h;
    unsigned int max_num_elements, num_elements, i;
    char buf[256];
    FILE *fp;
-   
+
    if (NULL == (h = (Henke_Type *) do_malloc (sizeof (Henke_Type), 1)))
      return NULL;
 
@@ -274,7 +271,7 @@ static Henke_Type *read_henke_file (char *file)
 #if 1
    fprintf (stdout, "Opening %s\n", file);
 #endif
-   
+
    max_num_elements = 0;
    /* This is a lazy approach */
    while (NULL != fgets (buf, sizeof (buf), fp))
@@ -289,7 +286,7 @@ static Henke_Type *read_henke_file (char *file)
 	    || (NULL == (h->f2 = (float *) do_malloc (max_num_elements * sizeof (float), 0))))
 	  goto return_error;
      }
-   
+
    rewind (fp);
 
    i = 0;
@@ -301,17 +298,17 @@ static Henke_Type *read_henke_file (char *file)
 
 	if (NULL == fgets (buf, sizeof (buf), fp))
 	  break;
-	
+
 	if (3 != sscanf (buf, "%f %f %f", &en, &f1, &f2))
 	  continue;
-	
+
 	if (f1 < -9998.0)
 	  continue;
-	
+
 	h->energy [num_elements] = en * 1.0e-3;   /* convert to KeV */
 	h->f1 [num_elements] = f1;
 	h->f2 [num_elements] = f2;
-	
+
 	num_elements++;
      }
 
@@ -324,7 +321,7 @@ static Henke_Type *read_henke_file (char *file)
    h->num_elements = num_elements;
    fclose (fp);
    return h;
-   
+
    return_error:
    if (h != NULL) free_henke_type (h);
    if  (fp != NULL) fclose (fp);
@@ -335,7 +332,7 @@ static Henke_Type *read_henke_file (char *file)
 #define AVOGADROS_NUMBER (6.022045e23)    /* per mole */
 #define HBAR_C (1.9732858e-4)	       /* KeV-microns */
 
-int henke_beta_delta (Henke_Type *h, float density, 
+int henke_beta_delta (Henke_Type *h, float density,
 		      float **beta_ptr, float **delta_ptr)
 {
    unsigned int i;
@@ -350,12 +347,12 @@ int henke_beta_delta (Henke_Type *h, float density,
        || (h->f2 == NULL)
        || (h->energy == NULL))
      return -1;
-   
+
    f1 = h->f1;
    f2 = h->f2;
    num_elements = h->num_elements;
    energy = h->energy;
-   
+
    if (density <= 0.0)
      {
 	density = h->density;
@@ -366,7 +363,6 @@ int henke_beta_delta (Henke_Type *h, float density,
 	     density = 1.0;
 	  }
      }
-   
 
    if (beta_ptr != NULL)
      {
@@ -387,18 +383,18 @@ int henke_beta_delta (Henke_Type *h, float density,
 
    k = 2.0 * PI * CLASSICAL_ELECTRON_RADIUS * (HBAR_C * HBAR_C * AVOGADROS_NUMBER);
    k = k * (density * 1.0e-12) / h->atomic_mass;
-   
+
    for (i = 0; i < num_elements; i++)
      {
 	double en;
 	double factor;
-	
+
 	en = energy[i];
 	factor = k / (en * en);
 	if (beta != NULL) beta [i] = factor * f2[i];
 	if (delta != NULL) delta [i] = factor * f1[i];
      }
-   
+
    if (beta != NULL) *beta_ptr = beta;
    if (delta != NULL) *delta_ptr = delta;
 
@@ -410,7 +406,7 @@ static char *Henke_Dir;
 int henke_set_data_dir (char *dir)
 {
    char *dirbuf;
-   
+
    if (dir == NULL)
      {
 	dir = getenv ("HENKE_DATA_DIR");
@@ -420,13 +416,13 @@ int henke_set_data_dir (char *dir)
 	     dir = ".";
 	  }
      }
-   
+
    if (NULL ==  (dirbuf = make_string (dir)))
      return -1;
 
-   if (Henke_Dir != NULL) 
+   if (Henke_Dir != NULL)
      free (Henke_Dir);
-   
+
    Henke_Dir = dirbuf;
    return 0;
 }
@@ -435,8 +431,8 @@ static char *henke_dircat (char *dir, char *name)
 {
    static char file [1024];
    unsigned int dirlen;
-   
-   if (dir == NULL) 
+
+   if (dir == NULL)
      {
 	dir = Henke_Dir;
 	if ((dir == NULL)
@@ -458,7 +454,7 @@ static char *henke_dircat (char *dir, char *name)
 	fprintf (stderr, "Filename too long.\n");
 	return NULL;
      }
-   
+
    strcpy (file, dir);
    if (dirlen && (file [dirlen - 1] != '/'))
      {
@@ -472,7 +468,7 @@ static char *henke_dircat (char *dir, char *name)
 static char *make_henke_data_filename (char *symbol)
 {
    char file [1024];
-   
+
    if (strlen (symbol) + 5 > sizeof (file))
      {
 	fprintf (stderr, "Filename too long.\n");
@@ -484,25 +480,24 @@ static char *make_henke_data_filename (char *symbol)
    return henke_dircat (NULL, file);
 }
 
-   
 static Henke_Type *read_henke_atom_table (unsigned int z)
 {
    Atom_Type *a;
    char *file;
    Henke_Type *h;
-   
+
    if (z > MAX_ATOMIC_NUMBER)
      {
 	fprintf (stderr, "Element with Z = %u is not supported.\n", z);
 	return NULL;
      }
-   
+
    a = Atoms + z;
-   
+
    file = make_henke_data_filename (a->symbol);
    if (file == NULL)
      return NULL;
-   
+
    h = read_henke_file (file);
    if (h != NULL)
      {
@@ -512,17 +507,16 @@ static Henke_Type *read_henke_atom_table (unsigned int z)
      }
    return h;
 }
-   
+
 static Cached_Henke_Table_Type *allocate_henke_cache_table (void)
 {
    Cached_Henke_Table_Type *h;
-   
-   h = (Cached_Henke_Table_Type *) do_malloc (sizeof (Cached_Henke_Table_Type), 
+
+   h = (Cached_Henke_Table_Type *) do_malloc (sizeof (Cached_Henke_Table_Type),
 					      1);
    return h;
 }
 
-   
 static void free_molcule_table_type (Molecule_Table_Type *m)
 {
    if (m == NULL)
@@ -536,11 +530,10 @@ static void free_molcule_table_type (Molecule_Table_Type *m)
    free ((char *) m);
 }
 
-
 static int add_molecule (char *name, float density, char *formula)
 {
    Molecule_Table_Type *m;
-   
+
    m = (Molecule_Table_Type *) do_malloc (sizeof (Molecule_Table_Type), 1);
    if (m == NULL)
      return -1;
@@ -563,17 +556,16 @@ static char *skip_non_whitespace (char *s)
 {
    char ch;
 
-   while (((ch = *s) != 0) 
+   while (((ch = *s) != 0)
 	  && (ch != ' ')
 	  && (ch != '\t')
 	  && (ch != '\r')
 	  && (ch != '\f')
 	  && (ch != '\n'))
      s++;
-   
+
    return s;
 }
-
 
 static char *skip_whitespace (char *s)
 {
@@ -586,7 +578,7 @@ static char *skip_whitespace (char *s)
 	      || (ch == '\f')
 	      || (ch == '\n')))
      s++;
-   
+
    return s;
 }
 
@@ -594,7 +586,7 @@ static void trim_comment (char *str, char *comment_chars)
 {
    char ch;
    char *s;
-   
+
    s = str;
 
    while ((ch = *s) != 0)
@@ -604,7 +596,7 @@ static void trim_comment (char *str, char *comment_chars)
 	s++;
      }
    *s = 0;
-   
+
    while (s > str)
      {
 	ch = *s;
@@ -614,8 +606,6 @@ static void trim_comment (char *str, char *comment_chars)
 	else break;
      }
 }
-
-
 
 static char *parse_density (float *density, char *s)
 {
@@ -632,21 +622,21 @@ static int read_henke_molecule_definitions (char *file)
    FILE *fp;
    unsigned int line_num;
    char *err;
-   
+
    file = henke_dircat (NULL, file);
    if (file == NULL)
      return -1;
-   
+
    fp = fopen (file, "r");
    if (fp == NULL)
      {
 	fprintf (stderr, "Unable to open %s\n", file);
 	return -1;
      }
-   
+
    line_num = 0;
    err = NULL;
-   
+
    while (NULL != fgets (line, sizeof (line), fp))
      {
 	char *s;
@@ -674,25 +664,25 @@ static int read_henke_molecule_definitions (char *file)
 	     err = "Error parsing density";
 	     goto parse_error;
 	  }
-	
+
 	s = skip_whitespace (s);
 	if (*s == 0)
 	  {
 	     err = "Expecting molecular formula";
 	     goto parse_error;
 	  }
-	
+
 	formula = s;
-	
+
 	if (-1 == add_molecule (name, density, formula))
 	  {
 	     goto parse_error;
 	  }
      }
-   
+
    fclose (fp);
    return 0;
-   
+
    parse_error:
    if (err == NULL) err = "Unknown Error";
    fprintf (stderr, "*** %s: %u: %s\n",
@@ -723,7 +713,7 @@ static Henke_Type *compute_molecular_henke_type (Henke_Type **atoms, double *wei
     * and remove duplicates.  This is the method I will use.  First count
     * the number of unique energies.  This can be done by sorting.
     */
-   
+
    num_energies = 0;
    for (i = 0; i < num_atoms; i++)
      num_energies += atoms[i]->num_elements;
@@ -733,21 +723,21 @@ static Henke_Type *compute_molecular_henke_type (Henke_Type **atoms, double *wei
      {
 	return NULL;
      }
-   
+
    num_energies = 0;
    for (i = 0; i < num_atoms; i++)
      {
 	memcpy ((char *) (energies + num_energies),
 		(char *) (atoms[i]->energy),
 		sizeof (float) * atoms[i]->num_elements);
-	
+
 	num_energies += atoms[i]->num_elements;
      }
-   
-   qsort_fun = (void (*)(float *, unsigned int, unsigned int, 
+
+   qsort_fun = (void (*)(float *, unsigned int, unsigned int,
 			 int (*)(float *, float *))) qsort;
    (*qsort_fun) (energies, num_energies, sizeof (float), float_cmp);
-   
+
    j = 0;
    last_energy = -1.0;
    for (i = 0; i < num_energies; i++)
@@ -760,20 +750,20 @@ static Henke_Type *compute_molecular_henke_type (Henke_Type **atoms, double *wei
 	j++;
      }
    num_energies = j;
-   
+
    if (NULL == (energies = (float *) realloc ((char *) energies,
 					      num_energies * sizeof (float))))
      {
 	fprintf (stderr, "Not enough memory.\n");
 	return NULL;
      }
-   
+
    if (NULL == (h = (Henke_Type *) do_malloc (sizeof(Henke_Type), 1)))
      {
 	free ((char *) energies);
 	return NULL;
      }
-   
+
    h->energy = energies;
    h->num_elements = num_energies;
    if ((NULL == (h->f1 = (float *) do_malloc (sizeof (float) * num_energies, 1)))
@@ -783,13 +773,12 @@ static Henke_Type *compute_molecular_henke_type (Henke_Type **atoms, double *wei
 	free_henke_type (h);
 	return NULL;
      }
-   
+
    for (i = 0; i < num_atoms; i++)
      {
 	double z = weights [i];
 	Henke_Type *a = atoms[i];
 
-	
 	(void) JDMlog_interpolate_fvector (energies, ftmp, num_energies,
 					   a->energy, a->f1, a->num_elements);
 	for (j = 0; j < num_energies; j++)
@@ -800,37 +789,33 @@ static Henke_Type *compute_molecular_henke_type (Henke_Type **atoms, double *wei
 
 	for (j = 0; j < num_energies; j++)
 	  h->f2[j] += ftmp [j] * z;
-	     
+
 	h->atomic_mass += z * a->atomic_mass;
      }
-   
+
    free ((char *) ftmp);
-   
+
    return h;
 }
-
 
 static char *skip_number (char *s)
 {
    char ch;
    s = skip_whitespace (s);
-   
+
    while ((ch = *s++) != 0)
      {
 	if (ch == '.')
 	  continue;
 	if (isdigit (ch))
 	  continue;
-	
+
 	break;
      }
-   
+
    return s - 1;
 }
 
-	    
-   
-	
 /* This function parses constructs such as
  * CH4 and Si(OH)4SI
  */
@@ -844,7 +829,7 @@ static int parse_partial_formula (char *formula, double *z, double factor)
    while (1)
      {
 	formula = skip_whitespace (formula);
-	
+
 	ch = *formula++;
 
 	if (ch == 0)
@@ -857,7 +842,7 @@ static int parse_partial_formula (char *formula, double *z, double factor)
 	  {
 	     char *f = formula;
 	     int level = 1;
-	     
+
 	     while ((ch = *f) != 0)
 	       {
 		  f++;
@@ -881,63 +866,61 @@ static int parse_partial_formula (char *formula, double *z, double factor)
 		  f = skip_number (f);
 	       }
 	     else new_factor = 1.0;
-	       
+
 	     if (-1 == parse_partial_formula (formula, z, factor * new_factor))
 	       return -1;
-	     
+
 	     formula = f;
 	     continue;
 	  }
-	     
+
 	if (0 == isupper (ch))
 	  {
 	     fprintf (stderr, "Molecule parse error: expecting uppercase letter.\n");
 	     return -1;
 	  }
-	     
+
 	element [0] = ch;
 	element [1] = 0;
 
 	ch = *formula;
-	
+
 	if (islower (ch))
 	  {
 	     element[1] = ch;
 	     element[2] = 0;
 	     formula++;
 	  }
-	
+
 	if (1 == sscanf (formula, "%lf", &new_factor))
 	  formula = skip_number (formula);
 	else
 	  new_factor = 1;
-	
+
 	i = 0;
 	while (1)
 	  {
 	     Atom_Type *a;
-	     
+
 	     if (i >= MAX_ATOMIC_NUMBER)
 	       {
 		  fprintf (stderr, "Parse Molecule: %s is not an atom.\n", element);
 		  return -1;
 	       }
-	     
+
 	     a = (Atoms + 1) + i;
 	     if (0 == strcmp (a->symbol, element))
 	       {
 		  z[i] += factor * new_factor;
 		  break;
 	       }
-	     
+
 	     i++;
 	  }
      }
-   
+
    return 0;
 }
-
-
 
 static Henke_Type *parse_molecular_formula (char *formula)
 {
@@ -951,7 +934,7 @@ static Henke_Type *parse_molecular_formula (char *formula)
 
    memset ((char *) z, 0, sizeof (z));
    memset ((char *) henke_types, 0, sizeof (henke_types));
-   
+
    /* Sanity check.  Check for balanced parenthesis */
    paren_level = 0;
    f = formula;
@@ -981,7 +964,7 @@ static Henke_Type *parse_molecular_formula (char *formula)
    num_atom_types = 0;
 
    h = NULL;
-   
+
    atomic_mass = 0.0;
    for (i = 0; i < MAX_ATOMIC_NUMBER; i++)
      {
@@ -990,7 +973,7 @@ static Henke_Type *parse_molecular_formula (char *formula)
 
 	if (NULL == (henke_types[i] = read_henke_atom_table (i + 1)))
 	  goto free_and_return;
-	
+
 	atomic_mass += z[i] * Atoms[i + 1].atomic_mass;
 	num_atom_types++;
      }
@@ -1000,14 +983,14 @@ static Henke_Type *parse_molecular_formula (char *formula)
 	fprintf (stderr, "Formula %s contain no atoms!", formula);
 	goto free_and_return;
      }
-   
+
    /* Compress the list.  We nolonger need the atomic number */
    num_atom_types = 0;
    for (i = 0; i < MAX_ATOMIC_NUMBER; i++)
      {
 	if (henke_types[i] == NULL)
 	  continue;
-	
+
 	if (i != num_atom_types)
 	  {
 	     henke_types[num_atom_types] = henke_types [i]; henke_types [i] = NULL;
@@ -1019,10 +1002,9 @@ static Henke_Type *parse_molecular_formula (char *formula)
    h = compute_molecular_henke_type (henke_types, z, num_atom_types);
 
    /* drop */
-   
 
    free_and_return:
-   
+
    for (i = 0; i < MAX_ATOMIC_NUMBER; i++)
      {
 	if (henke_types [i] != NULL)
@@ -1031,14 +1013,13 @@ static Henke_Type *parse_molecular_formula (char *formula)
    return h;
 }
 
-
 static Henke_Type *parse_molecule (Molecule_Table_Type *m)
 {
    fprintf (stdout, "Molecule: %s (%s) %f\n", m->name, m->formula, m->density);
-   
+
    if (m->h != NULL)
      return m->h;
-   
+
    if (NULL == (m->h = parse_molecular_formula (m->formula)))
      return NULL;
 
@@ -1058,7 +1039,7 @@ static Henke_Type *read_henke_molecule_table (char *name)
 	if (-1 == read_henke_molecule_definitions ("molecules.def"))
 	  return NULL;
      }
-   
+
    m = Molecule_Table;
    while (m != NULL)
      {
@@ -1066,7 +1047,7 @@ static Henke_Type *read_henke_molecule_table (char *name)
 	  {
 	     return parse_molecule (m);
 	  }
-	
+
 	m = m->next;
      }
 
@@ -1096,7 +1077,7 @@ Henke_Type *henke_read_henke_table (char *atom)
 	  }
 	h = h->next;
      }
-   
+
    for (z = 1; z <= MAX_ATOMIC_NUMBER; z++)
      {
 	Atom_Type *a = Atoms + z;
@@ -1104,12 +1085,12 @@ Henke_Type *henke_read_henke_table (char *atom)
 	     || (0 == strcmp (a->symbol, atom)))
 	  break;
      }
-   
+
    if (z > MAX_ATOMIC_NUMBER)
      table = read_henke_molecule_table (atom);
-   else 
+   else
      table = read_henke_atom_table (z);
-   
+
    if (table == NULL)
      return NULL;
 
@@ -1118,7 +1099,7 @@ Henke_Type *henke_read_henke_table (char *atom)
 	free_henke_type (table);
 	return NULL;
      }
-   
+
    strncpy (table->name, atom, sizeof (table->name));
    table->name [sizeof (table->name) - 1] = 0;
 
@@ -1126,7 +1107,7 @@ Henke_Type *henke_read_henke_table (char *atom)
    h->table = table;
    h->next = Cached_Henke_Tables;
    Cached_Henke_Tables = h;
-   
+
    return table;
 }
 
@@ -1162,7 +1143,7 @@ Comment: %s\n\
 	    a->density,
 	    ((a->comment == NULL) ? "" : a->comment));
 #endif
-   
+
    h = henke_read_henke_table (name);
    if (h == NULL)
      return 1;
@@ -1172,7 +1153,7 @@ Comment: %s\n\
 	free_henke_type (h);
 	return 1;
      }
-   
+
    fprintf (stdout, "#Object: %s [%s]\n#Density: %e gm/cm^3\n",
 	    h->name, h->formula, h->density);
 
@@ -1188,7 +1169,7 @@ Comment: %s\n\
      }
    free ((char *) beta);
    free ((char *) delta);
-   
+
    free_henke_type (h);
    return 0;
 }

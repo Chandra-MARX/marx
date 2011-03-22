@@ -35,17 +35,17 @@
  * are:
  *
  *     CHIP -> LSI -> STT -> STF -> FC -> MNC
- * 
+ *
  * Marx itself handles some of this by expressing the detector geometry
- * in the STF system for the nominal focus.  To go from STF->FC requires 
+ * in the STF system for the nominal focus.  To go from STF->FC requires
  * knowledge of part of the aspect solution (DY, dZ, and Theta).  Also, if
  * the detector is not at the nominal focal position, that offset will have
  * to be added in here.
- * 
+ *
  * The FC->MNC is simply a translation by the focal length along the optical
  * axis.
- * 
- * The structure defined below handles the transformation from CHIP to MNC 
+ *
+ * The structure defined below handles the transformation from CHIP to MNC
  * for a given aspect and detector offset.
  */
 
@@ -57,17 +57,17 @@ struct _Marx_Chip_To_MNC_Type
    /* offset from mnc to chip system.  Include focal length, detector offsets,
     * and aspect corrections.
     */
-   
+
    /* These are the chip unit vectors expressed in the MNC system.  Actually,
     * they are scaled by the pixel sizes.
     */
    JDMVector_Type chip_e1;
    JDMVector_Type chip_e2;
-   
+
    /* These have the advantage that chip_e1_inv.chip_e1 = 1. */
    JDMVector_Type chip_e1_inv;     /* scaled by 1/pixel size */
    JDMVector_Type chip_e2_inv;     /* scaled by 1/pixel size */
-   
+
    /* Orthogonal to above two-- unit vector */
    JDMVector_Type chip_e3_hat;
 
@@ -85,9 +85,7 @@ struct _Marx_Chip_To_MNC_Type
    Marx_Detector_Geometry_Type *geom;
 };
 
-
-
-void 
+void
 marx_free_chip_to_mnc (Marx_Chip_To_MNC_Type *m)
 {
    marx_free ((char *)m);
@@ -102,11 +100,11 @@ marx_allocate_chip_to_mnc (char *name, int id)
 
    if (NULL == (det = marx_get_detector_info (name)))
      return NULL;
-   
+
    g = det->facet_list;
    while (g != NULL)
      {
-	if (g->id == id) 
+	if (g->id == id)
 	  break;
 	g = g->next;
      }
@@ -121,7 +119,7 @@ marx_allocate_chip_to_mnc (char *name, int id)
      return NULL;
 
    memset ((char *) chip2mnc, 0, sizeof (Marx_Chip_To_MNC_Type));
-   
+
    chip2mnc->det = det;
    chip2mnc->geom = g;
 
@@ -133,9 +131,9 @@ marx_allocate_chip_to_mnc (char *name, int id)
    return chip2mnc;
 }
 
-int 
+int
 marx_init_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
-		       double focal_length, 
+		       double focal_length,
 		       double xoff, double yoff, double zoff, double theta)
 {
    double cos_theta, sin_theta;
@@ -147,7 +145,7 @@ marx_init_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
    det = chip2mnc->det;
    g = chip2mnc->geom;
 
-   /* The g->xhat, g->yhat, and g->x_ll vectors are already expressed in the 
+   /* The g->xhat, g->yhat, and g->x_ll vectors are already expressed in the
     * STF coordinate system.  In particular, g->x_ll specifies the origin of
     * the chip system in STF coordinates.  We need to rotate this by theta
     * about the optical axis (X) into the MNC frame.  The resulting vector
@@ -156,7 +154,7 @@ marx_init_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
 
    cos_theta = cos (theta);
    sin_theta = sin (theta);
-   
+
    xhat = &g->x_ll;
 
    chip2mnc->mnc_to_chip_offset.x = xoff - focal_length;
@@ -183,7 +181,7 @@ marx_init_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
    e2->z = sin_theta * yhat->y + cos_theta * yhat->z;
 
    chip2mnc->chip_e3_hat = JDMv_pcross_prod (e1, e2);
-   
+
    /* Now scale by pixel sizes */
    x_pixel_size = g->x_pixel_size;
    y_pixel_size = g->y_pixel_size;
@@ -192,14 +190,14 @@ marx_init_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
    chip2mnc->chip_e2_inv = JDMv_smul (1.0 / y_pixel_size, *e2);
    *e1 = JDMv_smul (x_pixel_size, *e1);
    *e2 = JDMv_smul (y_pixel_size, *e2);
-   
+
    chip2mnc->offset_dot_e3 = JDMv_pdot_prod (&chip2mnc->mnc_to_chip_offset,
 					     &chip2mnc->chip_e3_hat);
-   
+
    return 0;
 }
 
-int 
+int
 marx_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
 		  double xpixel, double ypixel,
 		  JDMVector_Type *mnc)
@@ -213,18 +211,18 @@ marx_chip_to_mnc (Marx_Chip_To_MNC_Type *chip2mnc,
    ofs = &chip2mnc->mnc_to_chip_offset;
    e1 = &chip2mnc->chip_e1;
    e2 = &chip2mnc->chip_e2;
-   
+
    mnc->x = ofs->x + e1->x * xpixel + e2->x * ypixel;
    mnc->y = ofs->y + e1->y * xpixel + e2->y * ypixel;
    mnc->z = ofs->z + e1->z * xpixel + e2->z * ypixel;
-   
+
    JDMv_normalize (mnc);
 
    return 0;
 }
-   
+
 static int generic_to_chip (Marx_Chip_To_MNC_Type *chip2mnc,
-			    JDMVector_Type *mnc, 
+			    JDMVector_Type *mnc,
 			    JDMVector_Type *ofs,
 			    double ofs_dot_e3,
 			    double *xpixel, double *ypixel)
@@ -251,12 +249,11 @@ static int generic_to_chip (Marx_Chip_To_MNC_Type *chip2mnc,
    if (((x < chip2mnc->min_x_pixel) || (x >= chip2mnc->max_x_pixel))
        || ((y < chip2mnc->min_x_pixel) || (y >= chip2mnc->max_x_pixel)))
      return -1;
-     
+
    return 0;
 }
 
-
-int 
+int
 marx_mnc_to_chip (Marx_Chip_To_MNC_Type *chip2mnc,
 		  JDMVector_Type *mnc,
 		  double *xpixel, double *ypixel)
@@ -265,7 +262,6 @@ marx_mnc_to_chip (Marx_Chip_To_MNC_Type *chip2mnc,
 			   chip2mnc->offset_dot_e3,
 			   xpixel, ypixel);
 }
-   
 
 typedef struct
 {
@@ -274,7 +270,7 @@ typedef struct
 }
 Grating_Info_Type;
 
-static Grating_Info_Type HEG_Info = 
+static Grating_Info_Type HEG_Info =
 {
    0.200081,
    -5.18 * (PI / 180.0)
@@ -286,7 +282,7 @@ static Grating_Info_Type MEG_Info =
    4.75 * (PI / 180.0)
 };
 
-static Grating_Info_Type LEG_Info = 
+static Grating_Info_Type LEG_Info =
 {
    0.991249,
    0.0 * (PI / 180.0)
@@ -305,7 +301,7 @@ static Grating_Info_Type *get_grating_info (int type)
       case MARX_GRATING_LEG:
 	return &LEG_Info;
      }
-   
+
    marx_error ("get_grating_info: Grating type %d is unknown", type);
    return NULL;
 }
@@ -314,13 +310,13 @@ struct _Marx_Grating_Xform_Type
 {
    JDMVector_Type grating_node_offset; /* from MNC origin */
    JDMVector_Type l_hat, d_hat, n_hat; /* unit vectors of grating facet */
-   
+
    JDMVector_Type mnc_to_chip_offset;
    /* Location of chip origin wrt the MNC */
 
    /* The rest of the quantities depend upon the ray to be diffracted. */
    JDMVector_Type grating_to_chip_offset;
-   /* Offset from diffracted ray at grating to the to chip origin.  Includes 
+   /* Offset from diffracted ray at grating to the to chip origin.  Includes
     * focal length, detector offsets, and aspect correction.
     */
    JDMVector_Type p0;		       /* ray incident upon grating */
@@ -349,60 +345,58 @@ marx_allocate_grating_xform (Marx_Chip_To_MNC_Type *c2mnc, int type)
 	marx_error ("marx_allocate_grating_xform: NULL passed");
 	return NULL;
      }
-   
+
    g = (Marx_Grating_Xform_Type *) marx_malloc (sizeof (Marx_Grating_Xform_Type));
    if (g == NULL)
      return NULL;
-   
+
    memset ((char *) g, 0, sizeof (Marx_Grating_Xform_Type));
-   
+
    g->l_hat = JDMv_vector (0.0, 0.0, 1.0);
    g->d_hat = JDMv_vector (0.0, 1.0, 0.0);
    g->n_hat = JDMv_vector (-1.0, 0.0, 0.0);
 
    g->l_hat = JDMv_rotate_unit_vector (g->l_hat, g->n_hat, -1 * ginfo->dispersion_angle);
    g->d_hat = JDMv_rotate_unit_vector (g->d_hat, g->n_hat, -1 * ginfo->dispersion_angle);
-   
+
    g->grating_node_offset = JDMv_vector (-1431.81,0,0);
    /* From equation 88 of rev 4.2 coordinate memo */
 
    g->mnc_to_chip_offset = c2mnc->mnc_to_chip_offset;
-   
+
    g->period = ginfo->period;
    return g;
 }
-
 
 /* p specifies a ray in the mirror nodal system.  That is, it represents
  * a ray at the mirror node traveling to the grating.  Here we compute
  * the intersection on the grating and set up values that will be used
  * later for the diffraction.
  */
-int 
-marx_init_grating_xform (Marx_Grating_Xform_Type *g, 
+int
+marx_init_grating_xform (Marx_Grating_Xform_Type *g,
 			 JDMVector_Type *p)
 {
    double t;
-   
+
    if (g == NULL)
      return -1;
-   
+
    t = JDMv_dot_prod (g->n_hat, *p);
    if (t == 0.0)
      return -1;
-	
+
    t = JDMv_dot_prod (g->grating_node_offset, g->n_hat) / t;
 
    g->grating_to_chip_offset = JDMv_diff (g->mnc_to_chip_offset,
 					  JDMv_smul (t, *p));
    g->p0 = *p;
-   
+
    g->p_dot_d = JDMv_dot_prod (*p, g->d_hat);
    g->p_dot_l = JDMv_dot_prod (*p, g->l_hat);
 
    return 0;
 }
-
 
 static int diffract_ray (Marx_Grating_Xform_Type *g,
 			 int n, double lambda,
@@ -412,20 +406,18 @@ static int diffract_ray (Marx_Grating_Xform_Type *g,
 
    p_d = n * lambda / g->period + g->p_dot_d;
    p_l = g->p_dot_l;
-   
+
    p_n = 1.0 - p_l * p_l - p_d * p_d;
    if (p_n < 0.0)
      return -1;
    p_n = sqrt (p_n);
-   
-   *pp = JDMv_ax1_bx2 (p_d, g->d_hat, 
+
+   *pp = JDMv_ax1_bx2 (p_d, g->d_hat,
 		       1.0, JDMv_ax1_bx2 (p_l, g->l_hat,
 					  p_n, g->n_hat));
    JDMv_normalize (pp);
    return 0;
 }
-
-   
 
 int marx_grating_to_chip (Marx_Grating_Xform_Type *g,
 			  Marx_Chip_To_MNC_Type *c,
@@ -438,18 +430,22 @@ int marx_grating_to_chip (Marx_Grating_Xform_Type *g,
      return -1;
 
    return generic_to_chip (c, &p, &g->grating_to_chip_offset,
-			   JDMv_dot_prod (g->grating_to_chip_offset, 
+			   JDMv_dot_prod (g->grating_to_chip_offset,
 					  c->chip_e3_hat),
 			   xpixel, ypixel);
 }
 
+/* In the following pair of functions, p0 is a unit vector that specifies
+ * the location of the tangent plane.  The (x,y,z) components of the vector
+ * are such that (0,0,1) is at the celestial pole, (1,0,0) is at ra=dec=0.
+ */
 
 /* This routine computes the tangent plane coordinate of a vector p
  * where the unit vector p0 specifies the tangent plane.
  */
 int
 marx_vector_to_tan_plane (JDMVector_Type *p,
-			  JDMVector_Type *p0, 
+			  JDMVector_Type *p0,
 			  double *tx, double *ty)
 {
    double p0_perp, p0p_perp;
@@ -459,20 +455,20 @@ marx_vector_to_tan_plane (JDMVector_Type *p,
 
    p0_x = p0->x; p0_y = p0->y; p0_z = p0->z;
    p_x = p->x; p_y = p->y; p_z = p->z;
-   
+
    p0_perp = p0_x * p0_x + p0_y * p0_y;
    p0p_perp = p0_x * p_x + p0_y * p_y;
 
    /* If den == 0, then point is at inifinity. */
    den = sqrt(p0_perp) * (p0p_perp + p_z * p0_z);
-   
+
    *tx = (p0_x * p_y - p0_y * p_x) / den;
    *ty = (p_z * p0_perp - p0_z * p0p_perp)/den;
 
    return 0;
 }
 
-int 
+int
 marx_tan_plane_to_vector (double tx, double ty, JDMVector_Type *p0, JDMVector_Type *p)
 {
    double p0_perp;
@@ -484,17 +480,17 @@ marx_tan_plane_to_vector (double tx, double ty, JDMVector_Type *p0, JDMVector_Ty
    p0_z = p0->z;
 
    p0_perp = sqrt (p0_x*p0_x + p0_y*p0_y);
-   
+
    /* FIXME!!! p0_perp could be 0 */
    a = p0_x/p0_perp;
    b = p0_y/p0_perp;
-   
+
    p->z = p0_z + ty * p0_perp;
    ty = ty * p0_z;
-   
+
    p->x = p0_x - b * tx - a * ty;
    p->y = p0_y + a * tx - b * ty;
-   
+
    JDMv_normalize (p);
    return 0;
 }
@@ -504,14 +500,14 @@ marx_mnc_to_ra_dec (JDMVector_Type *mnc, double *ra, double *dec)
 {
    double perp;
    double x, y;
-   
+
    /* We need to flip the sign of the mirror nodal coords to point to
-    * the sky.  This is take care of in the signs below, and in the 
+    * the sky.  This is take care of in the signs below, and in the
     * comparisons.
     */
    x = mnc->x;
    y = mnc->y;
-   
+
    perp = sqrt (x * x + y * y);
    if (perp > 1.0) perp = 1.0;	       /* roundoff */
 
@@ -526,9 +522,9 @@ marx_mnc_to_ra_dec (JDMVector_Type *mnc, double *ra, double *dec)
 }
 
 /* Suppose that we are given two points on the sphere with coords
- * (ra_0, dec_0) and (ra, dec).  Denote delta_ra as the RA of the second 
+ * (ra_0, dec_0) and (ra, dec).  Denote delta_ra as the RA of the second
  * point as seen from the first point at (ra_0, dec_0).  Similarly, delta_dec
- * is the Dec of the second point with respect to the first point. 
+ * is the Dec of the second point with respect to the first point.
  * This function computes the so-called aspect offsets, (delta_ra,delta_dec).
  */
 void
@@ -544,7 +540,7 @@ marx_compute_ra_dec_offsets (double ra_0, double dec_0,
 
    d_ra = ra - ra_0;
    d_dec = dec - dec_0;
-   
+
    c = cos (dec);
    factor = c * (1 - cos (d_ra));
 
@@ -558,11 +554,11 @@ marx_compute_ra_dec_offsets (double ra_0, double dec_0,
 
    /* asin returns result in (-PI,PI), which is what I want */
    *delta_dec = asin (sin_delta_dec);
-   
+
    num = c * sin (d_ra);
    den = cos (d_dec) - factor * cos (dec_0);
-	
-   /* We want to compute atan (num/den) with the result in (-PI,PI).  I could 
+
+   /* We want to compute atan (num/den) with the result in (-PI,PI).  I could
     * use atan2, but some systems do not have it.  atan always returns the
     * result in (-PI/2,PI/2).
     */

@@ -206,10 +206,10 @@ void
 JDMfft_free (void)
 {
    SpaceAlloced = MaxPermAlloced = 0;
-   _JDMfree (Tmp0); Tmp0 = NULL;
-   _JDMfree (Tmp1); Tmp1 = NULL;
-   _JDMfree (Tmp2); Tmp2 = NULL;
-   _JDMfree (Tmp3); Tmp3 = NULL;
+   _JDMfree ((char *)Tmp0); Tmp0 = NULL;
+   _JDMfree ((char *)Tmp1); Tmp1 = NULL;
+   _JDMfree ((char *)Tmp2); Tmp2 = NULL;
+   _JDMfree ((char *)Tmp3); Tmp3 = NULL;
    _JDMfree ((char *)Perm); Perm = NULL;
 }
 /*}}}*/

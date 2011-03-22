@@ -874,7 +874,7 @@ static unsigned long compute_write_mask (void) /*{{{*/
    v = Data_To_Write;
    mask = 0;
    
-   mask |= MARX_U_PIXEL_OK|MARX_V_PIXEL_OK;
+   mask |= MARX_DET_UV_PIXEL_OK;
    while ((ch = *v++) != 0)
      {
 	switch (ch)
@@ -886,31 +886,21 @@ static unsigned long compute_write_mask (void) /*{{{*/
 	     mask |= MARX_TIME_OK;
 	     break;
 	   case 'X':
-	     mask |= MARX_X1_VECTOR_OK;
-	     break;
 	   case 'Y':
-	     mask |= MARX_X2_VECTOR_OK;
-	     break;
 	   case 'Z':
-	     mask |= MARX_X3_VECTOR_OK;
+	     mask |= MARX_X_VECTOR_OK;
 	     break;
 	   case '1':
-	     mask |= MARX_P1_VECTOR_OK;
-	     break;
 	   case '2':
-	     mask |= MARX_P2_VECTOR_OK;
-	     break;
 	   case '3':
-	     mask |= MARX_P3_VECTOR_OK;
+	     mask |= MARX_P_VECTOR_OK;
 	     break;
 	   case 'P':
 	     mask |= MARX_PULSEHEIGHT_OK;
 	     break;
 	   case 'x':
-	     mask |= MARX_Y_PIXEL_OK;
-	     break;
 	   case 'y':
-	     mask |= MARX_Z_PIXEL_OK;
+	     mask |= MARX_DET_PIXEL_OK;
 	     break;
 	   case 'M':
 	     mask |= MARX_MIRROR_SHELL_OK;
@@ -919,26 +909,26 @@ static unsigned long compute_write_mask (void) /*{{{*/
 	     mask |= MARX_ORDER_OK;
 	     break;
 	   case 'a':
-	     mask |= MARX_SUPPORT_ORDER1_OK;
+	     mask |= MARX_ORDER1_OK;
 	     break;
 	   case 'b':
-	     mask |= MARX_SUPPORT_ORDER2_OK;
+	     mask |= MARX_ORDER2_OK;
 	     break;
 	   case 'c':
-	     mask |= MARX_SUPPORT_ORDER3_OK;
+	     mask |= MARX_ORDER3_OK;
 	     break;
 	   case 'd':
-	     mask |= MARX_SUPPORT_ORDER4_OK;
+	     mask |= MARX_ORDER4_OK;
 	     break;
 	   case 'D':
-	     mask |= MARX_CCD_NUM_OK;
+	     mask |= MARX_DET_NUM_OK;
 	     break;
 	   case 'S':
-	     mask |= MARX_SKY_RA_OK|MARX_SKY_DEC_OK;
+	     mask |= MARX_SKY_DITHER_OK|MARX_DET_DITHER_OK;
 	     break;
-	     
+
 	   case 'r':
-	     mask |= MARX_HRC_REGION_OK;
+	     mask |= MARX_DET_REGION_OK;
 	     break;
 
 	   case 'B':

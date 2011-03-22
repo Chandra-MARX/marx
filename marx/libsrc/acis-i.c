@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -71,20 +70,20 @@ void _marx_acis_apply_streak (double tstart,
    t = fmod (t, Frame_Time);
    if (t <= Exposure_Time)
      return;
-   
+
    /* Border pixels are excluded because of ACIS event detection */
    at->z_pixel = 1.0 + 1022.0 * JDMrandom ();
 
-   /* Now I need to update the X and P vectors.  
+   /* Now I need to update the X and P vectors.
     * Define the P vector with respect to the mirror nodal position.
     */
 
    xpixel = (at->y_pixel - d->xpixel_offset) * d->x_pixel_size;
    ypixel = (at->z_pixel - d->ypixel_offset) * d->y_pixel_size;
-   
+
    dx = JDMv_ax1_bx2 (xpixel, d->xhat, ypixel, d->yhat);
    at->x = JDMv_sum (d->x_ll, dx);
-   
+
    at->p = JDMv_diff (at->x, JDMv_vector (Marx_Focal_Length, 0, 0));
    JDMv_normalize (&at->p);
    at->flags |= PHOTON_ACIS_STREAKED;
@@ -101,12 +100,12 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
    double tstart;
 #endif
 
-   if (pt->history & MARX_CCD_NUM_OK)
+   if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_Y_PIXEL_OK | MARX_Z_PIXEL_OK | MARX_CCD_NUM_OK 
+
+   pt->history |= (MARX_DET_PIXEL_OK | MARX_DET_NUM_OK
 		   | MARX_PULSEHEIGHT_OK | MARX_PI_OK);
-   
+
    marx_prune_photons (pt);
 
    attrs = pt->attributes;
@@ -121,15 +120,15 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
      {
 	Marx_Detector_Geometry_Type *d;
 	double dx, dy;
-	
+
 	at = attrs + sorted_index[i];
-	
+
 #if MARX_HAS_DITHER
 	_marx_dither_detector (&at->dither_state);
 #endif
 	/* Transform ray into local system */
 	_marx_transform_ray (&at->x, &at->p, &_Marx_Det_XForm_Matrix);
-	
+
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   ACIS_I_Chips,
 					   &at->x, &dx, &dy);
@@ -143,17 +142,16 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->ccd_num = d->id;
 	     at->y_pixel = dx / d->x_pixel_size;
 	     at->z_pixel = dy / d->y_pixel_size;
-	     
+
 	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d->id)], at))
 	       {
 #if MARX_HAS_ACIS_STREAK
 		  (void) _marx_acis_apply_streak (tstart, at, d);
 #endif
 	       }
-	     
-	     
+
 	  }
-	
+
 	/* Transform detected photon back to original system */
 	_marx_transform_ray_reverse (&at->x, &at->p, &_Marx_Det_XForm_Matrix);
 
@@ -161,13 +159,13 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	_marx_undither_detector (&at->dither_state);
 #endif
      }
-   
+
    return 0;
 }
 
 /*}}}*/
 
-static Param_Table_Type ACIS_Parm_Table [] = 
+static Param_Table_Type ACIS_Parm_Table [] =
 {
 #if MARX_HAS_ACIS_STREAK
      {"ACIS_Exposure_Time",	PF_REAL_TYPE,	&Exposure_Time},
@@ -189,7 +187,7 @@ int _marx_acis_get_generic_parms (Param_File_Type *pf)
      }
    if (Frame_Transfer_Time < 0.0)
      Frame_Transfer_Time = 0.0;
-   
+
    Frame_Time = Frame_Transfer_Time + Exposure_Time;
 #endif
 
@@ -205,14 +203,14 @@ static Param_Table_Type Parm_Table [] =
 static int get_double_param (Param_File_Type *pf, char *fmt, int i, double *v)
 {
    char parm[128];
-   
+
    sprintf (parm, fmt, i);
    if (-1 == pf_get_double (pf, parm, v))
      {
 	marx_error ("Unable to get paramter %s", parm);
 	return -1;
      }
-   
+
    return 0;
 }
 #endif
@@ -220,17 +218,17 @@ static int get_file_param (Param_File_Type *pf, char *fmt, int i, char **v)
 {
    char parm[128];
    char file [PF_MAX_LINE_LEN];
-   
+
    sprintf (parm, fmt, i);
    if (-1 == pf_get_file (pf, parm, file, sizeof (file)))
      {
 	marx_error ("Unable to get paramter %s", parm);
 	return -1;
      }
-   
-   if (NULL == (*v = marx_malloc (strlen (file) + 1)))
+
+   if (NULL == (*v = (char *)marx_malloc (strlen (file) + 1)))
      return -1;
-   
+
    strcpy (*v, file);
    return 0;
 }
@@ -244,13 +242,13 @@ static int get_acis_parms (Param_File_Type *p)
 
    if (-1 == pf_get_parameters (p, Parm_Table))
      return -1;
-   
+
    for (i = 0; i < _MARX_NUM_ACIS_I_CHIPS; i++)
      {
 	_Marx_Acis_Chip_Type *ccd;
-	
+
 	ccd = &Acis_CCDS[i];
-	
+
 	ccd->ccd_id = i;
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
 	if (-1 == get_double_param (p, "ACIS_CCD%d_Gain", i, &ccd->ccd_gain))
@@ -258,8 +256,7 @@ static int get_acis_parms (Param_File_Type *p)
 	if (ccd->ccd_gain <= 0.0)
 	  ccd->ccd_gain = 4;
 	ccd->ccd_gain /= 1000.0;	       /* Convert to KeV */
-	
-	
+
 	if (-1 == get_double_param (p, "ACIS_CCD%d_Offset", i, &ccd->ccd_offset))
 	  return -1;
 	ccd->ccd_offset /= 1000.0;	       /* Convert to KeV */
@@ -280,10 +277,9 @@ static int get_acis_parms (Param_File_Type *p)
 	  return -1;
 
      }
-   
+
    return 0;
 }
-
 
 #if MARX_HAS_ACIS_FEF
 static short apply_fef (_Marx_Acis_Chip_Type *c, float x, float y, double en, float *pi)
@@ -298,7 +294,6 @@ static short apply_fef (_Marx_Acis_Chip_Type *c, float x, float y, double en, fl
    return pha;
 }
 #endif
-
 
 int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
 {
@@ -349,7 +344,7 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
 	       return -1;
 	  }
      }
-   
+
    return 0;
 }
 

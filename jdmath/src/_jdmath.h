@@ -15,9 +15,9 @@
  with this program; if not, write to the Free Software Foundation, Inc., 675
  Mass Ave, Cambridge, MA 02139, USA. 
 */
-extern char *_JDMmalloc (unsigned long, char *);
-extern void _JDMfree (char *);
-extern char *_JDMrealloc (char *, unsigned int);
+extern void *_JDMmalloc (unsigned long, char *);
+extern void _JDMfree (void *);
+extern void *_JDMrealloc (void *, unsigned int);
 
 extern void _JDMswap_dvector (double *, double *, unsigned int);
 extern double _JDM_innerprod (double *, double *, unsigned int);

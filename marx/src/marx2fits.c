@@ -57,6 +57,12 @@ static char Marx2fits_Pgm[80];
 static Marx_Detector_Type *The_Detector;
 static int Simulation_Grating_Type;    /* 0==>NONE, 1==>HETG, 2==>LETG */
 
+#define PIX_ADJ_NONE		0
+#define PIX_ADJ_RANDOMIZE	1
+#define PIX_ADJ_EDSER		2
+#define PIX_ADJ_EXACT		3
+static int Pixel_Adjust = PIX_ADJ_RANDOMIZE;
+
 static int Simulation_Detector_Type;   /* bitmapped */
 #define DETECTOR_NONE	0x00
 #define DETECTOR_ACIS_S	0x01
@@ -100,8 +106,8 @@ typedef struct /*{{{*/
    float64 dtt_time;
 
    /* marx xpixel, ypixel */
-   int16 dtt_chipx;
-   int16 dtt_chipy;
+   float32 dtt_chipx;
+   float32 dtt_chipy;
 
    int32 dtt_hrc_u;
    int32 dtt_hrc_v;
@@ -139,6 +145,10 @@ typedef struct /*{{{*/
    int16 dtt_node_id;
    int16 dtt_status;
    int16 dtt_nphotons;
+
+   Marx_Dither_Type dtt_dither;
+   JDMVector_Type dtt_mnc;
+   int dtt_update_dither;
 }
 
 /*}}}*/
@@ -191,15 +201,15 @@ Data_Def_Type;
 static int write_int32 (Data_Def_Type *, JDFits_Type *);
 static int write_int16 (Data_Def_Type *, JDFits_Type *);
 static int write_float32 (Data_Def_Type *, JDFits_Type *);
+static int write_float32_as_int16 (Data_Def_Type *, JDFits_Type *);
 static int write_float64 (Data_Def_Type *, JDFits_Type *);
 static int write_time (Data_Def_Type *, JDFits_Type *);
 static int read_int16 (Data_Def_Type *);
-static int read_int16_add_1 (Data_Def_Type *);
-static int read_int32 (Data_Def_Type *);
+/* static int read_int32 (Data_Def_Type *); */
 static int read_byte_to_int16 (Data_Def_Type *);
 static int read_float32 (Data_Def_Type *);
 static int read_float32_to_float64 (Data_Def_Type *);
-static int read_float32_to_int16_1 (Data_Def_Type *);
+static int read_float32_add_1 (Data_Def_Type *);
 static int read_float32_to_int32 (Data_Def_Type *);
 static int read_int16_to_int32 (Data_Def_Type *);
 #ifdef OBSOLETE_FEATURE
@@ -226,10 +236,13 @@ static int compute_pileup_pi (Data_Def_Type *);
 static int compute_pileup_pha (Data_Def_Type *);
 #endif
 static int compute_grade (Data_Def_Type *);
+static int compute_fltgrade (Data_Def_Type *);
 static int compute_node_id (Data_Def_Type *);
 static int compute_status (Data_Def_Type *);
 
 static int compute_expno (Data_Def_Type *);
+static int read_dither_value (Data_Def_Type *);
+static int read_expno_value (Data_Def_Type *);
 
 static int open_marx_int32_file (Data_Def_Type *);
 static int open_marx_int16_file (Data_Def_Type *);
@@ -237,7 +250,7 @@ static int open_marx_f32_file (Data_Def_Type *);
 static int open_marx_byte_file (Data_Def_Type *);
 static int close_marx_file (Data_Def_Type *);
 
-static int open_marx_sky_file (Data_Def_Type *ddt);
+static int open_marx_dither_file (Data_Def_Type *ddt);
 
 static int open_marx_chip_file (Data_Def_Type *);
 static int open_detxy (Data_Def_Type *);
@@ -509,6 +522,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0,			       /* ddt_min_int_value */
       0				       /* ddt_max_int_value */
    },
+#if 0
    {
       'I',			       /* type */
       &Data_Table.dtt_chipx,	       /* pointer to value */
@@ -520,9 +534,9 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "pixel",			       /* units */
       NULL,			       /* WCS CTYPE */
       4,			       /* column_number */
-      read_int16_add_1,		       /* compute_value */
-      write_int16,		       /* write_value */
-      open_marx_int16_file,	       /* open */
+      read_float32_add_1,	       /* compute_value */
+      write_float32_as_int16,	       /* write_value */
+      open_marx_chip_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
       'I',			       /* ddt_min_max_type */
@@ -542,30 +556,31 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "pixel",			       /* units */
       NULL,			       /* WCS CTYPE */
       5,			       /* column_number */
-      read_int16_add_1,		       /* compute_value */
-      write_int16,		       /* write_value */
-      open_marx_int16_file,	       /* open */
+      read_float32_add_1,		       /* compute_value */
+      write_float32_as_int16,		       /* write_value */
+      open_marx_chip_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
       'I',			       /* ddt_min_max_type */
       0.0,			       /* ddt_min_float_value */
       0.0,			       /* ddt_max_float_value */
       2,			       /* ddt_min_int_value */
-      1023				       /* ddt_max_int_value */
+	1023				       /* ddt_max_int_value */
    },
+#endif
    {
       'I',			       /* type */
       &Data_Table.dtt_chipx,	       /* pointer to value */
       "xpixel.dat",		       /* filename */
-      DDT_NOT_FOR_PILEUP|DDT_REQUIRED, /* flags */
+       DDT_REQUIRED, /* flags */
       "CHIPX",			       /* colname */
       "CHIP X",			       /* comment */
       "I",			       /* type */
       "pixel",			       /* units */
       NULL,			       /* WCS CTYPE */
       4,			       /* column_number */
-      read_float32_to_int16_1,	       /* compute_value */
-      write_int16,		       /* write_value */
+      read_float32_add_1,	       /* compute_value */
+      write_float32_as_int16,		       /* write_value */
       open_marx_chip_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
@@ -579,15 +594,15 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       'I',			       /* type */
       &Data_Table.dtt_chipy,	       /* pointer to value */
       "ypixel.dat",		       /* filename */
-      DDT_NOT_FOR_PILEUP|DDT_REQUIRED, /* flags */
+      DDT_REQUIRED, /* flags */
       "CHIPY",			       /* colname */
       "CHIP Y",			       /* comment */
       "I",			       /* type */
       "pixel",			       /* units */
       NULL,			       /* WCS CTYPE */
       5,			       /* column_number */
-      read_float32_to_int16_1,      /* compute_value */
-      write_int16,		       /* write_value */
+      read_float32_add_1,      /* compute_value */
+      write_float32_as_int16,	       /* write_value */
       open_marx_chip_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
@@ -703,7 +718,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
       3,			       /* column_number */
-      read_int32,		       /* compute_value */
+      read_expno_value,		       /* compute_value */
       write_int32,		       /* write_value */
       open_marx_int32_file,	       /* open */
       close_marx_file,		       /* close */
@@ -876,6 +891,142 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0				       /* ddt_max_int_value */
    },
 
+   /* These dither related ones must be sequential, and must occur after
+    * expno has been computed.
+    */
+   {
+      'E',			       /* type */
+      &Data_Table.dtt_dither.ra,   /* pointer to value */
+      "sky_ra.dat",			       /* filename */
+      DDT_REQUIRED,		       /* flags */
+      NULL,			       /* colname */
+      NULL,			       /* comment */
+      NULL,			       /* type */
+      NULL,			       /* units */
+      NULL,			       /* WCS CTYPE */
+      -1,			       /* column_number */
+      read_dither_value,		       /* compute_value */
+      NULL,			       /* write_value */
+      open_marx_dither_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
+   {
+      'E',			       /* type */
+      &Data_Table.dtt_dither.dec,   /* pointer to value */
+      "sky_dec.dat",			       /* filename */
+      DDT_REQUIRED,		       /* flags */
+      NULL,			       /* colname */
+      NULL,			       /* comment */
+      NULL,			       /* type */
+      NULL,			       /* units */
+      NULL,			       /* WCS CTYPE */
+      -1,			       /* column_number */
+      read_dither_value,		       /* compute_value */
+      NULL,			       /* write_value */
+      open_marx_dither_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
+   {
+      'E',			       /* type */
+      &Data_Table.dtt_dither.roll,   /* pointer to value */
+      "sky_roll.dat",			       /* filename */
+      DDT_REQUIRED,		       /* flags */
+      NULL,			       /* colname */
+      NULL,			       /* comment */
+      NULL,			       /* type */
+      NULL,			       /* units */
+      NULL,			       /* WCS CTYPE */
+      -1,			       /* column_number */
+      read_dither_value,		       /* compute_value */
+      NULL,			       /* write_value */
+      open_marx_dither_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
+   {
+      'E',			       /* type */
+      &Data_Table.dtt_dither.dy,   /* pointer to value */
+      "det_dy.dat",			       /* filename */
+      DDT_REQUIRED,		       /* flags */
+      NULL,			       /* colname */
+      NULL,			       /* comment */
+      NULL,			       /* type */
+      NULL,			       /* units */
+      NULL,			       /* WCS CTYPE */
+      -1,			       /* column_number */
+      read_dither_value,		       /* compute_value */
+      NULL,			       /* write_value */
+      open_marx_dither_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
+   {
+      'D',			       /* type */
+      &Data_Table.dtt_dither.dz,   /* pointer to value */
+      "det_dz.dat",			       /* filename */
+      DDT_REQUIRED,		       /* flags */
+      NULL,			       /* colname */
+      NULL,			       /* comment */
+      NULL,			       /* type */
+      NULL,			       /* units */
+      NULL,			       /* WCS CTYPE */
+      -1,			       /* column_number */
+      read_dither_value,		       /* compute_value */
+      NULL,			       /* write_value */
+      open_marx_dither_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
+   {
+      'E',			       /* type */
+      &Data_Table.dtt_dither.dtheta,   /* pointer to value */
+      "det_theta.dat",			       /* filename */
+      DDT_REQUIRED,		       /* flags */
+      NULL,			       /* colname */
+      NULL,			       /* comment */
+      NULL,			       /* type */
+      NULL,			       /* units */
+      NULL,			       /* WCS CTYPE */
+      -1,			       /* column_number */
+      read_dither_value,		       /* compute_value */
+      NULL,			       /* write_value */
+      open_marx_dither_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
+
    /* compute_detxy assumes next two entries are sequential */
    {
       'D',			       /* type */
@@ -925,7 +1076,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
    {
       'D',			       /* type */
       &Data_Table.dtt_xsky,	       /* pointer to value */
-      "sky_ra.dat",			       /* filename */
+      NULL,			       /* filename */
       DDT_REQUIRED,		       /* flags */
       "X",			       /* colname */
       "sky X pixel",		       /* comment */
@@ -935,9 +1086,9 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       10,			       /* column_number */
       compute_xy_sky,		       /* compute_value */
       write_float64,		       /* write_value */
-      open_marx_sky_file,			       /* open */
-      close_marx_file,			       /* close */
-      NULL,			       /* cdt */
+      NULL,			       /* open */
+	NULL,			       /* close */
+	NULL,			       /* cdt */
       'X',			       /* ddt_min_max_type */
       0.0,			       /* ddt_min_float_value */
       0.0,			       /* ddt_max_float_value */
@@ -947,7 +1098,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
    {
       'D',			       /* type */
       &Data_Table.dtt_ysky,	       /* pointer to value */
-      "sky_dec.dat",			       /* filename */
+      NULL,			       /* filename */
       DDT_REQUIRED,		       /* flags */
       "Y",			       /* colname */
       "sky Y pixel",		       /* comment */
@@ -957,8 +1108,8 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       11,			       /* column_number */
       NULL,			       /* compute_value */
       write_float64,		       /* write_value */
-      open_marx_sky_file,	       /* open */
-      close_marx_file,		       /* close */
+      NULL,			       /* open */
+      NULL,			       /* close */
       NULL,			       /* cdt */
       'X',			       /* ddt_min_max_type */
       0.0,			       /* ddt_min_float_value */
@@ -1149,7 +1300,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
       16,			       /* column_number */
-      compute_grade,		       /* compute_value */
+      compute_fltgrade,		       /* compute_value */
       write_int16,		       /* write_value */
       NULL,			       /* open */
       NULL,			       /* close */
@@ -1345,7 +1496,7 @@ static int open_marx_chip_file (Data_Def_Type *ddt)
    return 0;
 }
 
-static int open_marx_sky_file (Data_Def_Type *ddt)
+static int open_marx_dither_file (Data_Def_Type *ddt)
 {
    if (Simulation_Used_Dither == 0)
      return 0;
@@ -1686,6 +1837,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 
 	return;
      }
+/*}}}*/
 
    if (0 == strcmp (ttype, "PI")) /*{{{*/
      {
@@ -2749,6 +2901,9 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
    if (-1 == jdfits_end_header (ft))
      return -1;
 
+   if (0 == (Simulation_Detector_Type & DETECTOR_ACIS))
+     Data_Table.dtt_update_dither = 1;
+
    i = Num_Marx_File_Rows;
    while (i > 0)
      {
@@ -3083,7 +3238,14 @@ static int add_goodtime_extensions (JDFits_Type *f)
 static int usage (void) /*{{{*/
 {
    fprintf (stderr, "%s:\n", Marx2fits_Pgm);
-   fprintf (stderr, "Usage: %s [--pileup] marx-dir fitsfile\n", Program_Name);
+   fprintf (stderr, "Usage: %s [options] marxdir outfile\n", Program_Name);
+   fprintf (stderr, "Options:\n");
+   fprintf (stderr, "  --pileup             Process a marxpileup simulation\n");
+   fprintf (stderr, "  --pixadj=EDSER       Use a subpixel algorithm (default)\n");
+   fprintf (stderr, "  --pixadj=RANDOMIZE   Randomize within a detector pixel\n");
+   fprintf (stderr, "  --pixadj=NONE        Do not randomize withing a detector pixel\n");
+   fprintf (stderr, "  --pixadj=EXACT       Use exact chip coordinates\n");
+
    return 1;
 }
 
@@ -3096,22 +3258,75 @@ int main (int argc, char **argv) /*{{{*/
 
    sprintf (Marx2fits_Pgm, "marx2fits v%s", MARX_VERSION_STRING MARX2FITS_PATCHLVL);
 
-   switch (argc)
+   while (1)
      {
-      default:
-	return usage ();
+	char *arg;
 
-      case 3:
-	Marx_Dir = argv[1];
-	fits_file = argv[2];
-	break;
-
-      case 4:
-	if (strcmp ("--pileup", argv[1]))
+	if (argc < 3)
 	  return usage ();
-	Marx_Dir = argv[2];
-	fits_file = argv[3];
-	Pileup_Mode = 1;
+
+	arg = argv[1];
+	if ((argc == 3) && (*arg != '-'))
+	  {
+	     Marx_Dir = argv[1];
+	     fits_file = argv[2];
+	     break;
+	  }
+
+	if (0 == strcmp (arg, "--pileup"))
+	  {
+	     Pileup_Mode = 1;
+	     argv++;
+	     argc--;
+	     continue;
+	  }
+	if (0 == strncmp (arg, "--pixadj", 8))
+	  {
+	     if (arg[8] == '=')
+	       arg += 9;
+	     else if (arg[8] == 0)
+	       {
+		  /* Note: argc > 2 here */
+		  argv++;
+		  argc--;
+		  arg = argv[1];
+	       }
+	     else return usage ();
+
+	     argc--; argv++;
+	     if ((0 == strcmp (arg, "randomize")
+		  || (0 == strcmp (arg, "RANDOMIZE"))))
+	       {
+		  Pixel_Adjust = PIX_ADJ_RANDOMIZE;
+		  continue;
+	       }
+	     if ((0 == strcmp (arg, "NONE")
+		  || (0 == strcmp (arg, "none"))))
+	       {
+		  Pixel_Adjust = PIX_ADJ_NONE;
+		  continue;
+	       }
+	     if ((0 == strcmp (arg, "EDSER")
+		  || (0 == strcmp (arg, "edser"))))
+	       {
+		  Pixel_Adjust = PIX_ADJ_EDSER;
+		  continue;
+	       }
+	     if ((0 == strcmp (arg, "EXACT")
+		  || (0 == strcmp (arg, "exact"))))
+	       {
+		  Pixel_Adjust = PIX_ADJ_EXACT;
+		  continue;
+	       }
+	     fprintf (stderr, "***** Unsupported --pixadj option: %s\n", arg);
+	     return usage ();
+	  }
+
+	if (0 == strcmp (arg, "--help"))
+	  return usage ();
+
+	fprintf (stderr, "***** Unsupported option: %s\n", arg);
+	return usage ();
      }
 
    if (-1 == get_simulation_info ())
@@ -3191,6 +3406,13 @@ static int write_int16 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
 
 /*}}}*/
 
+static int write_float32_as_int16 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
+{
+   int16 x = *(float32 *)ddt->ddt_value_ptr;
+   return jdfits_write_int16 (ft, &x, 1);
+}
+/*}}}*/
+
 static int write_int32 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
 {
    return jdfits_write_int32 (ft, (int32 *) ddt->ddt_value_ptr, 1);
@@ -3245,14 +3467,14 @@ static int read_int16 (Data_Def_Type *ddt) /*{{{*/
 }
 /*}}}*/
 
-static int read_int16_add_1 (Data_Def_Type *ddt) /*{{{*/
+static int read_float32_add_1 (Data_Def_Type *ddt) /*{{{*/
 {
-   int16 x;
+   float32 x;
 
-   if (1 != JDMread_int16 (&x, 1, ddt->ddt_dft->fp))
+   if (1 != JDMread_float32 (&x, 1, ddt->ddt_dft->fp))
      return -1;
 
-   *(int16 *) ddt->ddt_value_ptr = x + 1;
+   *(float32 *) ddt->ddt_value_ptr = x + 1;
 
    return 0;
 }
@@ -3271,6 +3493,7 @@ static int read_pha_island (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 #endif
+#if 0
 static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    if (1 != JDMread_int32 ((int32 *) ddt->ddt_value_ptr, 1, ddt->ddt_dft->fp))
@@ -3280,7 +3503,7 @@ static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 }
 
 /*}}}*/
-
+#endif
 static int read_float32_to_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    float32 f32;
@@ -3303,21 +3526,6 @@ static int read_int16_to_int32 (Data_Def_Type *ddt) /*{{{*/
      return -1;
 
    *(int32 *) ddt->ddt_value_ptr = (int32) i16;
-
-   return 0;
-}
-
-/*}}}*/
-
-static int read_float32_to_int16_1 (Data_Def_Type *ddt) /*{{{*/
-{
-   float32 f32;
-
-   if (1 != JDMread_float32 (&f32, 1, ddt->ddt_dft->fp))
-     return -1;
-
-   /* Add 1.0 so that any pixel value in range [0:1] comes out as 1 */
-   *(int16 *) ddt->ddt_value_ptr = (int16) (f32 + 1.0);
 
    return 0;
 }
@@ -3362,6 +3570,39 @@ static int read_float32_to_float64 (Data_Def_Type *ddt) /*{{{*/
 /*}}}*/
 
 /*}}}*/
+
+static int read_expno_value (Data_Def_Type *ddt) /*{{{*/
+{
+   static int32 last_expno = -1;
+   int32 val;
+
+   if (1 != JDMread_int32 (&val, 1, ddt->ddt_dft->fp))
+     return -1;
+
+   Data_Table.dtt_update_dither = (last_expno != val);
+   last_expno = val;
+   *(int32 *) ddt->ddt_value_ptr = val;
+
+   return 0;
+}
+
+/*}}}*/
+
+static int read_dither_value (Data_Def_Type *ddt) /*{{{*/
+{
+   float32 val;
+
+   if (1 != JDMread_float32 (&val, 1, ddt->ddt_dft->fp))
+     return -1;
+
+   if ((Data_Table.dtt_update_dither) || (Pixel_Adjust == PIX_ADJ_EXACT))
+     *(float32 *) ddt->ddt_value_ptr = val;
+
+   return 0;
+}
+
+/*}}}*/
+
 
 static int compute_tdetxy (Data_Def_Type *ddt) /*{{{*/
 {
@@ -3441,14 +3682,6 @@ static int open_detxy (Data_Def_Type *ddt)
 	     return -1;
 	  }
 
-	if (-1 == marx_init_chip_to_mnc (m, Focal_Length,
-					 DetOffset_X, DetOffset_Y, DetOffset_Z,
-					 0.0   /* theta */))
-	  {
-	     delete_chip_to_mncs ();
-	     return -1;
-	  }
-
 	Chip_To_Mncs[i - First_Chip_Id] = m;
      }
 
@@ -3465,7 +3698,6 @@ static int close_detxy (Data_Def_Type *ddt)
 
 static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 {
-   JDMVector_Type mnc;
    double x, y;
    Marx_Chip_To_MNC_Type *chip2mnc;
 
@@ -3473,18 +3705,44 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 
    chip2mnc = Chip_To_Mncs[Data_Table.dtt_ccdid - First_Chip_Id];
 
-   /* Randomized within a pixel boundary.  Also, subtract 1 to go from a
-    * 1 based system to a 0 based system.
-    */
-   x = (Data_Table.dtt_chipx - 1.0) + JDMrandom ();
-   y = (Data_Table.dtt_chipy - 1.0) + JDMrandom ();
 
-   if (-1 == marx_chip_to_mnc (chip2mnc, x, y, &mnc))
+   if (-1 == marx_init_chip_to_mnc (chip2mnc, Focal_Length,
+				    DetOffset_X,
+				    DetOffset_Y + Data_Table.dtt_dither.dy,
+				    DetOffset_Z + Data_Table.dtt_dither.dz,
+				    Data_Table.dtt_dither.dtheta))
+     return -1;
+
+   /* Go from a 1-based to a 0-based system */
+   x = Data_Table.dtt_chipx - 1.0;
+   y = Data_Table.dtt_chipy - 1.0;
+   switch (Pixel_Adjust)
+     {
+      case PIX_ADJ_EXACT:
+	break;
+
+      case PIX_ADJ_NONE:
+	x = (int)x + 0.5;
+	y = (int)y + 0.5;
+	break;
+
+      case PIX_ADJ_RANDOMIZE:
+	x = (int)x + JDMrandom ();
+	y = (int)y + JDMrandom ();
+	break;
+
+      case PIX_ADJ_EDSER:
+	fprintf (stderr, "Not implemented: Pixel_Adjust=PIX_ADJ_EDSER\n");
+	return -1;
+     }
+
+   if (-1 == marx_chip_to_mnc (chip2mnc, x, y, &Data_Table.dtt_mnc))
      return -1;
 
    /* (void) marx_mnc_to_chip (chip2mnc, &mnc, &x, &y); */
 
-   if (-1 == marx_mnc_to_fpc (The_Detector->fp_coord_info, &mnc, &x, &y))
+   if (-1 == marx_mnc_to_fpc (The_Detector->fp_coord_info, &Data_Table.dtt_mnc,
+			      &x, &y))
      return -1;
 
    /* Note that there is no need to add 0.5 because marx_mnc_to_fpc returns
@@ -3500,16 +3758,22 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 
 static int compute_expno (Data_Def_Type *ddt) /*{{{*/
 {
+   static long last_expno = -1;
+   long expno;
+
    (void) ddt;
 
    if (TimeDel <= 0.0)
      {
-	static long expno;
-	Data_Table.dtt_expno = expno;
-	expno++;
+	Data_Table.dtt_expno = last_expno;
+	last_expno++;
+	Data_Table.dtt_update_dither = 1;
 	return 0;
      }
-   Data_Table.dtt_expno = (long)(Data_Table.dtt_time / TimeDel);
+   expno = (long)(Data_Table.dtt_time / TimeDel);
+   Data_Table.dtt_expno = expno;
+   Data_Table.dtt_update_dither = (expno != last_expno);
+   last_expno = expno;
 
    return 0;
 }
@@ -3544,11 +3808,19 @@ static int compute_grade (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 
+static int compute_fltgrade (Data_Def_Type *ddt) /*{{{*/
+{
+   (void) ddt;
+   return 0;
+}
+/*}}}*/
 static int compute_xy_sky (Data_Def_Type *ddt)
 {
    double x, y;
    double pixel_size;
    Marx_FP_Coord_Type *f;
+
+   (void) ddt;
 
    f = The_Detector->fp_coord_info;
 
@@ -3566,10 +3838,8 @@ static int compute_xy_sky (Data_Def_Type *ddt)
 	return 0;
      }
 
-   if ((1 != JDMread_d_float32 (&x, 1, ddt->ddt_dft->fp))
-       || (1 != JDMread_d_float32 (&y, 1, (ddt + 1)->ddt_dft->fp)))
-     return -1;
-
+   marx_undither_mnc (&Data_Table.dtt_mnc, &Data_Table.dtt_dither);
+   marx_mnc_to_ra_dec (&Data_Table.dtt_mnc, &x, &y);
    /* x, y are in radians.  Now convert them to aspect offsets */
    marx_compute_ra_dec_offsets (0, 0, x, y, &x, &y);
 

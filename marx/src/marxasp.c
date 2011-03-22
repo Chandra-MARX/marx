@@ -83,10 +83,11 @@ static double Roll_Period;
 static double Ra_Phase;
 static double Dec_Phase;
 static double Roll_Phase;
-
+#if 0
 static double RA_Sigma;
 static double Dec_Sigma;
 static double Roll_Sigma;
+#endif
 
 /* The following unit vectors form an orthonormal basis */
 static JDMVector_Type Nominal_Pointing;
@@ -813,10 +814,11 @@ static void compute_dither (double t, double *rap, double *decp, double *rollp,
    ra = Ra_Amp * sin (t/Ra_Period + Ra_Phase);
    dec = Dec_Amp * sin (t/Dec_Period + Dec_Phase);
    roll = Roll_Amp * sin (t/Roll_Period + Roll_Phase);
-
+#if 0
    ra += RA_Sigma * JDMgaussian_random ();
    dec += Dec_Sigma * JDMgaussian_random ();
    roll += Roll_Sigma * JDMgaussian_random ();
+#endif
 
    /* The above are actually offsets.  We need to convert them to absolute values
     * in RA and Dec with the roll properly taken care of.  This is achieved
@@ -1030,10 +1032,11 @@ static char *Output_File;
 static Param_Table_Type Marxasp_Parm_Table [] = 
 {
      {"TimeDel",	PF_DOUBLE_TYPE,	&Delta_Time},
+#if 0
      {"RA_Sigma",	PF_DOUBLE_TYPE,	&RA_Sigma},
      {"Dec_Sigma",	PF_DOUBLE_TYPE,	&Dec_Sigma},
      {"Roll_Sigma",	PF_DOUBLE_TYPE,	&Roll_Sigma},
-   
+#endif
      {"OutputFile",	PF_STRING_TYPE,	&Output_File},
      {"MarxDir",	PF_STRING_TYPE,	&Marx_Dir},
    
@@ -1047,11 +1050,11 @@ static int marxasp_init (Param_File_Type *p)
 	pf_error ("%s: error getting parameters.", Program_Name);
 	return -1;
      }
-  
+#if 0
    RA_Sigma *= PI/(180.0*3600);
    Dec_Sigma *= PI/(180.0*3600);
    Roll_Sigma *= PI/(180.0*3600);
-
+#endif
    if (Delta_Time <= 0)
      Delta_Time = 0.256;
 

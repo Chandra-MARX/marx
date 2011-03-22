@@ -75,10 +75,10 @@ Marx_QE_Type *_marx_qe_read_file (char *file, char *ext, char *encol, char *qeco
 	return NULL;
      }
 
-   if ((NULL == (enbuf = marx_malloc (3 + strlen(encol))))
-       || (NULL == (qebuf = marx_malloc (3 + strlen(qecol))))
+   if ((NULL == (enbuf = (char *)marx_malloc (3 + strlen(encol))))
+       || (NULL == (qebuf = (char *)marx_malloc (3 + strlen(qecol))))
        || ((filtercol != NULL)
-	   && (NULL == (filter_buf = marx_malloc (3 + strlen(filtercol))))))
+	   && (NULL == (filter_buf = (char *)marx_malloc (3 + strlen(filtercol))))))
      goto return_error;
 
    num_cols = 0;

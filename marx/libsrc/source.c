@@ -100,7 +100,10 @@ static Source_Object_Type *find_source (char *name)
    return NULL;
 }
 
-
+/* This function computes the azimuth and elevation of the source with
+ * respect to the spacecraft pointing axis, which is generally different
+ * from the optical axis.
+ */
 static int compute_source_elaz (double *azp, double *elp)
 {
    JDMVector_Type src, pnt;
@@ -114,14 +117,13 @@ static int compute_source_elaz (double *azp, double *elp)
    src = JDMv_rotate_unit_vector (src, pnt, -roll_pnt);
    JDMv_unit_vector_to_spherical (src, &el, &az);
    el = PI/2.0 - el;
-   
+
    marx_compute_ra_dec_offsets (ra_pnt, dec_pnt, az, el, &az, &el);
-   
+
    *elp = el;
    *azp = az;
    return 0;
 }
-
 
 static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name) /*{{{*/
 {
@@ -133,7 +135,7 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
    s = find_source (name);
    if (s == NULL)
      return -1;
-   
+
    if (-1 == _marx_init_dither (pf, s->can_be_dithered, &yoff, &zoff))
      return -1;
 
@@ -144,12 +146,15 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
      return -1;
 
    p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
-   
+
    /* Now add offsets via the proper rotations */
    p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
    p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
 
-   /* Finally roll it so that this point will be invariant under roll */
+   /* Finally roll it so that this point will be invariant under roll.  That is,
+    * the dither transformation will (on the average) undo this rotation.
+    * See the apply_dither function.
+    */
    p = JDMv_rotate_unit_vector (p, JDMv_vector (1, 0, 0), roll_nom);
 
    /* This vector must point FROM source TO origin. */
@@ -157,17 +162,17 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
    st->p.y = -p.y;
    st->p.z = -p.z;
 
-   /* Create a vector othogonal to above.  This will save the source
+   /* Create a vector orthogonal to above.  This will save the source
     * routine the effort required to do this.
-    * 
-    * Since st->p is more or less oriented along the negative x direction, 
+    *
+    * Since st->p is more or less oriented along the negative x direction,
     * st->p.x will be non-zero.  In fact, this will be required.
     * With this requirement, a normal in the x-y plane is trival to construct.
     */
-   
+
    if (p.x <= 0.0)
      {
-	marx_error ("Source rays will not hit telescope.");
+	marx_error ("Source rays will not hit the telescope.");
 	return -1;
      }
 
@@ -182,7 +187,7 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
 
    if (-1 == (*s->select_source)(st, pf, name, s->source_id))
      return -1;
-	     
+
    return 0;
 }
 
@@ -192,9 +197,9 @@ int marx_close_source (Marx_Source_Type *st) /*{{{*/
 {
    if (st == NULL)
      return -1;
-   
+
 #if MARX_HAS_DITHER
-   if (_Marx_Dither_Mode != _MARX_DITHER_MODE_NONE) 
+   if (_Marx_Dither_Mode != _MARX_DITHER_MODE_NONE)
      _marx_close_dither ();
 #endif
 
@@ -205,7 +210,7 @@ int marx_close_source (Marx_Source_Type *st) /*{{{*/
      {
 	(void) (*st->close_source)(st);
      }
-   
+
    memset ((char *)st, 0, sizeof (Marx_Source_Type));
    marx_free ((char *)st);
    return 0;
@@ -217,10 +222,10 @@ int marx_open_source (Marx_Source_Type *st) /*{{{*/
 {
    if (st == NULL)
      return -1;
-   
+
    if (st->open_source == NULL)
      return -1;
-       
+
    if (-1 == (*st->open_source) (st))
      return -1;
 
@@ -245,12 +250,12 @@ int marx_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
    double *sorted_energies;
    unsigned int *sorted_index;
    Marx_Photon_Attr_Type *at;
-   
+
    *num_collected = 0;
-   
+
    if ((st == NULL) || (pt == NULL) || (st->create_photons == NULL))
      return -1;
-   
+
    pt->source_distance = st->distance;
    pt->history = 0;
 
@@ -266,18 +271,29 @@ int marx_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 
    if (pt->history & MARX_TIME_OK)
      {
-	for (i = 0; i < n; i++)
+	if (exposure_time != NULL)
 	  {
-	     sorted_energies[i] = at[i].energy;
+	     double tmax = *exposure_time;
+	     for (i = 0; i < n; i++)
+	       {
+		  sorted_energies[i] = at[i].energy;
+		  if (at[i].arrival_time >= tmax)
+		    {
+		       n = i + 1;
+		       break;
+		    }
+	       }
 	  }
+	else for (i = 0; i < n; i++)
+	  sorted_energies[i] = at[i].energy;
      }
    else
      {
 	double t, mt;
-	
+
 	mt = compute_mean_time (st->spectrum.total_flux);
 	t = 0.0;
-   
+
 	for (i = 0; i < n; i++)
 	  {
 	     sorted_energies[i] = at->energy;
@@ -298,16 +314,12 @@ int marx_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 
 	pt->history |= (MARX_ENERGY_OK
 			| MARX_TIME_OK
-			| MARX_X1_VECTOR_OK
-			| MARX_X2_VECTOR_OK
-			| MARX_X3_VECTOR_OK
-			| MARX_P1_VECTOR_OK
-			| MARX_P2_VECTOR_OK
-			| MARX_P3_VECTOR_OK);
+			| MARX_X_VECTOR_OK
+			| MARX_P_VECTOR_OK);
      }
-   
+
 #if MARX_HAS_DITHER
-   if (n) 
+   if (n)
      {
 	at = pt->attributes;
 	pt->num_sorted = pt->n_photons = n;
@@ -316,33 +328,32 @@ int marx_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 	  return -1;
      }
 #endif
-   
+
    /* Now sort the energies for later reference */
    if (pt->sorted_index != NULL)
      JDMfree_integer_vector ((int *) pt->sorted_index);
-   
+
    sorted_index = pt->sorted_index = JDMsort_doubles (sorted_energies, n);
-   if (sorted_index == NULL) 
+   if (sorted_index == NULL)
      return -1;
-   
+
    at = pt->attributes;
    /* re-arrange according to index */
    for (i = 0; i < n; i++)
      {
 	sorted_energies[i] = at[sorted_index[i]].energy;
      }
-   
+
    pt->num_sorted = pt->n_photons = n;
-   
+
    if (n == 0) pt->total_time = 0.0;
    else pt->total_time = at[n - 1].arrival_time;
    *num_collected = n;
 
-   return 0;   
+   return 0;
 }
 
 /*}}}*/
-
 
 Marx_Source_Type *marx_create_source (Param_File_Type *p) /*{{{*/
 {
@@ -353,16 +364,16 @@ Marx_Source_Type *marx_create_source (Param_File_Type *p) /*{{{*/
 
    st = (Marx_Source_Type *) marx_malloc (sizeof (Marx_Source_Type));
    if (st == NULL) return st;
-   
+
    memset ((char *) st, 0, sizeof (Marx_Source_Type));
-   
+
    /* Scale to mm */
    Source_Distance = Source_Distance * 1000.0;
 
    /* Convert from minutes to radians */
    Source_Azimuth = Source_Azimuth * (PI / 180.0 / 60.0);
    Source_Elevation = Source_Elevation * (PI / 180.0 / 60.0);
-   
+
    /* Convert from degrees to radians */
    Source_Ra *= (PI / 180.0);
    Source_Dec *= (PI / 180.0);
@@ -377,4 +388,3 @@ Marx_Source_Type *marx_create_source (Param_File_Type *p) /*{{{*/
 
 /*}}}*/
 
-   

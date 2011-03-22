@@ -115,8 +115,8 @@ SAOSAC_Color_Rays,b,a,no,,,"Color SAOSAC rays?"
 #
 #---------------------------------------------------------------------------
 DitherModel,s,a,"INTERNAL","NONE|INTERNAL|FILE",,"Enter Dither Model"
-DitherBlur,r,a,0.35,,,"Enter aspect blur (arcsec)"
 DitherFile,f,a,"obsid_105/data/asol1.fits",,,"Enter ASPSOL File"
+AspectBlur,r,a,0.07,,,"Enter aspect blur (sigma -- arcsec)"
 #
 # Internal Dither Model Parameters: 
 #
@@ -188,14 +188,14 @@ HRMAVig,r,h,1.0,0.0,1.0,"Enter HRMA Vignetting factor"
 HRMA_Yaw,r,h,0.0,,,"Enter HRMA Yaw (arcmin)"
 HRMA_Pitch,r,h,0.0,,,"Enter HRMA Pitch (arcmin)"
 HRMA_Geometry_File,f,a,"hrma/EKCHDOS06.rdb",,,"Enter HRMA rdb geometry file"
-P1Blur,r,a,0.18129215,0.0,,"Enter HRMA P1 Blur angle (arcsec)"
-H1Blur,r,a,0.13995037,0.0,,"Enter HRMA H1 Blur angle (arcsec)"
-P3Blur,r,a,0.11527828,0.0,,"Enter HRMA P3 Blur angle (arcsec)"
-H3Blur,r,a,0.16360829,0.0,,"Enter HRMA H3 Blur angle (arcsec)"
-P4Blur,r,a,0.12891340,0.0,,"Enter HRMA P4 Blur angle (arcsec)"
-H4Blur,r,a,0.098093014,0.0,,"Enter HRMA H4 Blur angle (arcsec)"
-P6Blur,r,a,0.076202759,0.0,,"Enter HRMA P6 Blur angle (arcsec)"
-H6Blur,r,a,0.079767401,0.0,,"Enter HRMA H6 Blur angle (arcsec)"
+P1Blur,r,a,0.303427,0.0,,"Enter HRMA P1 Blur angle (arcsec)"
+H1Blur,r,a,0.0051428,0.0,,"Enter HRMA H1 Blur angle (arcsec)"
+P3Blur,r,a,0.0951899,0.0,,"Enter HRMA P3 Blur angle (arcsec)"
+H3Blur,r,a,0.0713614,0.0,,"Enter HRMA H3 Blur angle (arcsec)"
+P4Blur,r,a,0.178899,0.0,,"Enter HRMA P4 Blur angle (arcsec)"
+H4Blur,r,a,0.0101367,0.0,,"Enter HRMA H4 Blur angle (arcsec)"
+P6Blur,r,a,0.151085,0.0,,"Enter HRMA P6 Blur angle (arcsec)"
+H6Blur,r,a,0.0239287,0.0,,"Enter HRMA H6 Blur angle (arcsec)"
 H1ScatFactor,r,a,3.2451338,0,,"Enter Scattering Fudge Factor for H1"
 P1ScatFactor,r,a,2.8420331,0,,"Enter Scattering Fudge Factor for P1"
 H3ScatFactor,r,a,2.4618956,0,,"Enter Scattering Fudge Factor for H3"
@@ -239,14 +239,15 @@ MirrorBlurFile,f,h,"ea-mirror/mirr-ee.bin",,,"Enter mirror blur filename"
 # Grating setup
 #
 #---------------------------------------------------------------------------
-MEGRowlandDiameter,r,h,8632.65,1000,,"Enter MEG Rowland Torus Diameter (mm)"
-HEGRowlandDiameter,r,h,8632.65,1000,,"Enter HEG Rowland Torus Diameter (mm)"
+MEGRowlandDiameter,r,h,8632.48,1000,,"Enter MEG Rowland Torus Diameter (mm)"
+HEGRowlandDiameter,r,h,8632.48,1000,,"Enter HEG Rowland Torus Diameter (mm)"
 LEGRowlandDiameter,r,h,8637.0,1000,,"Enter LEG Rowland Torus Diameter (mm)"
 GratingOptConsts,f,h,"grating/optical-constants.dat",,,"Enter optical constants filename"
 UseGratingEffFiles,b,a,yes,,,"Use grating efficiency tables?"
 Use_HETG_Sector_Files,b,a,yes,,,"Use HETG Sector Files?"
 Use_LETG_Sector_Files,b,a,no,,,"Use LETG Sector Files?"
 Use_Unit_Efficiencies,b,a,no,,,"Use Unit Efficiencies?"
+Use_This_Order,i,a,0,0,,"If non-zero, diffract into this plus/minus order"
 #--------------------------------------------------------------------------
 # HETG Paramters if UseGratingEffFiles = "yes"
 #--------------------------------------------------------------------------
@@ -279,8 +280,8 @@ HETG_Shell6_dTheta,r,a,1.5,,,"Enter shell 6 grating alignment error (sigma in ar
 #
 # Subassembly periods used until XRCF data analysis (and mechanical details) are further along.
 #
-HETG_Shell1_Period,r,a,0.400141,,,"Enter shell 1 grating period (um)"
-HETG_Shell3_Period,r,a,0.400141,,,"Enter shell 3 grating period (um)"
+HETG_Shell1_Period,r,a,0.400195,,,"Enter shell 1 grating period (um)"
+HETG_Shell3_Period,r,a,0.400195,,,"Enter shell 3 grating period (um)"
 HETG_Shell4_Period,r,a,0.200081,,,"Enter shell 4 grating period (um)"
 HETG_Shell6_Period,r,a,0.200081,,,"Enter shell 6 grating period (um)"
 HETG_Shell1_dPoverP,r,a,162e-6,0,1,"Enter shell 1 grating dP/P (rms)"

@@ -217,12 +217,8 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
      {
 	pt->history = (MARX_ENERGY_OK
 		       | MARX_TIME_OK
-		       | MARX_X1_VECTOR_OK
-		       | MARX_X2_VECTOR_OK
-		       | MARX_X3_VECTOR_OK
-		       | MARX_P1_VECTOR_OK
-		       | MARX_P2_VECTOR_OK
-		       | MARX_P3_VECTOR_OK);
+		       | MARX_X_VECTOR_OK
+		       | MARX_P_VECTOR_OK);
      }
 
    return 0;

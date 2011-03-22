@@ -169,13 +169,25 @@ static FILE *XPixel_Dat_Fp;
 static FILE *YPixel_Dat_Fp;
 static FILE *Sky_RA_Dat_Fp;
 static FILE *Sky_Dec_Dat_Fp;
+static FILE *Sky_Roll_Dat_Fp;
+static FILE *Det_DY_Dat_Fp;
+static FILE *Det_DZ_Dat_Fp;
+static FILE *Det_Theta_Dat_Fp;
 
 static Input_File_Type Dither_Input_files [] = 
 {
 #define INPUT_SKY_RA_DAT	0
 #define INPUT_SKY_DEC_DAT	1
+#define INPUT_SKY_ROLL_DAT	2
+#define INPUT_DET_DY_DAT	3
+#define INPUT_DET_DZ_DAT	4
+#define INPUT_DET_THETA_DAT	5
      {"sky_ra.dat", 'E', NULL},
      {"sky_dec.dat", 'E', NULL},
+     {"sky_roll.dat", 'E', NULL},
+     {"det_dy.dat", 'E', NULL},
+     {"det_dz.dat", 'E', NULL},
+     {"det_theta.dat", 'E', NULL},
      {NULL, 0, NULL}
 };
 
@@ -192,10 +204,10 @@ Output_File_Type;
 
 static Output_File_Type Output_Files [] =
 {
-#define CHIPX_DAT	0
-     {"chipx", "CHIPX", 'I', 0},
-#define CHIPY_DAT	1
-     {"chipy", "CHIPY", 'I', 0},
+#define XPIXEL_DAT	0
+     {"xpixel", "CHIPX", 'E', 0},
+#define YPIXEL_DAT	1
+     {"ypixel", "CHIPY", 'E', 0},
 #define TIME_DAT	2
      {"time", "TIME", 'E', 0},
 #define FRAME_DAT	3
@@ -208,22 +220,34 @@ static Output_File_Type Output_Files [] =
      {"sky_ra", "RA", 'E', 1},
 #define SKY_DEC_DAT	7
      {"sky_dec", "DEC", 'E', 1},
-#define NPHOTONS_DAT	8
+#define SKY_ROLL_DAT	8
+     {"sky_roll", "ROLL", 'E', 1},
+#define DET_DY_DAT	9
+     {"det_dy", "DET_DY", 'E', 1},
+#define DET_DZ_DAT	10
+     {"det_dz", "DET_DZ", 'E', 1},
+#define DET_THETA_DAT	11
+     {"det_theta", "DET_THETA", 'E', 1},
+#define NPHOTONS_DAT	12
      {"nphotons", "NUM_PHOTONS", 'I', 0},
-#define PHA_DAT		9
+#define PHA_DAT		13
      {"pha", "PHA", 'I', 0},
 
      {NULL}
 };
 
-static FILE *ChipX_Fp;
-static FILE *ChipY_Fp;
+static FILE *XPixel_Fp;
+static FILE *YPixel_Fp;
 static FILE *Time_Fp;
 static FILE *Frame_Fp;
 static FILE *BEnergy_Fp;
 static FILE *Detector_Fp;
 static FILE *Sky_RA_Fp;
 static FILE *Sky_Dec_Fp;
+static FILE *Sky_Roll_Fp;
+static FILE *Det_DY_Fp;
+static FILE *Det_DZ_Fp;
+static FILE *Det_Theta_Fp;
 static FILE *NPhotons_Fp;
 static FILE *Pha_Fp;
 
@@ -235,7 +259,7 @@ static int close_marx_output_files (void)
    Output_File_Type *oft;
    int ret = 0;
    unsigned int nrows;
-   
+
    nrows = Num_Detected;
    oft = Output_Files;
    while (oft->name != NULL)
@@ -252,7 +276,7 @@ static int close_marx_output_files (void)
 	oft++;
      }
 
-   Frame_Fp = Time_Fp = ChipY_Fp = ChipX_Fp = NULL;
+   Frame_Fp = Time_Fp = YPixel_Fp = XPixel_Fp = NULL;
    BEnergy_Fp = NULL;
 
    return ret;
@@ -298,8 +322,8 @@ static int open_marx_output_files (void)
      }
 
    Time_Fp = Output_Files [TIME_DAT].dft.fp;
-   ChipY_Fp = Output_Files [CHIPY_DAT].dft.fp;
-   ChipX_Fp = Output_Files [CHIPX_DAT].dft.fp;
+   XPixel_Fp = Output_Files [XPIXEL_DAT].dft.fp;
+   YPixel_Fp = Output_Files [YPIXEL_DAT].dft.fp;
    BEnergy_Fp = Output_Files [BENERGY_DAT].dft.fp;
    Frame_Fp = Output_Files [FRAME_DAT].dft.fp;
    Detector_Fp = Output_Files[DETECTOR_DAT].dft.fp;
@@ -310,6 +334,10 @@ static int open_marx_output_files (void)
      {
 	Sky_RA_Fp = Output_Files[SKY_RA_DAT].dft.fp;
 	Sky_Dec_Fp = Output_Files[SKY_DEC_DAT].dft.fp;
+	Sky_Roll_Fp = Output_Files[SKY_ROLL_DAT].dft.fp;
+	Det_DY_Fp = Output_Files[DET_DY_DAT].dft.fp;
+	Det_DZ_Fp = Output_Files[DET_DZ_DAT].dft.fp;
+	Det_Theta_Fp = Output_Files[DET_THETA_DAT].dft.fp;
      }
 
    return 0;
@@ -344,6 +372,10 @@ static void close_marx_input_files (void)
 
    Sky_RA_Dat_Fp = NULL;
    Sky_Dec_Dat_Fp = NULL;
+   Sky_Roll_Dat_Fp = NULL;
+   Det_DY_Dat_Fp = NULL;
+   Det_DZ_Dat_Fp = NULL;
+   Det_Theta_Dat_Fp = NULL;
 }
 
 static int open_some_input_files (Input_File_Type *ift, int *num_rowsp)
@@ -396,6 +428,10 @@ static int open_marx_input_files (void)
 	  return -1;
 	Sky_RA_Dat_Fp = Dither_Input_files[INPUT_SKY_RA_DAT].dft->fp;
 	Sky_Dec_Dat_Fp = Dither_Input_files[INPUT_SKY_DEC_DAT].dft->fp;
+	Sky_Roll_Dat_Fp = Dither_Input_files[INPUT_SKY_ROLL_DAT].dft->fp;
+	Det_DY_Dat_Fp = Dither_Input_files[INPUT_DET_DY_DAT].dft->fp;
+	Det_DZ_Dat_Fp = Dither_Input_files[INPUT_DET_DZ_DAT].dft->fp;
+	Det_Theta_Dat_Fp = Dither_Input_files[INPUT_DET_THETA_DAT].dft->fp;
      }
 
    if (Verbose > 1)
@@ -424,10 +460,11 @@ typedef struct Input_Event_Type
    float benergy;
    float energy;
    float t;
-   int x;
-   int y;
+   float x;
+   float y;
    int ccdid;
-   float sky_ra, sky_dec;
+   float sky_ra, sky_dec, sky_roll;
+   float det_dy, det_dz, det_theta;
    CCD_Pixel_Type *ccd_pixels;
    int can_be_center;		       /* if it can be the center of a 3x3 island */
    struct Input_Event_Type *next;
@@ -487,9 +524,10 @@ static CCD_Pixel_Type *get_pixel_list (unsigned int ccdid)
    return CCD_Arrays[ccdid];
 }
 
-static Input_Event_Type *allocate_input_event (int ccd, unsigned int x, unsigned int y, float t, float benergy,
+static Input_Event_Type *allocate_input_event (int ccd, float x, float y, float t, float benergy,
 					       float energy,
-					       float ra, float dec)
+					       float ra, float dec, float roll,
+					       float dy, float dz, float theta)
 {
    Input_Event_Type *evt;
    CCD_Pixel_Type *ccd_pixels;
@@ -510,6 +548,10 @@ static Input_Event_Type *allocate_input_event (int ccd, unsigned int x, unsigned
    evt->energy = energy;
    evt->sky_ra = ra;
    evt->sky_dec = dec;
+   evt->sky_roll = roll;
+   evt->det_dy = dy;
+   evt->det_dz = dz;
+   evt->det_theta = theta;
 
    evt->can_be_center = ((x >= 1) && (x < NUM_X_PIXELS - 1)
 			 && (y >= 1) && (y < NUM_Y_PIXELS - 1));
@@ -528,7 +570,7 @@ static Input_Event_Type *allocate_input_event (int ccd, unsigned int x, unsigned
 static int
 read_input_event (Input_Event_Type **evtp, unsigned int *frame)
 {
-   float32 x, y, t, ra, dec, benergy, energy;
+   float32 x, y, t, ra, dec, roll, dy, dz, theta, benergy, energy;
    char ccd;
 
    if (1 != fread (&ccd, 1, 1, Detector_Dat_Fp))
@@ -547,7 +589,11 @@ read_input_event (Input_Event_Type **evtp, unsigned int *frame)
    if (Simulation_Used_Dither)
      {
 	if ((1 != JDMread_float32 (&ra, 1, Sky_RA_Dat_Fp))
-	    || (1 != JDMread_float32 (&dec, 1, Sky_Dec_Dat_Fp)))
+	    || (1 != JDMread_float32 (&dec, 1, Sky_Dec_Dat_Fp))
+	    || (1 != JDMread_float32 (&roll, 1, Sky_Roll_Dat_Fp))
+	    || (1 != JDMread_float32 (&dy, 1, Det_DY_Dat_Fp))
+	    || (1 != JDMread_float32 (&dz, 1, Det_DZ_Dat_Fp))
+	    || (1 != JDMread_float32 (&theta, 1, Det_Theta_Dat_Fp)))
 	  {
 	     fprintf (stderr, "Read Error.\n");
 	     return -1;
@@ -555,11 +601,15 @@ read_input_event (Input_Event_Type **evtp, unsigned int *frame)
      }
    else
      {
-	ra = dec = 0.0;
+	ra = dec = roll = dy = dz = theta = 0.0;
      }
-   
-   if (NULL == (*evtp = allocate_input_event (ccd, (unsigned int)x, (unsigned int)y, t, benergy, energy, ra, dec)))
-     return -1;
+
+   if (NULL == (*evtp = allocate_input_event (ccd, x, y, t,
+					      benergy, energy,
+					      ra, dec, roll,
+					      dy, dz, theta
+					     )))
+	  return -1;
 
    *frame = (unsigned int) (t / Frame_Time);
    Num_Input++;
@@ -567,8 +617,10 @@ read_input_event (Input_Event_Type **evtp, unsigned int *frame)
 }
 
 
-static int write_event (char ccd, int16 xpix, int16 ypix, float32 energy,
-			int32 frame, float32 ra, float32 dec, int16 nphotons)
+static int write_event (char ccd, float32 xpix, float32 ypix, float32 energy,
+			int32 frame, float32 ra, float32 dec, float32 roll,
+			float32 dy, float32 dz, float32 theta,
+			int16 nphotons)
 {
    float32 t = (float32) (frame * Frame_Time);
    float32 benergy;
@@ -581,8 +633,8 @@ static int write_event (char ccd, int16 xpix, int16 ypix, float32 energy,
    pha16 = (int16) pha;
 
    if ((1 != fwrite (&ccd, 1, 1, Detector_Fp))
-       || (1 != JDMwrite_int16 (&xpix, 1, ChipX_Fp))
-       || (1 != JDMwrite_int16 (&ypix, 1, ChipY_Fp))
+       || (1 != JDMwrite_float32 (&xpix, 1, XPixel_Fp))
+       || (1 != JDMwrite_float32 (&ypix, 1, YPixel_Fp))
        || (1 != JDMwrite_int32 (&frame, 1, Frame_Fp))
        || (1 != JDMwrite_float32 (&t, 1, Time_Fp))
        || (1 != JDMwrite_int16 (&nphotons, 1, NPhotons_Fp))
@@ -596,7 +648,11 @@ static int write_event (char ccd, int16 xpix, int16 ypix, float32 energy,
    if (Simulation_Used_Dither)
      {
 	if ((1 != JDMwrite_float32 (&ra, 1, Sky_RA_Fp))
-	    || (1 != JDMwrite_float32 (&dec, 1, Sky_Dec_Fp)))
+	    || (1 != JDMwrite_float32 (&dec, 1, Sky_Dec_Fp))
+	    || (1 != JDMwrite_float32 (&roll, 1, Sky_Roll_Fp))
+	    || (1 != JDMwrite_float32 (&dy, 1, Det_DY_Fp))
+	    || (1 != JDMwrite_float32 (&dz, 1, Det_DZ_Fp))
+	    || (1 != JDMwrite_float32 (&theta, 1, Det_Theta_Fp)))
 	  {
 	     fprintf (stderr, "Write Error\n");
 	     return -1;
@@ -635,10 +691,10 @@ event_detect (Input_Event_Type *event_list, unsigned int frame)
 	  }
 	x = evt->x;
 	y = evt->y;
-	xy0 = evt->ccd_pixels + (y-1) * NUM_X_PIXELS + (x-1);
+	xy0 = evt->ccd_pixels + ((unsigned int)y-1) * NUM_X_PIXELS + ((unsigned int)x-1);
 	xy1 = xy0 + NUM_X_PIXELS;
 	xy2 = xy1 + NUM_X_PIXELS;
-	
+
 	benergy = xy1[1].benergy;
 	island_benergy = xy1[1].island_benergy;
 	island_num_photons = xy1[1].island_num_photons;
@@ -660,29 +716,26 @@ event_detect (Input_Event_Type *event_list, unsigned int frame)
 	     continue;
 	  }
 #endif	
-#if 0
-	if (island_benergy > 0.0)
+
+	if (island_num_photons >= 2)
 	  {
-	     if (((xy0[0].island_num_photons >= island_num_photons) || (xy0[1].island_num_photons >= island_num_photons) || (xy0[2].island_num_photons >= island_num_photons))
-		 || (xy1[0].island_num_photons > island_num_photons) ||                                                     (xy1[2].island_num_photons >= island_num_photons)
-		 || (xy2[0].island_num_photons > island_num_photons) || (xy2[1].island_num_photons > island_num_photons) || (xy2[2].island_num_photons > island_num_photons))
+	     if (will_grade_migrate (island_num_photons))
 	       {
 		  evt = evt->next;
 		  continue;
 	       }
+	     /* FIXME: Update (x,y), perhaps by using a weighted average */
 	  }
-#endif	
-	
-	if ((island_num_photons < 2)
-	    || (0 == will_grade_migrate (island_num_photons)))
-	  {
-	     if (-1 == write_event (evt->ccdid, evt->x, evt->y, island_benergy, frame, evt->sky_ra, evt->sky_dec, island_num_photons))
-	       return -1;
-	  }
+
+	if (-1 == write_event (evt->ccdid, x, y, island_benergy, frame,
+			       evt->sky_ra, evt->sky_dec, evt->sky_roll,
+			       evt->det_dy, evt->det_dz, evt->det_theta,
+			       island_num_photons))
+	  return -1;
 
 	evt = evt->next;
      }
-   
+
    return 0;
 }
 
@@ -691,9 +744,9 @@ static int store_event (Input_Event_Type *evt, int *is_duplicatep)
    CCD_Pixel_Type *xy0, *xy1, *xy2;
    unsigned int x, y;
 
-   x = evt->x;
-   y = evt->y;
-   
+   x = (unsigned int) evt->x;
+   y = (unsigned int) evt->y;
+
    if (evt->can_be_center)
      {
 	double e;
@@ -746,9 +799,9 @@ static int collect_charge (Input_Event_Type *event_list)
      {
 	CCD_Pixel_Type *xy0, *xy1, *xy2;
 	unsigned int x, y;
-	
-	x = evt->x;
-	y = evt->y;
+
+	x = (unsigned int) evt->x;
+	y = (unsigned int) evt->y;
 	if (evt->can_be_center)
 	  {
 	     xy0 = evt->ccd_pixels + (y-1) * NUM_X_PIXELS + (x-1);
@@ -773,16 +826,16 @@ static int collect_charge (Input_Event_Type *event_list)
 static void free_event_list (Input_Event_Type *evt)
 {
    CCD_Pixel_Type *pmin, *pmax;
-   
+
    while (evt != NULL)
      {
 	CCD_Pixel_Type *xy;
 	Input_Event_Type *evt1;
-	
+
 	pmin = evt->ccd_pixels;
 	pmax = pmin + NUM_X_PIXELS*NUM_Y_PIXELS;
 
-	xy = pmin + (evt->y-1) * NUM_X_PIXELS + (evt->x-1);
+	xy = pmin + (unsigned int)(evt->y-1) * NUM_X_PIXELS + (unsigned int)(evt->x-1);
 	if (evt->can_be_center)
 	  {
 	     memset ((char *) xy, 0, 3 * sizeof (CCD_Pixel_Type));
@@ -794,7 +847,7 @@ static void free_event_list (Input_Event_Type *evt)
 	else
 	  {
 	     unsigned int i, j;
-	     
+
 	     for (j = 0; j < 3; j++)
 	       {
 		  for (i = 0; i < 3; i++)
@@ -806,7 +859,7 @@ static void free_event_list (Input_Event_Type *evt)
 		  xy += NUM_X_PIXELS;
 	       }
 	  }
-	
+
 	evt1 = evt->next;
 	marx_free ((char *) evt);
 	evt = evt1;

@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -35,29 +34,29 @@ int JDMUser_Break;
 static char *map_math_error (void)
 {
    char *err = NULL;
-   
+
    switch (JDMath_Error)
      {
       case JDMATH_MALLOC_ERROR:
 	err = "Memory Allocation Failure";
 	break;
-	
+
       case JDMATH_INVALID_PARAMETER:
 	err = "Invalid Parameter";
 	break;
-	
+
       case JDMATH_FILE_OPEN_ERROR:
 	err = "File Open Error";
 	break;
-	
+
       case JDMATH_FILE_READ_ERROR:
 	err = "File Read Error";
 	break;
-	
+
       case JDMATH_FILE_WRITE_ERROR:
 	err = "File Write Error";
 	break;
-	
+
       case JDMATH_FILE_CLOSE_ERROR:
 	err = "File Close Error";
 	break;
@@ -65,11 +64,11 @@ static char *map_math_error (void)
       case JDMATH_CORRUPT_FILE_ERROR:
 	err = "File appears corrupt";
 	break;
-	
+
       case JDMATH_DIVIDE_ZERO_ERROR:
 	err = "Division by zero.";
 	break;
-	
+
       default:
 	if (JDMUser_Break) err = "User Break";
 	else err = "Unknown Error";
@@ -82,32 +81,29 @@ void JDMmsg_error (char *s)
    char *err;
 
    err = map_math_error ();
-   
+
    if (s == NULL) s = "JDMath Lib Error";
-   
+
    fprintf (stderr, "%s: %s\n", s, err);
    fflush (stderr);
 }
 
-	  
-
 void JDMmsg_error2 (char *s1, char *s2)
 {
    char *err;
-   
+
    if (s2 == NULL)
      {
 	JDMmsg_error (s1);
 	return;
      }
-   
+
    err = map_math_error ();
    if (s1 == NULL) s1 = "JDMath Lib Error";
-   
+
    fprintf (stderr, "%s: %s: %s\n", s1, s2, err);
    fflush (stderr);
 }
-
 
 #ifndef SLMALLOC
 #define SLMALLOC malloc
@@ -116,34 +112,34 @@ void JDMmsg_error2 (char *s1, char *s2)
 #define SLREALLOC realloc
 #endif
 
-char *_JDMmalloc (unsigned long nbytes, char *err)
+void *_JDMmalloc (unsigned long nbytes, char *err)
 {
-   char *p;
-   
+   void *p;
+
    p = SLMALLOC (nbytes);
    if (p == NULL)
      {
 	JDMath_Error = JDMATH_MALLOC_ERROR;
 	JDMmsg_error (err);
      }
-   
+
    return p;
 }
 
-void _JDMfree (char *s)
-{   
+void _JDMfree (void *s)
+{
    if (s != NULL) SLFREE (s);
 }
 
-char *_JDMrealloc (char *s, unsigned int len)
-{   
+void *_JDMrealloc (void *s, unsigned int len)
+{
    if (s == NULL)
      return _JDMmalloc (len, "realloc");
-   
-   s = SLREALLOC (s, len);
+
+   s = (char *)SLREALLOC (s, len);
    if (s == NULL)
      JDMath_Error = JDMATH_MALLOC_ERROR;
-   
+
    return s;
 }
 

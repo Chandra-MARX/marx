@@ -123,7 +123,13 @@ static void free_fef_type (Fef_Type *f)
 	f->num_refs--;
 	return;
      }
-   
+   if (f->energies != NULL)
+     marx_free ((char *)f->energies);
+   if (f->channels != NULL)
+     marx_free ((char *)f->channels);
+   if (f->gaussians != NULL)
+     marx_free ((char *)f->gaussians);
+
    marx_free ((char *) f);
 }
 

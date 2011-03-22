@@ -31,7 +31,7 @@
 #include "marx.h"
 #include "_marx.h"
 
-/* I have no idea how applicable these routines are with respect to 
+/* I have no idea how applicable these routines are with respect to
  * generic RDB files.  The main purpose of the routines in this file is to
  * read the mirror definition files.
  */
@@ -50,14 +50,13 @@ struct _Marx_RDB_File_Type
 {
    char *filename;
    FILE *fp;
-   
+
    RDB_Row_Type column_names_row;
    RDB_Row_Type units_row;
 
    unsigned int num_rows;
    RDB_Row_Type *rows;
 };
-
 
 /* Returns 0 if at end of file, 1 if line read, -1 upon error */
 static int read_line (FILE *fp, char **line_ptr)
@@ -76,15 +75,15 @@ static int read_line (FILE *fp, char **line_ptr)
 
 	if (NULL == fgets (buf, sizeof (buf), fp))
 	  return 0;
-	
+
 	if ((*buf == '\n') || (*buf == 0))
 	  continue;
-	
+
 	if (*buf != '#')
 	  break;
-	
+
 	/* Comment.  Skip past it. */
-	     
+
 	len = strlen (buf);
 	if (buf[len - 1] != '\n')
 	  {
@@ -93,10 +92,10 @@ static int read_line (FILE *fp, char **line_ptr)
 	       ;
 	  }
      }
-   
+
    space = total_len = 0;
    line = NULL;
-   
+
    /* If sizeof(buf) is too small, an increase in padding might be a good
     * idea for efficiency.  In any case, 0 is ok.
     */
@@ -107,7 +106,7 @@ static int read_line (FILE *fp, char **line_ptr)
 	unsigned int len, needed_len;
 
 	len = strlen (buf);
-	
+
 	needed_len = total_len + len + 1;
 
 	if (needed_len > space)
@@ -115,8 +114,8 @@ static int read_line (FILE *fp, char **line_ptr)
 	     char *new_line;
 
 	     space = needed_len + padding;
-	     
-	     if (NULL == (new_line = marx_realloc (line, space)))
+
+	     if (NULL == (new_line = (char *)marx_realloc (line, space)))
 	       {
 		  if (line != NULL) marx_free (line);
 		  return -1;
@@ -135,11 +134,11 @@ static int read_line (FILE *fp, char **line_ptr)
 	  }
      }
    while (NULL != fgets (buf, sizeof (buf), fp));
-   
+
    *line_ptr = line;
    return 1;
 }
-	     
+
 static void free_rdb_row_type (RDB_Row_Type *row)
 {
    if (row->field_data != NULL)
@@ -160,9 +159,9 @@ static int read_rdb_row (FILE *fp, RDB_Row_Type *row)
    status = read_line (fp, &line);
    if (status != 1)
      return status;
-   
+
    row->field_data = line;
-   
+
    num_fields = 1;
    while ((ch = *line) != 0)
      {
@@ -178,7 +177,7 @@ static int read_rdb_row (FILE *fp, RDB_Row_Type *row)
      }
    row->fields = fields;
    row->num_fields = num_fields;
-   
+
    num_fields = 0;
    line = row->field_data;
 
@@ -199,18 +198,17 @@ static int read_rdb_row (FILE *fp, RDB_Row_Type *row)
    return 1;
 }
 
-
 void marx_close_rdb_file (Marx_RDB_File_Type *rdb)
 {
    unsigned int r, num_rows;
 
    if (rdb == NULL)
      return;
-   
+
    if (rdb->filename != NULL) marx_free (rdb->filename);
    free_rdb_row_type (&rdb->column_names_row);
    free_rdb_row_type (&rdb->units_row);
-   
+
    if (rdb->rows != NULL)
      {
 	num_rows = rdb->num_rows;
@@ -237,40 +235,40 @@ Marx_RDB_File_Type *marx_open_rdb_file (char *file)
 	marx_error ("Error opening RDB file %s", file);
 	return NULL;
      }
-   
+
    if (NULL == (rdb = (Marx_RDB_File_Type *) marx_malloc (sizeof (Marx_RDB_File_Type))))
      {
 	fclose (fp);
 	return NULL;
      }
-   
+
    memset ((char *)rdb, 0, sizeof (Marx_RDB_File_Type));
 
    rdb->fp = fp;
-   
-   if (NULL == (rdb->filename = marx_malloc (1 + strlen (file))))
+
+   if (NULL == (rdb->filename = (char *)marx_malloc (1 + strlen (file))))
      {
 	marx_close_rdb_file (rdb);
 	return NULL;
      }
    strcpy (rdb->filename, file);
-   
+
    if (1 != read_rdb_row (fp, &rdb->column_names_row))
      {
 	marx_error ("RDB file %s does not have column names", file);
 	marx_close_rdb_file (rdb);
 	return NULL;
      }
-   
+
    if (1 != read_rdb_row (fp, &rdb->units_row))
      {
 	marx_error ("RDB file %s does not have a unit column", file);
 	marx_close_rdb_file (rdb);
 	return NULL;
      }
-   
+
    space = 0;
-   
+
    while (1)
      {
 	int status;
@@ -278,7 +276,7 @@ Marx_RDB_File_Type *marx_open_rdb_file (char *file)
 	if (rdb->num_rows == space)
 	  {
 	     RDB_Row_Type *new_rows;
-	     
+
 	     space += 1024;
 	     new_rows = (RDB_Row_Type *) marx_realloc ((char *)rdb->rows,
 							space * sizeof (RDB_Row_Type));
@@ -287,10 +285,10 @@ Marx_RDB_File_Type *marx_open_rdb_file (char *file)
 		  marx_close_rdb_file (rdb);
 		  return NULL;
 	       }
-	     
+
 	     rdb->rows = new_rows;
 	  }
-	
+
 	status = read_rdb_row (fp, rdb->rows + rdb->num_rows);
 	if (status == -1)
 	  {
@@ -303,7 +301,7 @@ Marx_RDB_File_Type *marx_open_rdb_file (char *file)
 
 	rdb->num_rows += 1;
      }
-   
+
    return rdb;
 }
 
@@ -319,7 +317,7 @@ int marx_rdb_get_col (Marx_RDB_File_Type *rdb, char *name)
 
    ch = *name;
    c = 0;
-   
+
    while (c < num)
      {
 	if ((ch == column_names[c][0])
@@ -333,7 +331,6 @@ int marx_rdb_get_col (Marx_RDB_File_Type *rdb, char *name)
    return -1;
 }
 
-
 int marx_rdb_get_row (Marx_RDB_File_Type *rdb, char *name, char *value)
 {
    unsigned int c;
@@ -341,7 +338,7 @@ int marx_rdb_get_row (Marx_RDB_File_Type *rdb, char *name, char *value)
 
    if (rdb == NULL)
      return -1;
-   
+
    c = marx_rdb_get_col (rdb, name);
    if (-1 == (int) c)
      return -1;
@@ -355,17 +352,16 @@ int marx_rdb_get_row (Marx_RDB_File_Type *rdb, char *name, char *value)
 	if ((c < row->num_fields)
 	    && (0 == strcmp (value, row->fields[c])))
 	  return (int) (row - rdb->rows);
-	
+
 	row++;
      }
 
-   marx_error ("RDB file %s has no row with value %s", 
+   marx_error ("RDB file %s has no row with value %s",
 	       rdb->filename, value);
    return -1;
 }
 
-
-char *marx_rdb_get_value (Marx_RDB_File_Type *rdb, 
+char *marx_rdb_get_value (Marx_RDB_File_Type *rdb,
 			  unsigned int row, unsigned int col)
 {
    RDB_Row_Type *r;
@@ -375,7 +371,7 @@ char *marx_rdb_get_value (Marx_RDB_File_Type *rdb,
 
    if (rdb->num_rows <= row)
      {
-	marx_error ("RDB file %s does not have %u rows", 
+	marx_error ("RDB file %s does not have %u rows",
 		    rdb->filename, row);
 	return NULL;
      }
@@ -400,14 +396,14 @@ int main (int argc, char **argv)
 
    if (argc == 1)
      return 1;
-     
+
    rdb = marx_open_rdb_file (argv[1]);
    if (rdb == NULL)
      return 1;
-   
+
    row = marx_rdb_get_row (rdb, "mirror", "p3");
    col = marx_rdb_get_col (rdb, "az_mis");
-   
+
    if ((row == -1) || (col == -1))
      {
 	marx_close_rdb_file (rdb);
@@ -420,9 +416,9 @@ int main (int argc, char **argv)
 	marx_close_rdb_file (rdb);
 	return 1;
      }
-   
+
    fprintf (stdout, "Value[%d][%d] = %s\n", row, col, value);
-   
+
    marx_close_rdb_file (rdb);
    return 0;
 }

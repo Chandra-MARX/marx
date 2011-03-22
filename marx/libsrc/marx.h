@@ -26,8 +26,8 @@
 #include <jdmath.h>
 #include <pfile.h>
 
-#define MARX_VERSION 40500
-#define MARX_VERSION_STRING "4.5.0"
+#define MARX_VERSION 50000
+#define MARX_VERSION_STRING "5.0.0"
 
 #ifndef SIGNED_CHAR
 # define SIGNED_CHAR signed char
@@ -125,31 +125,23 @@ typedef struct
 /* These are always valid but for completeness... */
 #define MARX_ENERGY_OK		0x00000001
 #define MARX_TIME_OK		0x00000002
-#define MARX_X1_VECTOR_OK	0x00000004
-#define MARX_X2_VECTOR_OK	0x00000008
-#define MARX_X3_VECTOR_OK	0x00000010
-#define MARX_P1_VECTOR_OK	0x00000020
-#define MARX_P2_VECTOR_OK	0x00000040
-#define MARX_P3_VECTOR_OK	0x00000080
+#define MARX_X_VECTOR_OK	0x00000004
+#define MARX_P_VECTOR_OK	0x00000008
 /* These vary */
-#define MARX_PULSEHEIGHT_OK	0x00000100
-#define MARX_Y_PIXEL_OK		0x00000200
-#define MARX_Z_PIXEL_OK		0x00000400
-#define MARX_CCD_NUM_OK		0x00000800
-#define MARX_HRC_REGION_OK	0x00001000
-#define MARX_MIRROR_SHELL_OK	0x00002000
-#define MARX_ORDER_OK		0x00004000
-#define MARX_SUPPORT_ORDER1_OK	0x00008000
-#define MARX_SUPPORT_ORDER2_OK	0x00010000
-#define MARX_SUPPORT_ORDER3_OK	0x00020000
-#define MARX_SUPPORT_ORDER4_OK	0x00040000
-
-#define MARX_U_PIXEL_OK		0x00080000
-#define MARX_V_PIXEL_OK		0x00100000
-#define MARX_PI_OK		0x00200000
-
-#define MARX_SKY_RA_OK		0x10000000
-#define MARX_SKY_DEC_OK		0x20000000
+#define MARX_PULSEHEIGHT_OK	0x00000010
+#define MARX_PI_OK		0x00000020
+#define MARX_DET_PIXEL_OK	0x00000040
+#define MARX_DET_NUM_OK		0x00000080
+#define MARX_DET_REGION_OK	0x00000100
+#define MARX_DET_UV_PIXEL_OK	0x00000200
+#define MARX_MIRROR_SHELL_OK	0x00000400
+#define MARX_SKY_DITHER_OK	0x00000800
+#define MARX_DET_DITHER_OK	0x00001000
+#define MARX_ORDER_OK		0x00002000
+#define MARX_ORDER1_OK		0x00004000
+#define MARX_ORDER2_OK		0x00008000
+#define MARX_ORDER3_OK		0x00010000
+#define MARX_ORDER4_OK		0x00020000
 }
 Marx_Photon_Type;
 
@@ -167,7 +159,8 @@ typedef struct Marx_Dump_File_Type
 {
    FILE *fp;
    char type;		       /* A, I, J, E, D */
-   char colname[16];
+#define MARX_MAX_COLUMN_NAME_LEN 16
+   char colname[MARX_MAX_COLUMN_NAME_LEN];
    int32 num_rows;
    int32 num_cols;		       /* 0 ==> vector */
    struct Marx_Dump_File_Type *next;
@@ -327,10 +320,10 @@ extern void marx_get_random_event (double *, double *, unsigned int,
 extern void marx_error (char *,...);
 extern void marx_message (char *,...);
 extern char *marx_make_version_string (void);
-extern char *marx_realloc (char *, unsigned int);
-extern char *marx_malloc (unsigned int);
-extern char *marx_calloc (unsigned int, unsigned int);
-extern int marx_free (char *);
+extern void *marx_realloc (void *, unsigned int);
+extern void *marx_malloc (unsigned int);
+extern void *marx_calloc (unsigned int, unsigned int);
+extern int marx_free (void *);
 extern char *marx_dircat (char *, char *);
 extern char *marx_find_file_in_path (char *, char *, char);
 extern int marx_file_exists (char *);
@@ -392,6 +385,8 @@ extern Marx_FP_Coord_Type *marx_get_fp_system_info (char *);
 extern int marx_mnc_to_fpc (Marx_FP_Coord_Type *,
 			    JDMVector_Type *,
 			    double *, double *);
+
+extern void marx_undither_mnc (JDMVector_Type *, Marx_Dither_Type *);
 
 typedef struct _Marx_Dectector_Geometry_Type
 {

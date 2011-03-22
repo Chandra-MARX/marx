@@ -236,13 +236,13 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
    unsigned int n_photons, i;
    unsigned int *sorted_index;
 
-   if (pt->history & MARX_CCD_NUM_OK)
+   if (pt->history & MARX_DET_NUM_OK)
      return 0;
    
-   pt->history |= (MARX_HRC_REGION_OK | MARX_PULSEHEIGHT_OK 
-		   | MARX_Y_PIXEL_OK | MARX_Z_PIXEL_OK | MARX_CCD_NUM_OK);
+   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK 
+		   | MARX_DET_PIXEL_OK | MARX_DET_NUM_OK);
 
-   pt->history |= (MARX_U_PIXEL_OK|MARX_V_PIXEL_OK);
+   pt->history |= (MARX_DET_UV_PIXEL_OK);
 
 #if MARX_HAS_DRAKE_FLAT
    if (Use_Drake_Flat && (-1 == _marx_drake_reflect (pt)))

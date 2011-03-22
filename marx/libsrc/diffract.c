@@ -91,6 +91,7 @@ static Grating_Sector_Type *read_sector_info (char *);
 static int Use_Letg_Sector_Files;
 static int Use_Hetg_Sector_Files;
 static int Use_Unit_Efficiencies = 0;
+static int Use_This_Order = 0;
 
 static int Use_File_Efficiencies = 0;	       
 /* if 0, perform computation of efficiencies.  Otherwise, read efficiencies 
@@ -361,22 +362,23 @@ double marx_compute_grating_efficiency (double energy, int order,
  * A separate routine is used to initialize the grating structure when the
  * efficiencies are read from a file.
  */
-static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info)    /*{{{*/
+static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info, int use_this_order)    /*{{{*/
 {
    unsigned int i, order_number, j;
    unsigned int num_orders, num_energies;
    Grating_Type *g;
-   
-   	
+
    if (NULL == (g = (Grating_Type *) marx_malloc (sizeof (Grating_Type))))
      return NULL;
    memset ((char *) g, 0, sizeof (Grating_Type));
 
-   num_orders = g->num_orders = info->num_orders;
-   
+   num_orders = info->num_orders;
+   if (use_this_order) num_orders = 2;
+   g->num_orders = num_orders;
+
    g->num_energies = num_energies = Num_Energies;
    g->energies = Energies;
-   
+
    g->dispersion_angle = info->dispersion_angle;
    g->theta_blur = info->theta_blur;
    g->period = info->period;
@@ -406,13 +408,21 @@ static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info)    /*{{{*/
     * a photon will go into.
     */
 
-   g->order_list[0] = 0;
-   j = 1;
-   for (i = 1; i < num_orders - 1; i += 2)
+   if (use_this_order)
      {
-	g->order_list[i] = j;
-	g->order_list[i + 1] = -j;
-	j++;
+	g->order_list[0] = use_this_order;
+	g->order_list[1] = -use_this_order;
+     }
+   else
+     {
+	g->order_list[0] = 0;
+	j = 1;
+	for (i = 1; i < num_orders - 1; i += 2)
+	  {
+	     g->order_list[i] = j;
+	     g->order_list[i + 1] = -j;
+	     j++;
+	  }
      }
 
    /* Now compute efficiencies */
@@ -432,7 +442,7 @@ static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info)    /*{{{*/
 	     g->cum_efficiencies[order_number][i] = sum;
 	  }
      }
-   
+
    g->num_refs = 0;
 
    return g;
@@ -533,6 +543,7 @@ static Param_Table_Type Grating_Parm_Table [] =
      {"Use_HETG_Sector_Files", 	PF_BOOLEAN_TYPE,&Use_Hetg_Sector_Files},
      {"Use_LETG_Sector_Files", 	PF_BOOLEAN_TYPE,&Use_Letg_Sector_Files},
      {"Use_Unit_Efficiencies",	PF_BOOLEAN_TYPE,&Use_Unit_Efficiencies},
+     {"Use_This_Order",		PF_INTEGER_TYPE,&Use_This_Order},
 
      {"GratingOptConsts",	PF_FILE_TYPE,	&Optical_Constants},
      {"MEGRowlandDiameter",	PF_REAL_TYPE,	&MEG_Rowland_Diameter},
@@ -1070,7 +1081,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 	     
 	     diffract_from_support_grating (LEG_Fine_Grating, PI/2.0, pt,
 					    tmp_energies, tmp_cum_efficiencies, 0);
-	     pt->history |= MARX_SUPPORT_ORDER1_OK;
+	     pt->history |= MARX_ORDER1_OK;
 	  }
 
 	if (LEG_Coarse_Grating->num_orders)
@@ -1082,9 +1093,9 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 	     diffract_from_support_grating (LEG_Coarse_Grating, 0.0, pt,
 					    tmp_energies, tmp_cum_efficiencies, 3);
 
-	     pt->history |= (MARX_SUPPORT_ORDER2_OK
-			     | MARX_SUPPORT_ORDER3_OK
-			     | MARX_SUPPORT_ORDER4_OK);
+	     pt->history |= (MARX_ORDER2_OK
+			     | MARX_ORDER3_OK
+			     | MARX_ORDER4_OK);
 	  }
 	
 	if (num_orders)
@@ -1232,6 +1243,25 @@ static int sum_file_efficiencies (Grating_Type *g, double scale)
    cum_efficiencies = g->cum_efficiencies;
    num_orders = g->num_orders;
    num_energies = g->num_energies;
+
+   if (Use_This_Order > 0)
+     {
+	int use_this_order = Use_This_Order;
+	for (i = 0; i < num_energies; i++)
+	  {
+	     sum = 0.0;
+	     for (j = 0; j < num_orders; j++)
+	       {
+		  if (abs(g->order_list[j]) == use_this_order)
+		    sum += scale * (double) cum_efficiencies [j][i];
+		  cum_efficiencies [j][i] = (float) sum;
+	       }
+	     if (sum > 0)
+	       for (j = 0; j < num_orders; j++)
+		 cum_efficiencies [j][i] /= sum;
+	  }
+	return 0;
+     }
 
    for (i = 0; i < num_energies; i++)
      {
@@ -1505,7 +1535,7 @@ static int init_file_efficiencies (Param_File_Type *pf, char *prefix_name, doubl
    unsigned int i, imax;
    char pname[PF_MAX_LINE_LEN];
    char file[PF_MAX_LINE_LEN];
-   
+
 #if USE_GEFF_CALDB_FILE
    sprintf (file, "%sEFF", prefix_name);
 #endif
@@ -1643,7 +1673,7 @@ int _marx_hetg_init (Param_File_Type *pf)
 
    if (-1 == grating_pre_init (pf))
      return -1;
-   
+
    if (Use_Hetg_Sector_Files)
      {
 	if (-1 == read_sector_files (pf, "HETG"))
@@ -1654,11 +1684,11 @@ int _marx_hetg_init (Param_File_Type *pf)
      {
 	return init_file_efficiencies (pf, "HETG", 1.0);
      }
-   
-   if (NULL == (heg = init_one_grating (&HEG_Grating_Info)))
+
+   if (NULL == (heg = init_one_grating (&HEG_Grating_Info, Use_This_Order)))
      return -1;
 
-   if (NULL == (meg = init_one_grating (&MEG_Grating_Info)))
+   if (NULL == (meg = init_one_grating (&MEG_Grating_Info, Use_This_Order)))
      {
 	free_grating (heg);
 	return -1;
@@ -1698,22 +1728,22 @@ int _marx_letg_init (Param_File_Type *pf)
      }
    else
      {
-	if (NULL == (g = init_one_grating (&LEG_Grating_Info)))
+	if (NULL == (g = init_one_grating (&LEG_Grating_Info, Use_This_Order)))
 	  return -1;
-	
+
 	for (i = 0; i < MARX_NUM_MIRRORS; i++)
 	  {
 	     Gratings [i] = g;
 	     g->num_refs += 1;
 	  }
      }
-   
+
    if ((LEG_Fine_Grating_Info.num_orders)
-       && (NULL == (LEG_Fine_Grating = init_one_grating (&LEG_Fine_Grating_Info))))
+       && (NULL == (LEG_Fine_Grating = init_one_grating (&LEG_Fine_Grating_Info, 0))))
      return -1;
 
    if ((LEG_Coarse_Grating_Info.num_orders)
-       && (NULL == (LEG_Coarse_Grating = init_one_grating (&LEG_Coarse_Grating_Info))))
+       && (NULL == (LEG_Coarse_Grating = init_one_grating (&LEG_Coarse_Grating_Info, 0))))
      return -1;
 
    return 0;
