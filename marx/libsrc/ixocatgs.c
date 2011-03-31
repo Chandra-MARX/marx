@@ -25,7 +25,7 @@ typedef struct
    float *energies;
    unsigned int num_energies;
    float **cum_efficiencies;	       /* [num_energies][num_orders] */
-} 
+}
 Grating_Eff_Type;
 
 typedef struct _Grating_Type
@@ -49,7 +49,7 @@ typedef struct _Grating_Type
 }
 Grating_Type;
 
-static int Use_Finite_Facets = 0;
+static int Use_Finite_Facets = 1;
 static int Use_Support_Structure = 0;
 
 static void free_grating_eff_type (Grating_Eff_Type *geff)
@@ -65,10 +65,10 @@ static void free_grating_eff_type (Grating_Eff_Type *geff)
 
    if (geff->cum_efficiencies != NULL)
      JDMfree_float_matrix (geff->cum_efficiencies, geff->num_energies);
-   
+
    if (geff->energies != NULL)
      JDMfree_float_vector (geff->energies);
-   
+
    marx_free ((char *) geff);
 }
 
@@ -78,7 +78,7 @@ static Grating_Eff_Type *alloc_grating_eff_type (unsigned num_energies, int min_
 
    if (NULL == (geff = (Grating_Eff_Type *)marx_malloc (sizeof (Grating_Eff_Type))))
      return NULL;
-   
+
    memset ((char *)geff, 0, sizeof(Grating_Eff_Type));
 
    geff->num_refs = 1;
@@ -99,7 +99,7 @@ static Grating_Eff_Type *alloc_grating_eff_type (unsigned num_energies, int min_
 	free_grating_eff_type (geff);
 	return NULL;
      }
-   
+
    return geff;
 }
 
@@ -120,7 +120,7 @@ static int diffract_photon (Grating_Type *g,
    double factor;
    double n_lambda_over_d, dp_over_p;
    double p_n, p_d, p_l;
-   
+
    n_lambda_over_d = order * (2.0 * PI * HBAR_C) / g->period / at->energy;
 
    x = at->x;
@@ -145,16 +145,16 @@ static int diffract_photon (Grating_Type *g,
 	l = JDMv_ax1_bx2 (c, l_tmp, s, d_tmp);
 	d = JDMv_ax1_bx2 (-s, l_tmp, c, d_tmp);
      }
-   
+
    p_d = n_lambda_over_d + JDMv_pdot_prod (&p, &d);
    p_l = JDMv_pdot_prod (&p, &l);
    p_n = 1.0 - p_l * p_l - p_d * p_d;
 
    if (p_n < 0.0)
      return -1;
-	
+
    p_n = sqrt (p_n);
-   
+
    p = JDMv_ax1_bx2 (p_d, d, p_n, n);
    at->p = JDMv_ax1_bx2 (1.0, p, p_l, l);
 
@@ -213,7 +213,7 @@ static void compute_grating_vectors (Grating_Type *g, JDMVector_Type *xp)
 
    /* Here we assume that the facets are
     * perfect in the sense that the facet normal lies in the direction of
-    * the origin. 
+    * the origin.
     */
    /* n = -x/|x| */
    n = JDMv_unit_vector (*xp);
@@ -224,11 +224,11 @@ static void compute_grating_vectors (Grating_Type *g, JDMVector_Type *xp)
     * ==>
     *   lx*nx + ly*ny + lz*nz = 0
     *   lx*ax + ly*ay + lz*az = 0
-    * 
+    *
     *   When ay = 0:
     *
     *    lz = -lx*ax/az
-    * ==>      
+    * ==>
     *    lx*nx + ly*ny - lx*nz*ax/az = 0
     * ==>
     *    lx = (-ly*ny)/(nx - nz*ax/az)
@@ -239,12 +239,12 @@ static void compute_grating_vectors (Grating_Type *g, JDMVector_Type *xp)
 
    l = JDMv_unit_vector (l);
 
-   /* Finally rotate about l such that the angle between the normal and the 
+   /* Finally rotate about l such that the angle between the normal and the
     * direction of the ray is equal to the blaze angle, which is given by
     * Rowland_Theta(=t):
-    * 
+    *
     *    p.n' = cos(t)
-    * 
+    *
     * Currently, p.n=1.
     */
    n = JDMv_rotate_unit_vector (n, l, -Rowland_Theta);
@@ -254,7 +254,6 @@ static void compute_grating_vectors (Grating_Type *g, JDMVector_Type *xp)
    g->l = l;
    g->d = d;
 }
-
 
 static int intersect_torus (JDMVector_Type *xp, JDMVector_Type *pp)
 {
@@ -290,7 +289,6 @@ static int intersect_torus (JDMVector_Type *xp, JDMVector_Type *pp)
    if (-1 == newtons_quartic (a, b, c, d, t, &t))
      return -1;
 
-   
    x.x += p.x*t;
    x.y += p.y*t;
    x.z += p.z*t;
@@ -341,17 +339,17 @@ static Grating_Type *intersect_facets (JDMVector_Type *xp, JDMVector_Type *pp)
 	     g = g->next;
 	     continue;
 	  }
-	
+
 	r = JDMv_diff (*xp, g->origin);
-	
-	r = JDMv_pax1_bx2 (1.0, &r, 
+
+	r = JDMv_pax1_bx2 (1.0, &r,
 			   -1.0 * JDMv_pdot_prod (&r, &normal)/pdotn, pp);
 	/* This r is defined in the plane of the facet with origin
 	 * at g->origin.
 	 */
-	
+
 	/* Now check to see if the coordinates in the plane
-	 * is within the boundaries of the chip.  Here we assume the 
+	 * is within the boundaries of the chip.  Here we assume the
 	 * facet is rectangular.
 	 */
 
@@ -395,7 +393,7 @@ static int compute_diffraction_order (double energy, Grating_Eff_Type *geff, SIG
    w0 = (1-w1);
 
    r = JDMrandom ();
-   
+
    eff0 = geff->cum_efficiencies[n0];
    eff1 = geff->cum_efficiencies[n1];
    num_orders = geff->num_orders;
@@ -405,7 +403,7 @@ static int compute_diffraction_order (double energy, Grating_Eff_Type *geff, SIG
    for (i = 0; i < num_orders; i++)
      {
 	double c;
-	
+
 	c = w0*eff0[i] + w1*eff1[i];
 	if (r < c)
 	  {
@@ -439,7 +437,7 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 
 	/* at->flags |= PHOTON_UNDIFFRACTED; */
 	at->order = 0;
-	
+
 	if (1 || (Use_Finite_Facets == 0))
 	  {
 	     if ((at->mirror_shell < 73) || (at->mirror_shell > 175))
@@ -458,7 +456,7 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	if (g == NULL)
 	  continue;
 
-	if (0) 
+	if (0)
 	  {
 	     double len;
 	     JDMVector_Type dx, x1 = at->x;
@@ -469,7 +467,7 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	       {
 	       }
 	  }
-	  
+
 	if (-1 == compute_diffraction_order (at->energy, g->geff, &at->order))
 	  {
 	     at->flags |= PHOTON_UNDIFFRACTED;
@@ -481,11 +479,11 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	     at->flags |= PHOTON_UNDIFFRACTED;
 	     continue;
 	  }
-	
+
 	if (NULL == (g = g->support_structure))
 	  continue;
-	
-	pt->history |= MARX_SUPPORT_ORDER1_OK;
+
+	pt->history |= MARX_ORDER1_OK;
 
 	if (-1 == compute_diffraction_order (at->energy, g->geff, &at->support_orders[0]))
 	  {
@@ -499,7 +497,7 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	     continue;
 	  }
      }
-   
+
    return 0;
 }
 
@@ -508,6 +506,7 @@ static double Left_Grating_Period, Right_Grating_Period;   /* microns */
 static char *Left_Grating_Eff_File;
 static char *Right_Grating_Eff_File;
 static double Facet_Size = 60.0;
+static double Finite_Facet_Center_Y = 1045.0;	       /* from raytrace */
 static double dP_Over_P_Sigma = 0.0;
 
 static double Support_Period = 5.0;    /* microns */
@@ -517,7 +516,7 @@ static double Support_Period = 5.0;    /* microns */
 #define MAX_GEFF_COLUMNS (MAX_GEFF_ORDER-MIN_GEFF_ORDER+2)
 static char *Geff_Columns [MAX_GEFF_COLUMNS] =
 {
-   "f:ENERGY", 
+   "f:ENERGY",
    "f:EFFm2", "f:EFFm1", "f:EFF0",
    "f:EFF1", "f:EFF2", "f:EFF3", "f:EFF4",
    "f:EFF5", "f:EFF6", "f:EFF7",
@@ -563,7 +562,7 @@ static Grating_Eff_Type *read_geff_caldb_file (char *file)
 
    if (r == NULL)
      goto return_error;
-   
+
    num_energies = r->num_rows;
    c = r->col_data;
    if (c[0].repeat != 1)
@@ -599,11 +598,11 @@ static Grating_Eff_Type *read_geff_caldb_file (char *file)
      }
    jdfits_bintable_close_rows (r);
    jdfits_close_file (f);
-   
+
    return geff;
 
 return_error:
-   
+
    jdfits_bintable_close_rows (r);
    jdfits_close_file (f);
    free_grating_eff_type (geff);
@@ -643,7 +642,7 @@ static Grating_Type *alloc_grating (Grating_Eff_Type *geff, double period)
    if (NULL == (g = (Grating_Type *) marx_malloc (sizeof (Grating_Type))))
      return NULL;
    memset ((char *) g, 0, sizeof (Grating_Type));
-   
+
    g->period = period;
    g->theta_blur = 0.0;
    g->dp_over_p = dP_Over_P_Sigma;
@@ -663,6 +662,7 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_Left_Grating_Period",	PF_REAL_TYPE,	&Left_Grating_Period},
    {"IXO_Right_Grating_Period",	PF_REAL_TYPE,	&Right_Grating_Period},
    {"IXO_Grating_Facet_Size", PF_REAL_TYPE,	&Facet_Size},
+   {"IXO_Grating_Facet_Y", 	PF_REAL_TYPE,	&Finite_Facet_Center_Y},
    {"IXO_CATGS_dPoverP",	PF_REAL_TYPE,	&dP_Over_P_Sigma},
    {NULL, 0, NULL}
 };
@@ -675,14 +675,14 @@ static void _marx_catgs_init_variables (void)
 
    Rowland_Theta *= PI/180.0;
    Rowland_Phi *= PI/180.0;
-   
+
    Rowland_R = 0.5*Rowland_Distance/cos(Rowland_Theta);
    Rowland_A = Rowland_R * sin(Rowland_Theta + Rowland_Phi);
    Rowland_C = Rowland_R * cos(Rowland_Theta + Rowland_Phi);
    Rowland_R2 = Rowland_R*Rowland_R;
    Rowland_A2 = Rowland_A*Rowland_A;
    Rowland_C2 = Rowland_C*Rowland_C;
-   
+
    Rowland_Sin_Phi = sin (Rowland_Phi);
    Rowland_Cos_Phi = cos (Rowland_Phi);
    Rowland_Tan_Phi = tan (Rowland_Phi);
@@ -735,7 +735,7 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 	     Grating_Type *g;
 	     JDMVector_Type x, x0, x1, x2, x3, x4;
 	     double z = min_z + j*(dz + gap);
-	     
+
 	     if (NULL == (g = alloc_grating (geff, period)))
 	       {
 		  free_gratings (gratings);
@@ -759,7 +759,7 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 	     x2 = JDMv_sum (x0, JDMv_ax1_bx2 (-0.5*dy, g->xhat, 0.5*dz, g->yhat));
 	     x3 = JDMv_sum (x0, JDMv_ax1_bx2 (0.5*dy, g->xhat, -0.5*dz, g->yhat));
 	     x4 = JDMv_sum (x0, JDMv_ax1_bx2 (0.5*dy, g->xhat,  0.5*dz, g->yhat));
-	     
+
 	     if ((1 != intersect_torus (&x0, &p))
 		 || (1 != intersect_torus (&x1, &p))
 		 || (1 != intersect_torus (&x2, &p))
@@ -770,7 +770,7 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 		  free_gratings (gratings);
 		  return NULL;
 	       }
-	     
+
 	     x.x = 0.5*x0.x + 0.125*(x1.x + x2.x + x3.x + x4.x);
 	     x.y = 0.5*x0.y + 0.125*(x1.y + x2.y + x3.y + x4.y);
 	     x.z = 0.5*x0.z + 0.125*(x1.z + x2.z + x3.z + x4.z);
@@ -801,7 +801,7 @@ static Grating_Eff_Type *get_support_efficiencies (void)
      return NULL;
    geff->energies[0] = 0.001;
    geff->energies[1] = 20.0;
-   
+
    dc = 1.0 / (max_order - min_order + 1);
    c = 0.0;
 
@@ -839,7 +839,7 @@ static int add_support_structure (Grating_Type *gratings)
 	g->n = gratings->n;
 	g->l = JDMv_rotate_unit_vector (g->n, gratings->l, theta);
 	g->d = JDMv_rotate_unit_vector (g->n, gratings->d, theta);
-	
+
 	gratings->support_structure = g;
 	gratings = gratings->next;
      }
@@ -847,18 +847,18 @@ static int add_support_structure (Grating_Type *gratings)
    free_grating_eff_type (geff);
    return 0;
 }
-	
+
 static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_Type *right_geff)
 {
-   double center_y = 1045.0;	       /* from raytrace */
+   double center_y = Finite_Facet_Center_Y;
    double center_z = 0.0;
 
-   if (NULL == (The_Left_Gratings 
-		= make_finite_facet_module (Left_Grating_Period, left_geff, 
+   if (NULL == (The_Left_Gratings
+		= make_finite_facet_module (Left_Grating_Period, left_geff,
 					    -center_y, center_z)))
      return -1;
-   
-   if (NULL == (The_Right_Gratings 
+
+   if (NULL == (The_Right_Gratings
 		= make_finite_facet_module (Right_Grating_Period, right_geff,
 					    center_y, center_z)))
      return -1;

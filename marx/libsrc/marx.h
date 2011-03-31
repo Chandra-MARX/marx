@@ -354,8 +354,8 @@ extern int marx_grating_diffract (Marx_Photon_Type *, int);
 #define MARX_DETECTOR_ACIS_S	3
 #define MARX_DETECTOR_ACIS_I	4
 #define MARX_DETECTOR_PLANE	5
-/* #define MARX_DETECTOR_IXO_CATGS_CCD	6 */
-/* #define MARX_DETECTOR_IXO_XMS	7 */
+#define MARX_DETECTOR_IXO_CATGS_CCD	6
+#define MARX_DETECTOR_IXO_XMS	7
 #define MARX_MAX_DETECTORS	10
 
 #define MARX_MIRROR_EA		1

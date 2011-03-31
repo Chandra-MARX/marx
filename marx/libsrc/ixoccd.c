@@ -1,8 +1,8 @@
-
 #define MARX_HAS_IXO_CCD_STREAK 0
-#define NUM_IXO_CCDS	16
-#define NUM_X_PIXELS	1024
-#define NUM_Y_PIXELS	1024
+#define MAX_NUM_IXO_CCDS	32
+static unsigned int Num_IXO_CCDs = 16;
+static int Num_X_Pixels = 1024;
+static int Num_Y_Pixels = 1024;
 static double X_Pixel_Size = 0.024;    /* 24 um */
 static double Y_Pixel_Size = 0.024;    /* 24 um */
 static double CCD_Gap = 0.5;	       /* 500 um */
@@ -21,13 +21,13 @@ struct _IXO_CCD_QE_Type
    float *filter;
 };
 
-static Marx_Detector_Geometry_Type IXO_CCD_List[NUM_IXO_CCDS];
+static Marx_Detector_Geometry_Type IXO_CCD_List[MAX_NUM_IXO_CCDS];
 
 static void free_ccd_qe_type (IXO_CCD_QE_Type *qeinfo)
 {
    if (qeinfo == NULL)
      return;
-   
+
    if (qeinfo->num_refs > 1)
      {
 	qeinfo->num_refs--;
@@ -43,11 +43,11 @@ static void free_ccd_qe_type (IXO_CCD_QE_Type *qeinfo)
 static IXO_CCD_QE_Type *alloc_ccd_qe_type (unsigned int num_energies)
 {
    IXO_CCD_QE_Type *qeinfo;
-   
+
    if (NULL == (qeinfo = (IXO_CCD_QE_Type *)marx_malloc (sizeof(IXO_CCD_QE_Type))))
      return NULL;
    memset ((char *)qeinfo, 0, sizeof(IXO_CCD_QE_Type));
-   
+
    qeinfo->num_refs = 1;
    qeinfo->num_energies = num_energies;
    if ((NULL == (qeinfo->energies = (float *)marx_malloc(num_energies*sizeof(float))))
@@ -88,7 +88,7 @@ static IXO_CCD_QE_Type *read_ccd_qe_file (char *file)
 
    if (NULL == (qeinfo = alloc_ccd_qe_type (num_rows)))
      goto return_error;
-   
+
    c = r->col_data;
    for (i = 0; i < num_rows; i++)
      {
@@ -104,7 +104,7 @@ static IXO_CCD_QE_Type *read_ccd_qe_file (char *file)
    jdfits_bintable_close_rows (r);
    (void) jdfits_close_file (ft);
    return qeinfo;
-   
+
 return_error:
 
    marx_error ("Error processing %s", file);
@@ -156,10 +156,10 @@ int _marx_ixoccd_detect (Marx_Photon_Type *pt)
    double tstart;
 #endif
 
-   if (pt->history & MARX_CCD_NUM_OK)
+   if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_Y_PIXEL_OK | MARX_Z_PIXEL_OK | MARX_CCD_NUM_OK 
+
+   pt->history |= (MARX_DET_PIXEL_OK | MARX_DET_NUM_OK
 		   | MARX_PULSEHEIGHT_OK | MARX_PI_OK);
 
    marx_prune_photons (pt);
@@ -176,7 +176,7 @@ int _marx_ixoccd_detect (Marx_Photon_Type *pt)
      {
 	Marx_Detector_Geometry_Type *d;
 	double dx, dy;
-	
+
 	at = attrs + sorted_index[i];
 
 #if MARX_HAS_DITHER
@@ -185,7 +185,7 @@ int _marx_ixoccd_detect (Marx_Photon_Type *pt)
 	/* Transform ray into local system */
 	_marx_transform_ray (&at->x, &at->p,
 			     &_Marx_Det_XForm_Matrix);
-	
+
 	/* See if the photon will hit the CCD and if so, which one. */
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   IXO_CCD_List,
@@ -215,7 +215,7 @@ int _marx_ixoccd_detect (Marx_Photon_Type *pt)
 	_marx_undither_detector (&at->dither_state);
 #endif
      }
-   
+
    return 0;
 }
 
@@ -230,7 +230,7 @@ static int compute_pha (Marx_Detector_Geometry_Type *ccd, double x, double y,
    (void) x;
    (void) y;
 
-   if (gain == 0.0) 
+   if (gain == 0.0)
      {
 	*pi = 0;
 	return 0;
@@ -238,10 +238,10 @@ static int compute_pha (Marx_Detector_Geometry_Type *ccd, double x, double y,
 
    /* Eq 2.1 of ACIS-PSU-SOP-01 suggests the following: */
    da = gain * sqrt (noise * noise + ccd->fano_factor * energy / gain);
-   
+
    energy = energy + da * JDMgaussian_random ();
    if (energy < 0.0) energy = 0.0;
-   
+
    pha = (short) (1 + energy/gain);
    if (pha <= 0)
      {
@@ -265,10 +265,10 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
    /* The method here is to position a detector plan at the origin, and then
     * rotate it into place.  The rotation axis is located at the center of the
     * torus and is directed along the y axis.
-    * 
+    *
     * Looking from the mirror to the detector plane, a CCD at the origin looks
     * like:
-    * 
+    *
     *     xur+-----dy----+ xlr
     *        |           |
     *        |           |
@@ -276,12 +276,12 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
     *        |           |
     *        |           |
     *    xul +-----------+ xll
-    *       
+    *
     */
-   
-   dx = NUM_X_PIXELS * X_Pixel_Size;
-   dy = NUM_Y_PIXELS * Y_Pixel_Size;
-     
+
+   dx = Num_X_Pixels * X_Pixel_Size;
+   dy = Num_Y_Pixels * Y_Pixel_Size;
+
    /* Center the template CCD on the origin */
    x_ll.x = 0; x_ll.y =  0.5*dy; x_ll.z = -0.5*dx;
    x_ul.x = 0; x_ul.y = -0.5*dy; x_ul.z = -0.5*dx;
@@ -302,8 +302,8 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
     *   phi0 = Rowland_Theta + 2*(Center_CCD_Angle-Rowland_Theta)
     *        = 2*Center_CCD_Angle - Rowland_Theta;
     */
-   phi0 = 2.0*Center_CCD_Angle - Rowland_Theta 
-     - 0.5*(NUM_IXO_CCDS)*delta_phi;
+   phi0 = 2.0*Center_CCD_Angle - Rowland_Theta
+     - 0.5*(Num_IXO_CCDs)*delta_phi + 0.5*(Num_IXO_CCDs % 2)*delta_phi;
 
 #if 0
    /* Setup the imaging CCD */
@@ -326,7 +326,7 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
 
    /* Now do the spectroscopic CCDs */
    axis.x = 0.0; axis.y = 1.0; axis.z = 0.0;
-   for (i = 0; i < NUM_IXO_CCDS; i++)
+   for (i = 0; i < Num_IXO_CCDs; i++)
      {
 	double phi, sin_phi, cos_phi;
 	JDMVector_Type v;
@@ -349,34 +349,50 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
 	d->x_lr = JDMv_sum (d->x_lr, v);
 	d->x_ul = JDMv_sum (d->x_ul, v);
 	d->x_ur = JDMv_sum (d->x_ur, v);
-	
+
 	d->x_pixel_size = X_Pixel_Size;
 	d->y_pixel_size = Y_Pixel_Size;
-	d->num_x_pixels = NUM_X_PIXELS;
-	d->num_y_pixels = NUM_X_PIXELS;
+	d->num_x_pixels = Num_X_Pixels;
+	d->num_y_pixels = Num_Y_Pixels;
 	d->id = i;
      }
-   
+
    return 0;
 }
 
 static char *QE_CCD_File;
-static Param_Table_Type IXO_CCD_Parm_Table [] = 
+static Param_Table_Type IXO_CCD_Parm_Table [] =
 {
    {"IXO_Center_CCD_Angle",	PF_REAL_TYPE,	&Center_CCD_Angle},
    {"IXO_CCD_QE_File",		PF_FILE_TYPE,	&QE_CCD_File},
    {"IXO_CCD_Gain",		PF_REAL_TYPE,	&CCD_Gain},
    {"IXO_CCD_Fano",		PF_REAL_TYPE,	&Fano_Factor},
    {"IXO_CCD_Noise",		PF_REAL_TYPE,	&Read_Noise},
+   {"IXO_Num_CCDs",		PF_UINT_TYPE,	&Num_IXO_CCDs},
+   {"IXO_CCD_XPixel_Size",	PF_REAL_TYPE,	&X_Pixel_Size},
+   {"IXO_CCD_YPixel_Size",	PF_REAL_TYPE,	&Y_Pixel_Size},
+   {"IXO_CCD_Num_XPixels",	PF_UINT_TYPE,	&Num_Y_Pixels},
+   {"IXO_CCD_Num_YPixels",	PF_UINT_TYPE,	&Num_Y_Pixels},
    {NULL, 0, NULL}
 };
-
 
 /* p could be NULL */
 static int read_ixo_ccd_parms (Param_File_Type *p)
 {
    if (-1 == pf_get_parameters (p, IXO_CCD_Parm_Table))
      return -1;
+
+   if ((Num_X_Pixels == 0) || (Num_Y_Pixels == 0)
+       || (X_Pixel_Size <= 0) || (Y_Pixel_Size <= 0))
+     {
+	marx_error ("%s", "IXO CCD pixel parameters are invalid");
+	return -1;
+     }
+   if (Num_IXO_CCDs > MAX_NUM_IXO_CCDS)
+     {
+	marx_error ("The number of IXO CCDs must be at most %u.", MAX_NUM_IXO_CCDS);
+	return -1;
+     }
 
    Center_CCD_Angle *= PI/180.0;
    CCD_Gain *= 0.001;
@@ -387,7 +403,7 @@ static Marx_Detector_Type IXO_CCD_Detector;
 Marx_Detector_Type *_marx_get_ixo_ccd_detector (void)
 {
    Marx_Detector_Type *d;
-   
+
    d = &IXO_CCD_Detector;
    if (d->is_initialized)
      return d;
@@ -395,7 +411,7 @@ Marx_Detector_Type *_marx_get_ixo_ccd_detector (void)
    _marx_catgs_init_variables ();
 
    d->detector_type = MARX_DETECTOR_IXO_CATGS_CCD;
-   d->facet_list = _marx_link_detector_facet_list (IXO_CCD_List, NUM_IXO_CCDS, sizeof(Marx_Detector_Geometry_Type));
+   d->facet_list = _marx_link_detector_facet_list (IXO_CCD_List, Num_IXO_CCDs, sizeof(Marx_Detector_Geometry_Type));
    if (-1 == setup_geom (d->facet_list))
      return NULL;
    (void) _marx_compute_detector_basis (d);
@@ -411,7 +427,7 @@ int _marx_ixoccd_init (Param_File_Type *p)
 
    if (-1 == read_ixo_ccd_parms (p))
      return -1;
-   
+
    if (NULL == (d = _marx_get_ixo_ccd_detector ()))
      return -1;
 
@@ -419,7 +435,7 @@ int _marx_ixoccd_init (Param_File_Type *p)
    if (_Marx_Det_Ideal_Flag == 0)
      {
 	char *file;
-	
+
 	if (_Marx_Det_Ideal_Flag == 0)
 	  marx_message ("Reading IXO CCD QE/Filter Files\n");
 
@@ -429,7 +445,7 @@ int _marx_ixoccd_init (Param_File_Type *p)
 	marx_message ("\t%s\n", file);
 	qeinfo = read_ccd_qe_file (file);
 	marx_free (file);
-	
+
 	if (qeinfo == NULL)
 	  return -1;
      }
@@ -445,7 +461,7 @@ int _marx_ixoccd_init (Param_File_Type *p)
 	if (_Marx_Det_Ideal_Flag == 0)
 	  {
 	     g->qeinfo = qeinfo;
-	     if (g != d->facet_list) 
+	     if (g != d->facet_list)
 	       qeinfo->num_refs++;/* ugly */
 	  }
 	g = g->next;

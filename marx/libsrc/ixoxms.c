@@ -32,7 +32,7 @@ static double Outer_Gain = 1.25*0.001; /* keV/channel */
 
 static char *Inner_QE_File;
 static char *Outer_QE_File;
-static Param_Table_Type IXO_CCD_Parm_Table [] = 
+static Param_Table_Type IXO_CCD_Parm_Table [] =
 {
    {"IXO_XMS_Inner_QE_File",	PF_FILE_TYPE,	&Inner_QE_File},
    {"IXO_XMS_Outer_QE_File",	PF_FILE_TYPE,	&Outer_QE_File},
@@ -49,7 +49,7 @@ static int compute_pha (Marx_Detector_Geometry_Type *g, double x, double y,
 
    (void) x;
    (void) y;
-   
+
    energy = energy + g->sigma * JDMgaussian_random ();
    if (energy < 0.0) energy = 0.0;
 
@@ -64,33 +64,32 @@ static int compute_pha (Marx_Detector_Geometry_Type *g, double x, double y,
    return pha;
 }
 
-static int compute_qe (Marx_Detector_Geometry_Type *g, 
+static int compute_qe (Marx_Detector_Geometry_Type *g,
 			double xpixel, double ypixel, double energy,
 			double *qep)
 {
    (void) xpixel; (void) ypixel;
-   
+
    *qep = _marx_qe_compute (g->qeinfo, energy);
    return 0;
 }
 
-   
 static int apply_qe_and_pha (Marx_Detector_Geometry_Type *g, Marx_Photon_Attr_Type *at)
 {
    if (_Marx_Det_Ideal_Flag == 0)
      {
 	double qe;
-	
+
 	if (-1 == (*g->qe_fun)(g, at->y_pixel, at->z_pixel, at->energy, &qe))
 	  return -1;
-	
+
 	if (JDMrandom () > qe)
 	  {
 	     at->flags |= PHOTON_UNDETECTED;
 	     return -1;
 	  }
      }
-   
+
    if (-1 == (at->pulse_height = (*g->pha_fun) (g, at->y_pixel, at->z_pixel, at->energy, &at->pi)))
      {
 	at->flags |= PHOTON_UNDETECTED;
@@ -162,9 +161,9 @@ static Marx_Detector_Geometry_Type *setup_geom (void)
    d->num_y_pixels = Inner_Num_Pixels;
 
    dx = Outer_Num_X_Pixels * Outer_Pixel_Size;
-   dy = Outer_Num_Y_Pixels * Outer_Pixel_Size;   
+   dy = Outer_Num_Y_Pixels * Outer_Pixel_Size;
    gap = Inner_Outer_Gap;
-   
+
    y_0 = y_1 - (dy + gap); y_3 = y_1 + dx;
    z_0 = z_1 - (dy + gap); z_3 = z_1 + dx;
    /* Note: It is assumed that gap is such that y_3=y_2+gap+dy*/
@@ -250,7 +249,6 @@ Marx_Detector_Type *_marx_get_ixo_xms_detector (void)
    return d;
 }
 
-
 int _marx_ixoxms_init (Param_File_Type *pf)
 {
    Marx_QE_Type *qeinfo;
@@ -267,7 +265,7 @@ int _marx_ixoxms_init (Param_File_Type *pf)
    if (_Marx_Det_Ideal_Flag == 0)
      {
 	char *file;
-	
+
 	if (_Marx_Det_Ideal_Flag == 0)
 	  marx_message ("Reading IXO XMS QE/Filter Files\n");
 
@@ -277,7 +275,7 @@ int _marx_ixoxms_init (Param_File_Type *pf)
 	marx_message ("\t%s\n", file);
 	qeinfo = _marx_qe_read_file (file, "IXO_XMS_QE", "ENERGY", "QE", NULL);
 	marx_free (file);
-	
+
 	if (qeinfo == NULL)
 	  return -1;
 
@@ -319,7 +317,7 @@ int _marx_ixoxms_init (Param_File_Type *pf)
 	xms->qe_fun = compute_qe;
 	xms = xms->next;
      }
-   
+
    return 0;
 }
 
@@ -330,10 +328,10 @@ int _marx_ixoxms_detect (Marx_Photon_Type *pt)
    unsigned int *sorted_index;
    Marx_Detector_Geometry_Type *facet_list;
 
-   if (pt->history & MARX_CCD_NUM_OK)
+   if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_Y_PIXEL_OK | MARX_Z_PIXEL_OK | MARX_CCD_NUM_OK 
+
+   pt->history |= (MARX_DET_PIXEL_OK | MARX_DET_NUM_OK
 		   | MARX_PULSEHEIGHT_OK | MARX_PI_OK);
 
    marx_prune_photons (pt);
@@ -348,7 +346,7 @@ int _marx_ixoxms_detect (Marx_Photon_Type *pt)
      {
 	Marx_Detector_Geometry_Type *d;
 	double dx, dy;
-	
+
 	at = attrs + sorted_index[i];
 
 #if MARX_HAS_DITHER
@@ -357,7 +355,7 @@ int _marx_ixoxms_detect (Marx_Photon_Type *pt)
 	/* Transform ray into local system */
 	_marx_transform_ray (&at->x, &at->p,
 			     &_Marx_Det_XForm_Matrix);
-	
+
 	/* See if the photon will hit the detector and if so, which one. */
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   facet_list,
@@ -372,7 +370,7 @@ int _marx_ixoxms_detect (Marx_Photon_Type *pt)
 	     at->ccd_num = d->id;
 	     at->y_pixel = dx / d->x_pixel_size;
 	     at->z_pixel = dy / d->y_pixel_size;
-	     
+
 	     (void) apply_qe_and_pha (d, at);
 	  }
 	/* Transform detected photon back to original system */
