@@ -39,6 +39,7 @@
 
 _Marx_Coord_Transform_Type _Marx_Det_XForm_Matrix;
 int _Marx_Det_Ideal_Flag;
+int _Marx_Det_Extend_Flag;
 
 static Param_Table_Type Det_Parm_Table [] =
 {
@@ -46,68 +47,123 @@ static Param_Table_Type Det_Parm_Table [] =
    {"DetOffsetY",	PF_REAL_TYPE,		&_Marx_Det_XForm_Matrix.dy},
    {"DetOffsetZ",	PF_REAL_TYPE,		&_Marx_Det_XForm_Matrix.dz},
    {"DetIdeal",		PF_BOOLEAN_TYPE,	&_Marx_Det_Ideal_Flag},
+   {"DetExtendFlag",	PF_BOOLEAN_TYPE,	&_Marx_Det_Extend_Flag},
    {NULL, 0, NULL}
 };
 
-
-Marx_Detector_Geometry_Type *
-_marx_intersect_with_detector (JDMVector_Type x0, JDMVector_Type p, /*{{{*/
-			       Marx_Detector_Geometry_Type *g,
-			       JDMVector_Type *x, double *dx, double *dy)
+static int intersect_with_detector_plane (Marx_Detector_Geometry_Type *g,
+					  JDMVector_Type x0, JDMVector_Type p,
+					  JDMVector_Type *x,
+					  double *dx, double *dy,
+					  int must_hit)
 {
    JDMVector_Type normal, r;
    double pdotn;
    double rx, ry;
+   int hit_detector = 1;
 
-   while (g != NULL)
+   normal = g->normal;
+   pdotn = JDMv_pdot_prod (&p, &normal);
+
+   if (pdotn == 0)
+     return -1;
+
+   r = JDMv_diff (x0, g->x_ll);
+
+   r = JDMv_pax1_bx2 (1.0, &r,
+		      -1.0 * JDMv_pdot_prod (&r, &normal)/pdotn, &p);
+   /* This r is defined in the plane of the detector with origin
+    * at g->x_ll.
+    */
+
+   /* Now check to see if the coordinates in the plane of the detector
+    * chip is within the boundaries of the chip.  Here we assume the
+    * chip is rectangular.
+    */
+
+   rx = JDMv_dot_prod (r, g->xhat);
+   if ((rx < 0.0) || (rx >= g->xlen))
      {
-	normal = g->normal;
-	pdotn = JDMv_pdot_prod (&p, &normal);
+	if (must_hit)
+	  return 0;
 
-	if (pdotn == 0)
-	  {
-	     g = g->next;
-	     continue;
-	  }
-	
-	r = JDMv_diff (x0, g->x_ll);
-	
-	r = JDMv_pax1_bx2 (1.0, &r, 
-			   -1.0 * JDMv_pdot_prod (&r, &normal)/pdotn, &p);
-	/* This r is defined in the plane of the detector with origin 
-	 * at g->x_ll.
-	 */
-	
-	/* Now check to see if the coordinates in the plane of the detector
-	 * chip is within the boundaries of the chip.  Here we assume the 
-	 * chip is rectangular.
-	 */
-
-	rx = JDMv_dot_prod (r, g->xhat);
-	if ((rx < 0.0) || (rx >= g->xlen))
-	  {
-	     g = g->next;
-	     continue;
-	  }
-
-	ry = JDMv_dot_prod (r, g->yhat);
-	if ((ry < 0.0) || (ry >= g->ylen))
-	  {
-	     g = g->next;
-	     continue;
-	  }
-
-	*x = JDMv_sum (r, g->x_ll);
-	*dx = rx;
-	*dy = ry;
-
-	return g;
+	hit_detector = 0;
      }
 
-   /* Missed */
-   return NULL;
+   ry = JDMv_dot_prod (r, g->yhat);
+   if ((ry < 0.0) || (ry >= g->ylen))
+     {
+	if (must_hit)
+	  return 0;
+
+	hit_detector = 0;
+     }
+
+   *x = JDMv_sum (r, g->x_ll);
+   *dx = rx;
+   *dy = ry;
+
+   return hit_detector;
 }
 
+Marx_Detector_Geometry_Type *
+_marx_intersect_with_detector (JDMVector_Type x0, JDMVector_Type p, /*{{{*/
+			       Marx_Detector_Geometry_Type *g0,
+			       JDMVector_Type *xp, double *dxp, double *dyp,
+			       int extend_flag
+			      )
+{
+   Marx_Detector_Geometry_Type *g, *best_g;
+   double best_dx, best_dy, best_r2, dx, dy, r2;
+   JDMVector_Type best_x, x;
+
+   g = g0;
+   while (g != NULL)
+     {
+	if (1 == intersect_with_detector_plane (g, x0, p, xp, dxp, dyp, 1))
+	  return g;
+	g = g->next;
+     }
+
+   if (extend_flag == 0)
+     return NULL;
+
+   /* Try again, this time allowing it to be off the detector.  Find closest */
+   g = g0;
+   best_g = NULL;
+   best_r2 = -1;
+   while (g != NULL)
+     {
+	double deltax, deltay;
+	if (-1 == intersect_with_detector_plane (g, x0, p, &x, &dx, &dy, 0))
+	  {
+	     g = g->next;
+	     continue;
+	  }
+	/* I should look for the detector that has the closest edge.  For
+	 * now look for the one with the closest center
+	 */
+	deltax = dx - 0.5*g->xlen;
+	deltay = dy - 0.5*g->ylen;
+	r2 = deltax*deltax + deltay*deltay;
+	if ((r2 < best_r2) || (best_g == NULL))
+	  {
+	     best_g = g;
+	     best_x = x;
+	     best_dx = dx;
+	     best_dy = dy;
+	     best_r2 = r2;
+	  }
+	g = g->next;
+     }
+   if (best_g == NULL)
+     return NULL;
+
+   *xp = best_x;
+   *dxp = best_dx;
+   *dyp = best_dy;
+   return best_g;
+}
 /*}}}*/
 
 typedef struct
@@ -135,26 +191,26 @@ static int plane_detect (Marx_Photon_Type *pt)
 
    if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK 
+
+   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK
 		   | MARX_DET_PIXEL_OK | MARX_DET_NUM_OK);
-   
+
    marx_prune_photons (pt);
 
    attrs = pt->attributes;
    n_photons = pt->num_sorted;
    sorted_index = pt->sorted_index;
-   
+
    for (i = 0; i < n_photons; i++)
      {
 	double t, pixel_size = 0.00643;/* 6.43 um */
-	
+
 	at = attrs + sorted_index[i];
-	
+
 	_marx_transform_ray (&at->x, &at->p, &_Marx_Det_XForm_Matrix);
 	/* Solve: 0 = X_x + P_x t
 	 * and project:
-	 *       X_y = X_y + t P_y, etc... 
+	 *       X_y = X_y + t P_y, etc...
 	 */
 	t = -at->x.x / at->p.x;
 	at->x.x = 0;
@@ -165,7 +221,7 @@ static int plane_detect (Marx_Photon_Type *pt)
 	at->y_pixel = at->x.y / pixel_size;
 	at->z_pixel = at->x.z / pixel_size;
 	at->detector_region = 0;
-	
+
 	/* Transform detected photon back to original system */
 	_marx_transform_ray_reverse (&at->x, &at->p, &_Marx_Det_XForm_Matrix);
      }
@@ -200,15 +256,15 @@ static void rotate_matrix (double *matrix, double theta)
 
    if (theta == 0)
      {
-	s = 0; 
+	s = 0;
 	c = 1;
      }
-   else 
+   else
      {
 	s = sin (theta);
 	c = cos (theta);
      }
-   
+
    m00 = matrix[4]; m01=matrix[5];
    m10 = matrix[7]; m11=matrix[8];
    matrix [4] = m00*c - m01*s; matrix[5] = m00*s + m01*c;
@@ -220,8 +276,6 @@ int _marx_set_detector_angle (double theta)
    rotate_matrix (_Marx_Det_XForm_Matrix.matrix, theta);
    return 0;
 }
-
-      
 
 #if MARX_HAS_DITHER
 void _marx_dither_detector (Marx_Dither_Type *d)
@@ -242,7 +296,7 @@ void _marx_undither_detector (Marx_Dither_Type *d)
 
    _Marx_Det_XForm_Matrix.dy -= d->dy;
    _Marx_Det_XForm_Matrix.dz -= d->dz;
-   
+
    rotate_matrix (_Marx_Det_XForm_Matrix.matrix, -d->dtheta);
 }
 #endif				       /* MARX_HAS_DITHER */
@@ -254,14 +308,14 @@ int marx_detector_init (Param_File_Type *pf) /*{{{*/
    double *matrix;
 
    /* Possible values: ACIS-S,HRC-S,NONE */
-   
+
    Detector = NULL;
 
    if (-1 == pf_get_string (pf, "DetectorType", buf, sizeof (buf)))
      return -1;
-   
+
    d = Detector_Caps;
-   
+
    while (d->name != NULL)
      {
 	if (!strcmp (d->name, buf))
@@ -271,13 +325,13 @@ int marx_detector_init (Param_File_Type *pf) /*{{{*/
 	  }
 	d++;
      }
-   
+
    if (Detector == NULL)
      {
 	marx_error ("DetectorType \"%s\" not supported.", buf);
 	return -1;
      }
-   
+
    if (Detector->detect == NULL)
      return 0;			       /* NONE */
 
@@ -285,10 +339,10 @@ int marx_detector_init (Param_File_Type *pf) /*{{{*/
 
    matrix = _Marx_Det_XForm_Matrix.matrix;
 
-   /* This matrix is used to rotate the detector during aspect motion.  
-    * Actually, as far as the detector goes, the AXAF aspect solution 
-    * provides information about the offset of the detector origin in the 
-    * (y,z) plane and a rotation about the X axis.  These should not be 
+   /* This matrix is used to rotate the detector during aspect motion.
+    * Actually, as far as the detector goes, the AXAF aspect solution
+    * provides information about the offset of the detector origin in the
+    * (y,z) plane and a rotation about the X axis.  These should not be
     * confused with the dither of the optical axis.  The detector offsets
     * are a result of thermal expansion, etc...
     */
@@ -304,7 +358,7 @@ int marx_detector_init (Param_File_Type *pf) /*{{{*/
 	marx_error ("Error initializing DetectorType %s.", buf);
 	return -1;
      }
-   
+
    return Detector->type;
 }
 
@@ -317,16 +371,16 @@ int marx_detect (Marx_Photon_Type *pt, int verbose) /*{{{*/
 	marx_error ("Detector not initialized.");
 	return -1;
      }
-   
+
    if (Detector->detect != NULL)
      {
-	if (verbose) 
+	if (verbose)
 	  {
 	     marx_message ("Detecting with %s\n", Detector->name);
 	  }
 	return (*Detector->detect) (pt);
      }
-   
+
    return 0;
 }
 
@@ -356,7 +410,7 @@ int _marx_compute_detector_basis (Marx_Detector_Type *det)
 Marx_Detector_Geometry_Type *_marx_find_detector_facet (Marx_Detector_Type *det, int id)
 {
    Marx_Detector_Geometry_Type *g = det->facet_list;
-   
+
    while (g != NULL)
      {
 	if (g->id == id)
@@ -374,17 +428,16 @@ _marx_link_detector_facet_list (Marx_Detector_Geometry_Type *list, unsigned int 
    while (num > 1)
      {
 	Marx_Detector_Geometry_Type *next;
-	
+
 	next = (Marx_Detector_Geometry_Type *)((char *)l + sizeof_elem);
 	l->next = next;
 	l = next;
 	num--;
      }
-   
+
    if (num == 1)
      l->next = NULL;
-   
+
    return list;
 }
 
-   

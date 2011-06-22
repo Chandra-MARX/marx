@@ -270,7 +270,8 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   HRC_S_MCPs,
-					   &at->x, &dx, &dy);
+					   &at->x, &dx, &dy,
+					  _Marx_Det_Extend_Flag);
 
 	if (d == NULL)
 	  {

@@ -164,7 +164,6 @@ static int get_internal_dither (double t, Marx_Dither_Type *d)
    return 1;
 }
 
-static int Saosac_Hack = 0;
 static int init_internal_dither1 (int zero_amp)
 {
    _Marx_Dither_Mode = _MARX_DITHER_MODE_INTERNAL;
@@ -174,8 +173,8 @@ static int init_internal_dither1 (int zero_amp)
    if (zero_amp)
      {
 	Ra_Amp = Dec_Amp = Roll_Amp = 0;
-	Get_Dither_Function = NULL;
-	Saosac_Hack = 1;
+	/* Get_Dither_Function = NULL; */
+	/* Saosac_Hack = 1; */
      }
    else
      {

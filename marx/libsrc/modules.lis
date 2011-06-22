@@ -43,6 +43,7 @@ acis_geom
 acis_gain
 aciscontam
 qefuns
+acis_subpix
 ixocatgs
 ixomirror
 ixoxms

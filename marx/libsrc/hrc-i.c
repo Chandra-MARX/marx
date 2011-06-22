@@ -162,7 +162,8 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   HRC_I_MCP,
-					   &at->x, &dx, &dy);
+					   &at->x, &dx, &dy,
+					  _Marx_Det_Extend_Flag);
 	if (d == NULL)
 	  {
 	     at->flags |= PHOTON_MISSED_DETECTOR;

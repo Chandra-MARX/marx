@@ -61,7 +61,9 @@ static int Simulation_Grating_Type;    /* 0==>NONE, 1==>HETG, 2==>LETG */
 #define PIX_ADJ_RANDOMIZE	1
 #define PIX_ADJ_EDSER		2
 #define PIX_ADJ_EXACT		3
-static int Pixel_Adjust = PIX_ADJ_RANDOMIZE;
+static int Pixel_Adjust = PIX_ADJ_EDSER;
+
+static Marx_Subpix_Table_Type *Acis_Subpixel_Object;
 
 static int Simulation_Detector_Type;   /* bitmapped */
 #define DETECTOR_NONE	0x00
@@ -106,7 +108,7 @@ typedef struct /*{{{*/
    float64 dtt_time;
 
    /* marx xpixel, ypixel */
-   float32 dtt_chipx;
+   float32 dtt_chipx;		       /* 1-based, with X.5 is at center of pixel */
    float32 dtt_chipy;
 
    int32 dtt_hrc_u;
@@ -220,18 +222,9 @@ static int compute_xy_sky (Data_Def_Type *);
 
 static int compute_acis_energy (Data_Def_Type *);
 
-#ifdef VERY_OLD_PILEUP_MODEL
-static int compute_pileup_acis_energy (Data_Def_Type *);
-static int compute_pha_island (Data_Def_Type *);
-static int write_pha_island (Data_Def_Type *, JDFits_Type *);
-#endif
-
 static int compute_tdetxy (Data_Def_Type *);
 static int compute_detxy (Data_Def_Type *);
 static int compute_pi (Data_Def_Type *);
-#ifdef VERY_OLD_PILEUP_MODEL
-static int compute_pileup_pi (Data_Def_Type *);
-#endif
 #if 0
 static int compute_pileup_pha (Data_Def_Type *);
 #endif
@@ -298,11 +291,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       'I',			       /* type */
       &Data_Table.dtt_ccdid,	       /* pointer to value */
       "detector.dat",		       /* filename */
-#ifdef VERY_OLD_PILEUP_MODEL
-      DDT_NOT_FOR_PILEUP|DDT_NEED_ACIS|DDT_REQUIRED, /* flags */
-#else
       DDT_NEED_ACIS|DDT_REQUIRED, /* flags */
-#endif
       "CCD_ID",			       /* colname */
       "CCD id number",		       /* comment */
       "I",			       /* type */
@@ -368,11 +357,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       'E',			       /* type */
       &Data_Table.dtt_benergy,	       /* pointer to value */
       "b_energy.dat",		       /* filename */
-#ifdef VERY_OLD_PILEUP_MODEL
-      DDT_NOT_FOR_PILEUP|DDT_NEED_ACIS,/* flags */
-#else
       DDT_NEED_ACIS,		       /* flags */
-#endif
       "B_ENERGY",		       /* colname */
       "Energy of ray",		       /* comment */
       "E",			       /* type */
@@ -683,30 +668,6 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0,			       /* ddt_min_int_value */
       36855			       /* ddt_max_int_value */
    },
-#ifdef VERY_OLD_PILEUP_MODEL
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_pha_island,      /* pointer to value */
-      "phas.dat",		       /* filename */
-      DDT_REQUIRED|DDT_NEED_PILEUP,    /* flags */
-      "PHAS",		       /* colname */
-      "Event island PHAs",	       /* comment */
-      "9I",			       /* type */
-      "adu",			       /* units */
-      NULL,			       /* WCS CTYPE */
-      12,			       /* column_number */
-      read_pha_island,		       /* compute_value */
-      write_pha_island,		       /* write_value */
-      open_marx_int16_file,	       /* open */
-      close_marx_file,		       /* close */
-      NULL,			       /* cdt */
-      'I',			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      -4096,			       /* ddt_min_int_value */
-      4095			       /* ddt_max_int_value */
-   },
-#endif
    {
       'J',			       /* type */
       &Data_Table.dtt_expno,	       /* pointer to value */
@@ -729,52 +690,6 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0,			       /* ddt_min_int_value */
       0x7FFFFFFF		       /* ddt_max_int_value */
    },
-#ifdef VERY_OLD_PILEUP_MODEL
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_grade,	       /* pointer to value */
-      "grade.dat",		       /* filename */
-      DDT_NEED_ACIS|DDT_NEED_PILEUP,   /* flags */
-      NULL,			       /* colname */
-      NULL,			       /* comment */
-      "I",			       /* type */
-      NULL,			       /* units */
-      NULL,			       /* WCS CTYPE */
-      0,			       /* column_number */
-      read_int16,		       /* compute_value */
-      NULL,			       /* write_value */
-      open_marx_int16_file,	       /* open */
-      close_marx_file,		       /* close */
-      NULL,			       /* cdt */
-      'I',			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      255			       /* ddt_max_int_value */
-   },
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_fltgrade,	       /* pointer to value */
-      "fltgrade.dat",		       /* filename */
-      DDT_NEED_ACIS|DDT_NEED_PILEUP,   /* flags */
-      NULL,			       /* colname */
-      NULL,			       /* comment */
-      "I",			       /* type */
-      NULL,			       /* units */
-      NULL,			       /* WCS CTYPE */
-      0,			       /* column_number */
-      read_int16,		       /* compute_value */
-      NULL,		       /* write_value */
-      open_marx_int16_file,			       /* open */
-      close_marx_file,			       /* close */
-      NULL,			       /* cdt */
-      'I',			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      255				       /* ddt_max_int_value */
-   },
-#endif
    {
       'I',			       /* type */
       &Data_Table.dtt_order,	       /* pointer to value */
@@ -1027,6 +942,50 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0				       /* ddt_max_int_value */
    },
 
+   {
+      'I',			       /* type */
+      &Data_Table.dtt_fltgrade,	       /* pointer to value */
+      NULL,			       /* filename */
+      DDT_NEED_ACIS,		       /* flags */
+      "FLTGRADE",			       /* colname */
+      "Event Grade Code",	       /* comment */
+      "I",			       /* type */
+      "",			       /* units */
+      NULL,			       /* WCS CTYPE */
+      16,			       /* column_number */
+      compute_fltgrade,		       /* compute_value */
+      write_int16,		       /* write_value */
+      NULL,			       /* open */
+      NULL,			       /* close */
+      NULL,			       /* cdt */
+      'I',			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      255				       /* ddt_max_int_value */
+   },
+   {
+      'I',			       /* type */
+      &Data_Table.dtt_grade,	       /* pointer to value */
+      NULL,			       /* filename */
+      DDT_NEED_ACIS,		       /* flags */
+      "GRADE",			       /* colname */
+      "ACIS grade code",	       /* comment */
+      "I",			       /* type */
+      "",			       /* units */
+      NULL,			       /* WCS CTYPE */
+      17,			       /* column_number */
+      compute_grade,		       /* compute_value */
+      write_int16,		       /* write_value */
+      NULL,			       /* open */
+      NULL,			       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0.0,			       /* ddt_min_float_value */
+      0.0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
    /* compute_detxy assumes next two entries are sequential */
    {
       'D',			       /* type */
@@ -1141,39 +1100,11 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       4095			       /* ddt_max_int_value */
    },
 #endif
-#ifdef VERY_OLD_PILEUP_MODEL
    {
       'E',			       /* type */
       &Data_Table.dtt_energy,	       /* pointer to value */
       NULL,			       /* filename */
-      DDT_NEED_ACIS|DDT_NEED_PILEUP,   /* flags */
-      "ENERGY",			       /* colname */
-      "Nominal energy of event",       /* comment */
-      "E",			       /* type */
-      "eV",			       /* units */
-      NULL,			       /* WCS CTYPE */
-      14,			       /* column_number */
-      compute_pileup_acis_energy,      /* compute_value */
-      write_float32,		       /* write_value */
-      NULL,			       /* open */
-      NULL,			       /* close */
-      NULL,			       /* cdt */
-      'E',			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      1e6,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      0				       /* ddt_max_int_value */
-   },
-#endif
-   {
-      'E',			       /* type */
-      &Data_Table.dtt_energy,	       /* pointer to value */
-      NULL,			       /* filename */
-#ifdef VERY_OLD_PILEUP_MODEL
-      DDT_NEED_ACIS|DDT_NOT_FOR_PILEUP,/* flags */
-#else
       DDT_NEED_ACIS,		       /* flags */
-#endif
       "ENERGY",			       /* colname */
       "Nominal energy of event",       /* comment */
       "E",			       /* type */
@@ -1191,30 +1122,6 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0,			       /* ddt_min_int_value */
       0				       /* ddt_max_int_value */
    },
-#ifdef VERY_OLD_PILEUP_MODEL
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_pi,	       /* pointer to value */
-      NULL,			       /* filename */
-      DDT_NEED_ACIS|DDT_NEED_PILEUP,   /* flags */
-      "PI",			       /* colname */
-      "pulse invariant energy of event",/* comment */
-      "I",			       /* type */
-      "Chan",			       /* units */
-      NULL,			       /* WCS CTYPE */
-      15,			       /* column_number */
-      compute_pileup_pi,	       /* compute_value */
-      write_int16,		       /* write_value */
-      NULL,			       /* open */
-      NULL,			       /* close */
-      NULL,			       /* cdt */
-      0,			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      0				       /* ddt_max_int_value */
-   },
-#endif
 #if 0
    {
       'J',			       /* type */
@@ -1243,11 +1150,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       'I',			       /* type */
       &Data_Table.dtt_pi,	       /* pointer to value */
       NULL,			       /* filename */
-#ifdef VERY_OLD_PILEUP_MODEL
-      DDT_NEED_ACIS|DDT_NOT_FOR_PILEUP,/* flags */
-#else
       DDT_NEED_ACIS,		       /* flags */
-#endif
       "PI",			       /* colname */
       "pulse invariant energy of event",/* comment */
       "I",			       /* type */
@@ -1255,74 +1158,6 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       NULL,			       /* WCS CTYPE */
       15,			       /* column_number */
       compute_pi,		       /* compute_value */
-      write_int16,		       /* write_value */
-      NULL,			       /* open */
-      NULL,			       /* close */
-      NULL,			       /* cdt */
-      0,			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      0				       /* ddt_max_int_value */
-   },
-#ifndef VERY_OLD_PILEUP_MODEL
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_nphotons,	       /* pointer to value */
-      "nphotons.dat",			       /* filename */
-      DDT_NEED_ACIS|DDT_NEED_PILEUP,/* flags */
-      "NUM_PILED",			       /* colname */
-      "Number of photons contributing to event",/* comment */
-      "I",			       /* type */
-      "",			       /* units */
-      NULL,			       /* WCS CTYPE */
-      0,			       /* column_number */
-      read_int16,		       /* compute_value */
-      write_int16,		       /* write_value */
-      open_marx_int16_file,	       /* open */
-      close_marx_file,		       /* close */
-      NULL,			       /* cdt */
-      0,			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      0				       /* ddt_max_int_value */
-   },
-#endif
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_fltgrade,	       /* pointer to value */
-      NULL,			       /* filename */
-      DDT_NEED_ACIS,		       /* flags */
-      "FLTGRADE",			       /* colname */
-      "Event Grade Code",	       /* comment */
-      "I",			       /* type */
-      "",			       /* units */
-      NULL,			       /* WCS CTYPE */
-      16,			       /* column_number */
-      compute_fltgrade,		       /* compute_value */
-      write_int16,		       /* write_value */
-      NULL,			       /* open */
-      NULL,			       /* close */
-      NULL,			       /* cdt */
-      'I',			       /* ddt_min_max_type */
-      0.0,			       /* ddt_min_float_value */
-      0.0,			       /* ddt_max_float_value */
-      0,			       /* ddt_min_int_value */
-      255				       /* ddt_max_int_value */
-   },
-   {
-      'I',			       /* type */
-      &Data_Table.dtt_grade,	       /* pointer to value */
-      NULL,			       /* filename */
-      DDT_NEED_ACIS,		       /* flags */
-      "GRADE",			       /* colname */
-      "ACIS grade code",	       /* comment */
-      "I",			       /* type */
-      "",			       /* units */
-      NULL,			       /* WCS CTYPE */
-      17,			       /* column_number */
-      compute_grade,		       /* compute_value */
       write_int16,		       /* write_value */
       NULL,			       /* open */
       NULL,			       /* close */
@@ -2413,15 +2248,6 @@ static int read_pileup_parms (void)
 	return -1;
      }
 
-#ifdef VERY_OLD_PILEUP_MODEL
-   if (-1 == pf_get_integer (pf, "CCDID", &ccdid))
-     {
-	pf_close_parameter_file (pf);
-	return -1;
-     }
-
-   Data_Table.dtt_ccdid = (int16) ccdid;
-#endif
    pf_close_parameter_file (pf);
 
    return 0;
@@ -2452,9 +2278,6 @@ static int get_marx_pfile_info (void) /*{{{*/
 {
    Param_File_Type *pf;
    char *file;
-#ifdef VERY_OLD_PILEUP_MODEL
-   int ccdid;
-#endif
    file = make_marx_filename ("marx.par");
    pf = pf_open_parameter_file (file, "r");
    if (pf == NULL)
@@ -2521,10 +2344,6 @@ static int get_marx_pfile_info (void) /*{{{*/
 
    if (0 != strcmp (Dither_Model, "NONE"))
      {
-#ifdef VERY_OLD_PILEUP_MODEL
-	/* Pileup does not support dithered coordinates */
-	if (Pileup_Mode == 0)
-#endif
 	  Simulation_Used_Dither = 1;
      }
 #if 0
@@ -3339,6 +3158,17 @@ int main (int argc, char **argv) /*{{{*/
 	return 1;
      }
 
+   if ((Pixel_Adjust == PIX_ADJ_EDSER)
+       && (Simulation_Detector_Type & DETECTOR_ACIS))
+     {
+	if (NULL == (Acis_Subpixel_Object = marx_open_acis_subpix ()))
+	  {
+	     fprintf (stderr, "Error opening the subpixel file\n");
+	     return 1;
+	  }
+     }
+
+	
    if (NULL == (Obs_Par_Parms = read_obspar_file ()))
      {
      }
@@ -3480,19 +3310,6 @@ static int read_float32_add_1 (Data_Def_Type *ddt) /*{{{*/
 }
 /*}}}*/
 
-#ifdef VERY_OLD_PILEUP_MODEL
-static int read_pha_island (Data_Def_Type *ddt) /*{{{*/
-{
-   (void) ddt;
-
-   if (9 != JDMread_int16 (Data_Table.dtt_pha_island, 9, ddt->ddt_dft->fp))
-     return -1;
-
-   return 0;
-}
-
-/*}}}*/
-#endif
 #if 0
 static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 {
@@ -3699,6 +3516,7 @@ static int close_detxy (Data_Def_Type *ddt)
 static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 {
    double x, y;
+   float dx, dy;
    Marx_Chip_To_MNC_Type *chip2mnc;
 
    (void) ddt;
@@ -3732,8 +3550,13 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 	break;
 
       case PIX_ADJ_EDSER:
-	fprintf (stderr, "Not implemented: Pixel_Adjust=PIX_ADJ_EDSER\n");
-	return -1;
+	if (-1 == marx_compute_acis_subpix (Acis_Subpixel_Object, Data_Table.dtt_ccdid,
+					    Data_Table.dtt_benergy, Data_Table.dtt_fltgrade, &dx, &dy))
+	  return -1;
+
+	x = (int)x + 0.5 + dx;
+	y = (int)y + 0.5 + dy;
+	break;
      }
 
    if (-1 == marx_chip_to_mnc (chip2mnc, x, y, &Data_Table.dtt_mnc))
@@ -3800,20 +3623,64 @@ static int compute_status (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 
+static char Grade_Map [256] =
+{
+   0,   1,   2,   5,   1,   1,   5,   7,   3,   5,   6,   6,   3,   5,   7,   7,
+   4,   4,   6,   7,   5,   5,   6,   7,  7,   7,   7,   7,   7,   7,   7,   7,
+   1,   1,   2,   5,   1,   1,   5,   7,   5,   7,   7,   7,   5,   7,   7,   7,
+   4,   4,   6,   7,   5,   5,   6,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   2,   2,  7,   7,   2,   2,   7,   7,   6,   7,   7,   7,   6,   7,   7,   7,
+   6,   6,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   5,   5,   7,   7,   5,   5,   7,   7,   6,   7,   7,  7,   6,   7,   7,   7,
+   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   1,   1,   2,   5,   1,   1,   5,   7,   3,   5,   6,   6,   3,   5,   7,   7,
+   5,   5,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   1,   1,   2,   5,   1,   1,   5,   7,   5,   7,   7,   7,   5,   7,   7,   7,
+   5,   5,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   5,   5,   7,   7,   5,   5,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   6,   6,   7,   7,   7,   7,  7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
+   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,  7,
+};
+
+
 static int compute_grade (Data_Def_Type *ddt) /*{{{*/
 {
    (void) ddt;
+   Data_Table.dtt_grade = Grade_Map[(unsigned char)Data_Table.dtt_fltgrade];
    return 0;
 }
 
 /*}}}*/
+
+static int Flight_Grade_Table [9][4] =
+{
+   /* -- */ { 10,  11,  138,  139 },
+   /* 0- */ {  2,  34,  130,  162 },
+   /* +- */ { 18,  22,   50,   54 },
+   /* -0 */ {  8,  12,  136,  140 },
+   /* 00 */ {  0,   0,    0,    0 },
+   /* +0 */ { 16,  17,   48,   49 },
+   /* -+ */ { 72,  76,  104,  108 },
+   /* 0+ */ { 64,  65,   68,   69 },
+   /* ++ */ { 80,  81,  208,  209 }
+};
 
 static int compute_fltgrade (Data_Def_Type *ddt) /*{{{*/
 {
+   int dx, dy;
+   int *fltgrades;
+
    (void) ddt;
+
+   dx = (int)(3.0*(Data_Table.dtt_chipx - (int)Data_Table.dtt_chipx));
+   dy = (int)(3.0*(Data_Table.dtt_chipy - (int)Data_Table.dtt_chipy));
+   fltgrades = Flight_Grade_Table[3*dy + dx];
+   Data_Table.dtt_fltgrade = fltgrades[(int)(4*JDMrandom())];
    return 0;
 }
 /*}}}*/
+
 static int compute_xy_sky (Data_Def_Type *ddt)
 {
    double x, y;
@@ -3864,36 +3731,6 @@ static int compute_pha_island (Data_Def_Type *ddt)
    (void) ddt;
 
    Data_Table.dtt_pha_island [4] = Data_Table.dtt_pha;
-   return 0;
-}
-#endif
-#ifdef VERY_OLD_PILEUP_MODEL
-static int compute_pileup_acis_energy (Data_Def_Type *dtt)
-{
-#if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
-   double gain, offset, pha;
-   int id;
-
-   (void) dtt;
-   id = Data_Table.dtt_ccdid;
-   if ((id < 0) || (id > MAX_ACIS_CCDID))
-     {
-	marx_error ("*** CCD_ID is out of range: %d", id);
-	return -1;
-     }
-
-   gain = Acis_PHA_Gains[id];
-   offset = Acis_PHA_Offsets [id];
-
-   /* Apply gain and offset to deduce energy from pha.  Apply a
-    * random value to the pha first.
-    */
-   pha = (double) Data_Table.dtt_pha + JDMrandom ();
-   Data_Table.dtt_energy = (float32) (pha * gain + offset);
-#else
-   (void) dtt;
-   Data_Table.dtt_energy = (float32) (0.001 * Data_Table.dtt_pha / Acis_PI_Factor);
-#endif
    return 0;
 }
 #endif

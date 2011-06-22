@@ -46,6 +46,7 @@ static char *ACIS_Fef_File;
 static char *Hetg_Geff_File;
 static char *Letg_Geff_File;
 static char *ACIS_Contam_File;
+static char *ACIS_Subpix_File;
 
 static Param_Table_Type Caldb_Parm_Table [] =
 {
@@ -59,6 +60,7 @@ static Param_Table_Type Caldb_Parm_Table [] =
    {"HETGEFF",	PF_FILE_TYPE,		&Hetg_Geff_File},
    {"LETGEFF",	PF_FILE_TYPE,		&Letg_Geff_File},
    {"ACISCONTAM",PF_FILE_TYPE,		&ACIS_Contam_File},
+   {"ACISSUBPIX",PF_FILE_TYPE,		&ACIS_Subpix_File},
    {NULL, 0, NULL}
 };
 

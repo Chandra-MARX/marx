@@ -923,9 +923,35 @@ static Fef_Type *find_fef (int ccd_id, float x, float y)
 
    /* x=308; y=494; ccd_id=7; */
 
+   if (x < 0)
+     {
+	if (_Marx_Det_Extend_Flag == 0)
+	  return NULL;
+	x = 0;
+     }
+   else if (x >= MIN_REGION_SIZE*NUM_REGIONS)
+     {
+	if (_Marx_Det_Extend_Flag == 0)
+	  return NULL;
+	x = (MIN_REGION_SIZE*NUM_REGIONS)-1;
+     }
+
+   if (y < 0)
+     {
+	if (_Marx_Det_Extend_Flag == 0)
+	  return NULL;
+	y = 0;
+     }
+   else if (y >= MIN_REGION_SIZE*NUM_REGIONS)
+     {
+	if (_Marx_Det_Extend_Flag == 0)
+	  return NULL;
+	y = (MIN_REGION_SIZE*NUM_REGIONS)-1;
+     }
+
    i = (unsigned int) (x / MIN_REGION_SIZE);
    j = (unsigned int) (y / MIN_REGION_SIZE);
-   
+
    if ((i >= NUM_REGIONS) || (j >= NUM_REGIONS))
      return NULL;
 

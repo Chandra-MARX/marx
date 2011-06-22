@@ -214,7 +214,8 @@ int _marx_acis_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	/* See if the photon will hit the CCD and if so, which one. */
 	d = _marx_intersect_with_detector (at->x, at->p,
 					   ACIS_S_Chips,
-					   &at->x, &dx, &dy);
+					   &at->x, &dx, &dy,
+					  _Marx_Det_Extend_Flag);
 	if (d == NULL)
 	  {
 	     at->flags |= PHOTON_MISSED_DETECTOR;

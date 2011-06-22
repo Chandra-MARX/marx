@@ -382,6 +382,7 @@ legCoarseBarWidth,r,h,68.0,0.0,,"Enter LEG Coarse bar width (um)"
 legCoarsePeriod,r,h,2000,0.1,,"Enter LEG Coarse period (um)"
 #legFineNumOrders,i,h,0,0,100,"Enter LETG Fine Grating num orders (2n+1)"
 #legCoarseNumOrders,i,h,0,0,100,"Enter LETG Coarse Grating num orders (2n+1)"
+DetExtendFlag,b,h,no,,,"Should off-detector coordinates be computed?"
 #---------------------------------------------------------------------------
 #
 # ACIS setup

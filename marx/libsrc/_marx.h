@@ -125,10 +125,12 @@ extern int _marx_init_file_spectrum (Param_File_Type *, Marx_Spectrum_Type *);
 
 extern int _marx_get_simple_specrum_parms (Param_File_Type *, Marx_Source_Type *, char *);
 
+extern int _Marx_Det_Extend_Flag;
 extern Marx_Detector_Geometry_Type 
  *_marx_intersect_with_detector (JDMVector_Type, JDMVector_Type,
 				 Marx_Detector_Geometry_Type *,
-				 JDMVector_Type *, double *, double *);
+				 JDMVector_Type *, double *, double *,
+				 int extend_flag);
 
 #if MARX_HAS_DITHER
 extern int _marx_init_dither (Param_File_Type *, int, double *, double *);

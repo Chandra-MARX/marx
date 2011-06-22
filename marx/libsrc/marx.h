@@ -577,4 +577,9 @@ extern int marx_init_ixo_ccd_rmf (Param_File_Type *p);
 
 extern int marx_set_time (double, double);
 
+typedef struct _Marx_Subpix_Table_Type Marx_Subpix_Table_Type;
+extern Marx_Subpix_Table_Type *marx_open_acis_subpix (void);
+extern void marx_close_acis_subpixel (Marx_Subpix_Table_Type *);
+extern int marx_compute_acis_subpix (Marx_Subpix_Table_Type *stt,
+			      int ccd, float energy, int fltgrade, float *dxp, float *dyp);
 #endif				       /* _MARX_H_ */
