@@ -147,6 +147,7 @@ typedef struct /*{{{*/
    int16 dtt_node_id;
    int16 dtt_status;
    int16 dtt_nphotons;
+   int32 dtt_tag;
 
    Marx_Dither_Type dtt_dither;
    JDMVector_Type dtt_mnc;
@@ -207,7 +208,7 @@ static int write_float32_as_int16 (Data_Def_Type *, JDFits_Type *);
 static int write_float64 (Data_Def_Type *, JDFits_Type *);
 static int write_time (Data_Def_Type *, JDFits_Type *);
 static int read_int16 (Data_Def_Type *);
-/* static int read_int32 (Data_Def_Type *); */
+static int read_int32 (Data_Def_Type *);
 static int read_byte_to_int16 (Data_Def_Type *);
 static int read_float32 (Data_Def_Type *);
 static int read_float32_to_float64 (Data_Def_Type *);
@@ -265,6 +266,28 @@ static Data_Def_Type *Data_Def_Write_Table [MAX_BTABLE_COLUMNS + 1];
 static Data_Def_Type Data_Def_Table [] = /*{{{*/
 
 {
+   {
+      'J',
+      &Data_Table.dtt_tag,		       /* pointer to value */
+      "tag.dat",				       /* filename */
+      0,		       /* flags */
+      "TAG",			       /* colname */
+      "Photon Identification Tag",  /* comment */
+      "J",			       /* type */
+      "",			       /* units */
+      NULL,			       /* WCS CTYPE */
+      1,			       /* column_number */
+      read_int32,		       /* compute_value */
+      write_int32,		       /* write_value */
+      open_marx_int32_file,	       /* open */
+      close_marx_file,		       /* close */
+      NULL,			       /* cdt */
+      0,			       /* ddt_min_max_type */
+      0,			       /* ddt_min_float_value */
+      0,			       /* ddt_max_float_value */
+      0,			       /* ddt_min_int_value */
+      0				       /* ddt_max_int_value */
+   },
    {
       'D',
       &Data_Table.dtt_time,		       /* pointer to value */
@@ -1251,19 +1274,24 @@ static int open_marx_file_internal (Data_Def_Type *ddt, int type) /*{{{*/
 {
    Marx_Dump_File_Type *dft;
    char *file;
+   int is_required;
 
    file = make_marx_filename (ddt->ddt_filename);
+
+   is_required = (ddt->ddt_flags & DDT_REQUIRED);
+   if (0 == is_required)
+     {
+	if (0 == marx_file_exists (file))
+	  {
+	     ddt->ddt_flags |= DDT_INVALID;
+	     return 0;
+	  }
+     }
 
    fprintf (stdout, "Examining %s\n", file);
 
    if (NULL == (dft = marx_open_read_dump_file (file)))
      {
-	if ((ddt->ddt_flags & DDT_REQUIRED) == 0)
-	  {
-	     ddt->ddt_flags |= DDT_INVALID;
-	     return 0;
-	  }
-
 	marx_error ("*** Unable to open %s.", file);
 	return -1;
      }
@@ -3158,17 +3186,19 @@ int main (int argc, char **argv) /*{{{*/
 	return 1;
      }
 
-   if ((Pixel_Adjust == PIX_ADJ_EDSER)
-       && (Simulation_Detector_Type & DETECTOR_ACIS))
+   if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
-	if (NULL == (Acis_Subpixel_Object = marx_open_acis_subpix ()))
-	  {
-	     fprintf (stderr, "Error opening the subpixel file\n");
-	     return 1;
-	  }
+	if (Pixel_Adjust == PIX_ADJ_EDSER)
+	    {
+	       if (NULL == (Acis_Subpixel_Object = marx_open_acis_subpix ()))
+		 {
+		    fprintf (stderr, "Error opening the subpixel file\n");
+		    return 1;
+		 }
+	    }
      }
+   else Pixel_Adjust = PIX_ADJ_RANDOMIZE;
 
-	
    if (NULL == (Obs_Par_Parms = read_obspar_file ()))
      {
      }
@@ -3310,7 +3340,6 @@ static int read_float32_add_1 (Data_Def_Type *ddt) /*{{{*/
 }
 /*}}}*/
 
-#if 0
 static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    if (1 != JDMread_int32 ((int32 *) ddt->ddt_value_ptr, 1, ddt->ddt_dft->fp))
@@ -3320,7 +3349,7 @@ static int read_int32 (Data_Def_Type *ddt) /*{{{*/
 }
 
 /*}}}*/
-#endif
+
 static int read_float32_to_int32 (Data_Def_Type *ddt) /*{{{*/
 {
    float32 f32;

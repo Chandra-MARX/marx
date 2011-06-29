@@ -224,6 +224,16 @@ Outfile_Info_Type;
       return 0; \
    }
 
+#define MAKE_WRITE_INT32_FUNC(name, expr) \
+   static int name (Outfile_Info_Type *info, FILE *fp, Marx_Photon_Attr_Type *at, double total_time) \
+   { \
+      int32 i = expr; \
+      (void) info; (void) total_time; \
+      if (1 != JDMwrite_int32 (&i, 1, fp)) \
+	return -1; \
+      return 0; \
+   }
+
 #define MAKE_WRITE_INT16_FUNC(name, expr) \
    static int name (Outfile_Info_Type *info, FILE *fp, Marx_Photon_Attr_Type *at, double total_time) \
    { \
@@ -275,11 +285,14 @@ MAKE_WRITE_INT8_FUNC(write_order2, at->support_orders[1])
 MAKE_WRITE_INT8_FUNC(write_order3, at->support_orders[2])
 MAKE_WRITE_INT8_FUNC(write_order4, at->support_orders[3])
 
+MAKE_WRITE_INT32_FUNC(write_photon_tag, at->tag)
+
 Outfile_Info_Type Outfile_Info_Table [] =
 {
    {MARX_PI_OK, "b_energy.dat", "B_ENERGY", 'E', &write_pi},
    {MARX_ENERGY_OK, "energy.dat", "ENERGY", 'E', &write_energy},
    {MARX_TIME_OK, "time.dat", "TIME", 'E', &write_time},
+   {MARX_TAG_OK, "tag.dat", "TAG", 'J', &write_photon_tag},
    {MARX_X_VECTOR_OK, "xpos.dat", "XPOS", 'E', &write_x_x},
    {MARX_X_VECTOR_OK, "ypos.dat", "YPOS", 'E', &write_x_y},
    {MARX_X_VECTOR_OK, "zpos.dat", "ZPOS", 'E', &write_x_z},

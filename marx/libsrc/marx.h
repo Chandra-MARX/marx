@@ -36,7 +36,7 @@
 /*{{{ Marx_Photon_Type and functions to create/destroy it */
 
 /* These 6 quantities are used to specify the orientation of the optical
- * axis, as well as the detector offset and angle.  They are derived from 
+ * axis, as well as the detector offset and angle.  They are derived from
  * the aspect soloution.
  */
 typedef struct
@@ -51,12 +51,12 @@ Marx_Dither_Type;
 typedef struct
 {
    double energy;		       /* energy of the photon */
-   
+
    JDMVector_Type x;		       /* position in space */
    JDMVector_Type p;		       /* direction */
-   
+
    /* Misc attributes that describe the history of the photon */
-   
+
    double arrival_time;
    unsigned int flags;		       /* if non-zero, this photon is
 					* invalid.  In that case, the individual
@@ -80,7 +80,7 @@ typedef struct
    float v_pixel;
 
    Marx_Dither_Type dither_state;
-   
+
    float pi;
    short pulse_height;		       /* channel num */
    unsigned int mirror_shell;	       /* describes which mirror the
@@ -89,11 +89,12 @@ typedef struct
 					* will hit.
 					*/
    SIGNED_CHAR ccd_num;		       /* ccd number photon hit */
-   
+
    SIGNED_CHAR detector_region;      /* region of a (HRC) detector */
    SIGNED_CHAR order;			       /* diffraction order */
    SIGNED_CHAR support_orders[4];	       /* diffraction orders from support */
 
+   unsigned int tag;		       /* unique tag for each photon */
 }
 Marx_Photon_Attr_Type;
 
@@ -108,7 +109,7 @@ typedef struct
    unsigned int max_n_photons;	       /* number of photons attribute list can
 					* accomodate
 					*/
-   double total_time;		       /* total time to accumulate THESE photons. 
+   double total_time;		       /* total time to accumulate THESE photons.
 					* It is really the maximum value of the
 					* time element of the attribute structure.
 					*/
@@ -127,21 +128,24 @@ typedef struct
 #define MARX_TIME_OK		0x00000002
 #define MARX_X_VECTOR_OK	0x00000004
 #define MARX_P_VECTOR_OK	0x00000008
+#define MARX_TAG_OK		0x00000010
 /* These vary */
-#define MARX_PULSEHEIGHT_OK	0x00000010
-#define MARX_PI_OK		0x00000020
-#define MARX_DET_PIXEL_OK	0x00000040
-#define MARX_DET_NUM_OK		0x00000080
-#define MARX_DET_REGION_OK	0x00000100
-#define MARX_DET_UV_PIXEL_OK	0x00000200
-#define MARX_MIRROR_SHELL_OK	0x00000400
-#define MARX_SKY_DITHER_OK	0x00000800
-#define MARX_DET_DITHER_OK	0x00001000
-#define MARX_ORDER_OK		0x00002000
-#define MARX_ORDER1_OK		0x00004000
-#define MARX_ORDER2_OK		0x00008000
-#define MARX_ORDER3_OK		0x00010000
-#define MARX_ORDER4_OK		0x00020000
+#define MARX_PULSEHEIGHT_OK	0x00000020
+#define MARX_PI_OK		0x00000040
+#define MARX_DET_PIXEL_OK	0x00000080
+#define MARX_DET_NUM_OK		0x00000100
+#define MARX_DET_REGION_OK	0x00000200
+#define MARX_DET_UV_PIXEL_OK	0x00000400
+#define MARX_MIRROR_SHELL_OK	0x00000800
+#define MARX_SKY_DITHER_OK	0x00001000
+#define MARX_DET_DITHER_OK	0x00002000
+#define MARX_ORDER_OK		0x00100000
+#define MARX_ORDER1_OK		0x00200000
+#define MARX_ORDER2_OK		0x00400000
+#define MARX_ORDER3_OK		0x00800000
+#define MARX_ORDER4_OK		0x01000000
+
+   unsigned int tag_start;	       /* start tag for this group */
 }
 Marx_Photon_Type;
 
@@ -190,16 +194,16 @@ extern int marx_close_write_dump_file (FILE *, unsigned long);
  * origin, the flux at the origin is about 90% of what it is at the opening
  * of the telescope.  Fortunately, the physical quantity that is affected by
  * an error in the flux is the photon rate.
- * 
+ *
  * When a source module is called to initialize the photon list, it is required
- * to set the direction part (p) of the Marx_Photon_Attr_Type structure to 
- * correspond to a ray that will intercept the origin.  This means that the 
- * point of origin of the array can be determined by tracing the line from 
- * the origin of the coordinate system back towards the source along this 
- * direction.  Assuming the validity of the assumption of the previous 
- * paragraph, this means that the mirror module can construct a ray at any 
+ * to set the direction part (p) of the Marx_Photon_Attr_Type structure to
+ * correspond to a ray that will intercept the origin.  This means that the
+ * point of origin of the array can be determined by tracing the line from
+ * the origin of the coordinate system back towards the source along this
+ * direction.  Assuming the validity of the assumption of the previous
+ * paragraph, this means that the mirror module can construct a ray at any
  * point on the aperature of the mirror and from its inferred point of origin
- * a direction can be assigned for the ray.  For sources at infinity, the 
+ * a direction can be assigned for the ray.  For sources at infinity, the
  * direction given to the ray will simply be the one given to it by the source.
  * However, for sources at finite distances, a new direction will result whose
  * justification is contingent upon the assumption described above.
@@ -209,13 +213,13 @@ extern int marx_close_write_dump_file (FILE *, unsigned long);
 
 /*{{{ Marx_Source_Type and Marx_Spectrum_Type */
 
-typedef struct 
+typedef struct
 {
    double emin, emax, flux;
 }
 Marx_Flat_Spectrum_Type;
 
-typedef struct 
+typedef struct
 {
    double *energies;
    double *cum_flux;		       /* normalized to 1 */
@@ -223,7 +227,7 @@ typedef struct
 }
 Marx_File_Spectrum_Type;
 
-typedef struct 
+typedef struct
 {
    FILE *fp;
    unsigned long history;
@@ -238,7 +242,7 @@ typedef struct _Marx_Spectrum_Type
 #define MARX_FILE_SPECTRUM 2
 #define MARX_RAY_SPECTRUM 3
 #define MARX_SAOSAC_SPECTRUM 4
-   union 
+   union
      {
 	Marx_File_Spectrum_Type file;
 	Marx_Flat_Spectrum_Type flat;
@@ -258,34 +262,33 @@ typedef struct _Marx_Source_Type
    int (*open_source)(struct _Marx_Source_Type *);
    int (*create_photons) (struct _Marx_Source_Type *, Marx_Photon_Type *, unsigned int, unsigned int *);
    int (*close_source)(struct _Marx_Source_Type *);
-   
-   /* 
+
+   /*
     * If distance is less than or equal to zero, the source is
-    * considered to be at infinity.  The vector p is a unit vector 
+    * considered to be at infinity.  The vector p is a unit vector
     * FROM the source TO the origin.
     */
    double distance;
    JDMVector_Type p;
    JDMVector_Type p_normal;	       /* normal to p in approx y direction */
-   
+
    /* cum spatial probability distribution */
-   double *cum_radial_dist;	  
+   double *cum_radial_dist;
    double *cum_radial_rvalues;
    unsigned int num_radial_points;
-   
+
    Marx_Spectrum_Type spectrum;
 }
 Marx_Source_Type;
 
 /*}}}*/
 
-
 extern Marx_Source_Type *marx_create_source (Param_File_Type *);
 extern int marx_open_source (Marx_Source_Type *);
 extern int marx_close_source (Marx_Source_Type *);
 extern int marx_create_photons (Marx_Source_Type *,
 				Marx_Photon_Type *,
-				unsigned int, 
+				unsigned int,
 				unsigned int *, double *);
 
 /*}}}*/
@@ -293,7 +296,7 @@ extern int marx_create_photons (Marx_Source_Type *,
 /*{{{ Marx_Grating_Info_Type and related functions */
 
 typedef struct
-{   
+{
    double period;
    double bar_height;
    double bar_width;
@@ -331,13 +334,10 @@ extern char *marx_make_data_file_name (char *);
 
 extern Param_File_Type *marx_pf_parse_cmd_line (char *file, char *mode, int argc, char **argv);
 
-
-
 extern double marx_reflectivity (double, double, double);
 extern double marx_interp_reflectivity (double, double,
 					float *, float *, float *,
 					unsigned int);
-
 
 extern int marx_detector_init (Param_File_Type *);
 extern int marx_detect (Marx_Photon_Type *, int);
@@ -366,7 +366,6 @@ extern int marx_grating_diffract (Marx_Photon_Type *, int);
 #define MARX_GRATING_HETG	1
 #define MARX_GRATING_LETG	2
 #define MARX_GRATING_CATGS	3
-
 
 typedef struct
 {
@@ -414,7 +413,7 @@ typedef struct _Marx_Dectector_Geometry_Type
 #ifdef MARX_DET_FACET_PRIVATE_DATA
    MARX_DET_FACET_PRIVATE_DATA
 #endif
-} 
+}
 Marx_Detector_Geometry_Type;
 
 typedef struct _Marx_Detector_Type
@@ -424,7 +423,7 @@ typedef struct _Marx_Detector_Type
 
    int (*tiled_pixel_map_fun) (struct _Marx_Detector_Type *,
 			       Marx_Detector_Geometry_Type *,
-			       int, unsigned int, unsigned int, 
+			       int, unsigned int, unsigned int,
 			       unsigned int *, unsigned int *);
 
    /* linked list of facets */
@@ -433,13 +432,13 @@ typedef struct _Marx_Detector_Type
 
    char *fp_system_name;	       /* focal plane system for detector */
    Marx_FP_Coord_Type *fp_coord_info;
-   
+
    /* Detector specific offset (stf_stt_offset for chandra) */
    JDMVector_Type aimpoint_offset;
 
    int (*print_info)(struct _Marx_Detector_Type *, FILE *);
 
-   /* After a call to marx_get_detector_info, this structure will be 
+   /* After a call to marx_get_detector_info, this structure will be
     * expressed in the STF system at the nominal aimpoint.
     */
 #ifdef MARX_DETECTOR_TYPE_PRIVATE_DATA
@@ -453,8 +452,6 @@ extern int marx_compute_tiled_pixel (Marx_Detector_Type *,
 				     int, unsigned int, unsigned int,
 				     unsigned int *, unsigned int *);
 
-
-
 extern int marx_set_data_directory (char *);
 
 extern int marx_write_photons (Marx_Photon_Type *, unsigned long,
@@ -464,8 +461,8 @@ extern int marx_dump (int, char **);
 extern char *marx_dircat (char *, char *);
 
 /* #define HBAR_C 1.973271e-04 keV-Microns (1986) */
- /* WAS: 1.9732858e-4  
-  * The new value is the product of 
+ /* WAS: 1.9732858e-4
+  * The new value is the product of
   * 6.5821220e-19 KeV sec * 2.99792458e14 um
   * taken from the 1986 values
   */
@@ -476,7 +473,6 @@ extern int marx_dump_to_rayfile (char *, int,
 				 Marx_Photon_Type *,
 				 double);
 extern int marx_dump_rayfile (char *);
-
 
 extern int marx_set_grating_table_parms (double, double, unsigned int);
 extern int marx_create_grating_opt_const_tables (char *);
@@ -492,7 +488,6 @@ extern int marx_wfold_dump_file (char *);
 
 extern int marx_f_read_bdat (char *, unsigned int *,
 			     unsigned int, float **, ...);
-
 
 /* Supported Features */
 extern char *Marx_Supported_Detectors;
@@ -510,7 +505,7 @@ marx_init_chip_to_mnc (Marx_Chip_To_MNC_Type *,
 		       double, double, double,   /* xyz offset of sts from fc */
 		       double);	       /* angle of stf with respect to FC */
 
-extern int 
+extern int
 marx_chip_to_mnc (Marx_Chip_To_MNC_Type *,
 		  double, double,   /* x,y pixel */
 		  JDMVector_Type *);   /* returned unit vector */
@@ -527,9 +522,8 @@ extern void marx_free_chip_to_mnc (Marx_Chip_To_MNC_Type *);
 extern int marx_vector_to_tan_plane (JDMVector_Type *,
 				     JDMVector_Type *,
 				     double *, double *);
-extern int 
+extern int
 marx_tan_plane_to_vector (double, double, JDMVector_Type *, JDMVector_Type *);
-
 
 extern void
 marx_compute_ra_dec_offsets (double ra_0, double dec_0,
@@ -552,7 +546,6 @@ extern int marx_init_grating_xform (Marx_Grating_Xform_Type *,
 extern Marx_Grating_Xform_Type *
 marx_allocate_grating_xform (Marx_Chip_To_MNC_Type *, int);
 extern void marx_free_grating_xform (Marx_Grating_Xform_Type *);
-
 
 /* RDB routines : See comment in marx/libsrc/rdb.c */
 typedef struct _Marx_RDB_File_Type Marx_RDB_File_Type;

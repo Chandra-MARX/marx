@@ -2,8 +2,8 @@
 #set -v
 #MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
-use_valgrind=0
-use_gdb=1
+use_valgrind=1
+use_gdb=0
 
 #bindir=/tmp/marxroot/bin
 bindir=./objs
@@ -36,7 +36,9 @@ export PFILES UPARM
 cp ../par/marxasp.par ../par/marx.par ../par/marxpileup.par $output_dir/uparm 
 
 marx="$bindir/marx NumRays=1000 dNumRays=200 ExposureTime=0 \
-DitherModel=INTERNAL SourceRA=45 SourceDEC=30 RA_Nom=45 Dec_Nom=30 Roll_Nom=20"
+DitherModel=INTERNAL SourceRA=45 SourceDEC=30 RA_Nom=45 Dec_Nom=30 Roll_Nom=20 \
+OutputVectors=ETXYZ123DxyMPOabcdSrB#
+"
 marx2fits="$bindir/marx2fits"
 marxasp="$bindir/marxasp"
 marxpileup="$bindir/marxpileup"
@@ -82,6 +84,11 @@ do
 #	 /bin/cp $purify $output_dir/marx$count/marxasp.purify
         count=`expr $count + 1`
 	 if [ $use_gdb != "0" ]; then exit 0; fi
+	if [ $count = "xxxxx" ]
+	then
+	   valgrind="gdb --args"
+	   use_gdb=1
+	fi
       done
    done
 done

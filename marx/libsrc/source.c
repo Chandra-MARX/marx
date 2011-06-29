@@ -318,16 +318,23 @@ int marx_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 			| MARX_P_VECTOR_OK);
      }
 
-#if MARX_HAS_DITHER
    if (n)
      {
+	unsigned int tag_start = pt->tag_start;
 	at = pt->attributes;
 	pt->num_sorted = pt->n_photons = n;
+	for (i = 0; i < n; i++)
+	  {
+	     at[i].tag = tag_start + i;
+	  }
+	pt->history |= MARX_TAG_OK;
+	pt->tag_start = tag_start + n;
 	pt->total_time = at[n - 1].arrival_time;
+#if MARX_HAS_DITHER
 	if (-1 == _marx_dither_photons (pt, &n))
 	  return -1;
-     }
 #endif
+     }
 
    /* Now sort the energies for later reference */
    if (pt->sorted_index != NULL)

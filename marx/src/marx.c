@@ -879,6 +879,10 @@ static unsigned long compute_write_mask (void) /*{{{*/
      {
 	switch (ch)
 	  {
+	   case '#':
+	     mask |= MARX_TAG_OK;
+	     break;
+
 	   case 'E':
 	     mask |= MARX_ENERGY_OK;
 	     break;
