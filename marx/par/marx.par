@@ -109,6 +109,7 @@ UserSourceArgs,s,a,"pnts.dat",,,"Enter user source parameter"
 #
 SAOSACFile,s,a,"saosac.fits",,,"Enter marx input source/output ray filename"
 SAOSAC_Color_Rays,b,a,no,,,"Color SAOSAC rays?"
+SAOSAC_Scale_Wgts,b,h,no,,,"Should SAOSAC ray weights be rescaled?"
 #---------------------------------------------------------------------------
 #
 # Dither/Aspect Parameters

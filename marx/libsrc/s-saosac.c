@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -44,15 +43,56 @@
 
 static JDFits_BTable_Read_Type *Saosac_Bin_Table;
 static int File_Has_Time_Column;
-
+static double Wgts_Scale_Factor = 1.0;
 static int Use_Color_Rays;
+
+static int compute_weights_scale_factor (char *file, double *wp)
+{
+   JDFits_BTable_Read_Type *bt;
+   char *extname;
+   static char *columns [] =
+     {
+	  "RT_WGHT",
+     };
+   double w, wmax;
+
+   marx_message ("Reading RT_WGHT column from %s\n", file);
+
+   extname = "RAYTRACE";
+
+   bt = jdfits_simple_aopen_btable (file,
+				    extname,
+				    1, columns);
+
+   if (bt == NULL)
+     {
+	marx_error ("Unable to open proper SAOSAC rayfile called %s",
+		    file);
+	return -1.0;
+     }
+
+
+   wmax = 0.0;
+
+   while (-1 != jdfits_simple_d_read_btable (bt, &w))
+     {
+	if (w > wmax)
+	  wmax = w;
+     }
+
+   jdfits_simple_close_btable (bt);
+
+   *wp = 1.0/wmax;
+   marx_message ("Scaling SAOSAC Weights by %g\n", *wp);
+   return 0;
+}
 
 static JDFits_BTable_Read_Type *open_saosac_fits_file (char *file)
 {
    JDFits_BTable_Read_Type *bt;
    JDFits_Type *f;
    char *extname;
-   static char *columns [] = 
+   static char *columns [] =
      {
 	"RT_X",
 	  "RT_Y",
@@ -66,7 +106,7 @@ static JDFits_BTable_Read_Type *open_saosac_fits_file (char *file)
      };
 
    marx_message ("Opening SAOSAC fits file %s\n", file);
-   
+
    extname = "RAYTRACE";
 
    /* See if time column is present */
@@ -83,7 +123,7 @@ static JDFits_BTable_Read_Type *open_saosac_fits_file (char *file)
 
    (void) jdfits_close_file (f);
 
-   bt = jdfits_simple_aopen_btable (file, 
+   bt = jdfits_simple_aopen_btable (file,
 				    extname,
 				    (File_Has_Time_Column ? 9 : 8),
 				    columns);
@@ -94,15 +134,14 @@ static JDFits_BTable_Read_Type *open_saosac_fits_file (char *file)
 		    file);
 	return NULL;
      }
-   
+
    return bt;
 }
-
 
 static int saosac_open_source (Marx_Source_Type *st) /*{{{*/
 {
    (void) st;
-   
+
    if (NULL == Saosac_Bin_Table)
      return -1;
 
@@ -140,28 +179,25 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
    bt = Saosac_Bin_Table;
    efun = st->spectrum.energy_function;
 
-   if (bt == NULL) 
+   if (bt == NULL)
      return -1;
-   
+
    at = pt->attributes;
-   
+
    num_read = 0;
    this_time = 0.0;
 
    while (num_read < num)
      {
-	double t, x, y, z, r, px, py, pz;
+	double t, x, y, z, r, px, py, pz, w;
 
 	if (-1 == jdfits_simple_d_read_btable (bt, buf))
 	  break;
-	
-	/* Check weight */
-	if (buf[7] != 1.0)
-	  {
-	     if (JDMrandom () >= buf [7])
-	       at->flags |= PHOTON_MIRROR_VBLOCKED;	       
-	  }
-	
+
+	w = buf[7] * Wgts_Scale_Factor;
+	if (JDMrandom () >= w)
+	  at->flags |= PHOTON_MIRROR_VBLOCKED;
+
 	/* The rays are in the XRCF coord system.  This is the same as MARX
 	 * except that the origin is at the fore end of the CAP.  Here I will
 	 * project them to the CAP
@@ -177,7 +213,7 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	 */
 	/* Ummm...  I am not so sure about the coordinate system. */
 	t = -x / px;
-	
+
 	at->x.x = _Marx_HRMA_Cap_Position - 0.016750;
 	at->x.y = y = buf[1] + py * t;
 	at->x.z = z = buf[2] + pz * t;
@@ -189,18 +225,18 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	/* Now deduce the mirror shell based on position of the ray.  The
 	 * following values will be used:
 	 *				      Radius, mm
-	 * 
+	 *
 	 * Mirror            Parabola             Intersect            Hyperbola
 	 * Number       Front         Back          Plane         Front         Back
-	 * 
+	 *
 	 *    1     612.69078     600.34506     599.45019     598.52343     560.86506
 	 *    3     493.40861     483.46567     482.85824     481.77216     451.45717
 	 *    4     435.62935     426.85049     426.35484     425.27403     398.51324
 	 *    6     323.81612     317.29022     316.96956     316.02294     296.13584
-	 * 
+	 *
 	 * In particular, the intersect plane values will be used.
 	 */
-	 
+
 	r = z * z + y * y;
 
 	if (r < 138012.25)	       /* ((426 + 317)/2.0)^2  */
@@ -209,7 +245,7 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	  at->mirror_shell = 2;
 	else if (r < 292681.000000)    /* (599 + 483)^2/4 */
 	  at->mirror_shell = 1;
-	else 
+	else
 	  at->mirror_shell = 0;
 
 	if (Use_Color_Rays)
@@ -227,7 +263,7 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	     at->energy = buf[6];
 	     at->arrival_time = this_time;
 	  }
-	
+
 	at++;
 	num_read++;
      }
@@ -240,7 +276,7 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 		   | MARX_P_VECTOR_OK);
 
    pt->history |= MARX_MIRROR_SHELL_OK;
-   
+
    if (Use_Color_Rays == 0)
      pt->history |= MARX_TIME_OK;
 
@@ -254,24 +290,35 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 				char *name, unsigned int source_id)
 {
-   char buf [PF_MAX_LINE_LEN];
+   char file [PF_MAX_LINE_LEN];
    JDFits_BTable_Read_Type *bt;
-   
+   int scale_wgts;
+
    (void) source_id; (void) name;
    st->open_source = saosac_open_source;
    st->create_photons = saosac_create_photons;
    st->close_source = saosac_close_source;
-   
-   if (-1 == pf_get_string (p, "SAOSACFile", buf, sizeof (buf)))
+
+   if (-1 == pf_get_string (p, "SAOSACFile", file, sizeof (file)))
      return -1;
 
    if (-1 == pf_get_boolean (p, "SAOSAC_Color_Rays", &Use_Color_Rays))
      return -1;
 
-   bt = open_saosac_fits_file (buf);
+   if (-1 == pf_get_boolean (p, "SAOSAC_Scale_Wgts", &scale_wgts))
+     return -1;
+
+   Wgts_Scale_Factor = 1.0;
+   if (scale_wgts)
+     {
+	if (-1 == compute_weights_scale_factor (file, &Wgts_Scale_Factor))
+	  return -1;
+     }
+
+   bt = open_saosac_fits_file (file);
    if (bt == NULL)
      return -1;
-   
+
    Saosac_Bin_Table = bt;
 
    if (Use_Color_Rays)
