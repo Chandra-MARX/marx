@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -43,22 +43,22 @@ int JDMread_column_fdata (char *file, float **data, int *cindex, unsigned int n,
 #define MAX_COLUMNS 20
    float dum[MAX_COLUMNS];
    FILE *fp;
-   
+
    *num_read = 0;
-   if (n > MAX_COLUMNS) 
+   if (n > MAX_COLUMNS)
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	JDMmsg_error ("JDMread_column_fdata");
 	return -1;
      }
-   
-   if (file == NULL) 
+
+   if (file == NULL)
      {
 	fp = stdin;
 	do_close = 0;
 	file = "<stdin>";
      }
-   else 
+   else
      {
 	if (NULL == (fp = fopen (file, "r")))
 	  {
@@ -68,7 +68,7 @@ int JDMread_column_fdata (char *file, float **data, int *cindex, unsigned int n,
 	  }
 	do_close = 1;
      }
-   
+
    /* initialize everything to NULL */
    for (i = 0; i < n; i++) data[i] = NULL;
 
@@ -80,7 +80,7 @@ int JDMread_column_fdata (char *file, float **data, int *cindex, unsigned int n,
 	if (ptr == NULL) goto return_error;
 	data[i] = ptr;
      }
-   
+
    while (NULL != fgets (buf, sizeof (buf) - 1, fp))
      {
 	if ((int)n > sscanf (buf, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f",
@@ -90,7 +90,7 @@ int JDMread_column_fdata (char *file, float **data, int *cindex, unsigned int n,
 			dum+15, dum+16, dum+17, dum+18, dum+19
 			))
 	  continue;
-	
+
 	if (nread == space)
 	  {
 	     space += 1024;
@@ -103,36 +103,36 @@ int JDMread_column_fdata (char *file, float **data, int *cindex, unsigned int n,
 		  data[i] = ptr;
 	       }
 	  }
-	
-	for (i = 0; i < n; i++) 
+
+	for (i = 0; i < n; i++)
 	  {
 	     if (cindex[i] == 0) continue;
 	     data[i][nread] = dum[i];
 	  }
-	
+
 	nread++;
      }
-   
+
    if (nread == 0)
      {
 	JDMath_Error = JDMATH_CORRUPT_FILE_ERROR;
 	JDMmsg_error2 ("JDMread_column_fdata", file);
 	goto read_error;
      }
-   
+
    if (file != NULL) fclose (fp);
    *num_read = nread;
    return 0;
-   
+
    return_error:
    JDMath_Error = JDMATH_MALLOC_ERROR;
-   
+
    read_error:
-   
+
    if (do_close) fclose (fp);
-   
+
    JDMmsg_error2 ("JDMread_column_fdata", file);
-   
+
    for (i = 0; i < n; i++)
      {
 	if (data[i] != NULL) SLFREE (data[i]);
@@ -145,7 +145,7 @@ int JDMread_float_xy (char *file, float **x, float **y, int colx, int coly, unsi
    int n;
    int cindex [MAX_COLUMNS];
    float *data [MAX_COLUMNS];
-   
+
    *num_read = 0;
    if (x != NULL) *x = NULL;
    if (y != NULL) *y = NULL; else coly = 2;
@@ -160,21 +160,21 @@ int JDMread_float_xy (char *file, float **x, float **y, int colx, int coly, unsi
 	JDMmsg_error ("JDMread_float_xy");
 	return -1;
      }
-   
+
    memset ((char *) cindex, 0, sizeof (cindex));
-   
+
    cindex [colx] = 1;
    n = colx;
-   
-   if (y != NULL) 
+
+   if (y != NULL)
      {
 	cindex [coly] = 1;
 	if (coly > colx) n = coly;
      }
-   
+
    if (-1 == JDMread_column_fdata (file, data, cindex, n + 1, num_read))
      return -1;
-   
+
    *x = data[colx];
    if (y != NULL) *y = data[coly];
 

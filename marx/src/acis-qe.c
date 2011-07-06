@@ -44,7 +44,7 @@ static Param_Table_Type Parm_Table [] =
 static int acis_qe_initialize (int argc, char **argv)
 {
    Param_File_Type *p;
-   
+
    p = marx_pf_parse_cmd_line ("pileup.par", NULL, argc, argv);
 
    if (p == NULL)
@@ -58,19 +58,18 @@ static int acis_qe_initialize (int argc, char **argv)
 	pf_close_parameter_file (p);
 	return -1;
      }
-   
+
    if (-1 == pf_get_parameters (p, Parm_Table))
      {
 	pf_error ("Error getting parameters.");
 	pf_close_parameter_file (p);
 	return -1;
      }
-   
+
    pf_close_parameter_file (p);
-   
+
    return 0;
 }
-
 
 int main (int argc, char **argv)
 {
@@ -87,13 +86,13 @@ int main (int argc, char **argv)
    memset ((char *) &ray, 0, sizeof (AcisSim_Ray_Type));
    ray.xpixel = 512.5;
    ray.ypixel = 512.5;
-   
+
    emin = 0.04;
    emax = 12.0;
    ratio = emax / emin;
    npts = 1024;
    factor = 1.0 / (npts - 1);
-   
+
    num_iterations = 1000;
    /* The 10000 has been chosen because we desire to compute the mean
     * to within 1 percent.  The argument is based on the binomial
@@ -104,49 +103,49 @@ int main (int argc, char **argv)
     * number detected will be np and the standard deviation will be
     * s = sqrt(npq).  The quantum efficiency is the mean value divided
     * by n and the average sigma per event is s/n.  We want s/n to be
-    * less than some value a.  Obviously, 
+    * less than some value a.  Obviously,
     * @   a < sqrt(npq)/n ==> n > pq/a^2
-    * For pq ~ 1 and a ~ 0.01 we find n > 10000.  Note also that max(pq) 
+    * For pq ~ 1 and a ~ 0.01 we find n > 10000.  Note also that max(pq)
     * is <= 1.
     */
 
    if (Filter_Energies != NULL)
      npts = Num_Filter_Energies;
-     
+
    for (i = 0; i < npts; i++)
      {
 	unsigned int count;
 	double t_coeff;
-	
+
 	if (Filter_Energies != NULL)
 	  {
 	     energy = Filter_Energies[i];
 	     t_coeff = Filter_Trans_Coeffs[i];
 	  }
-	else 
+	else
 	  {
 	     energy = emin * pow (ratio, i * factor);
 	     t_coeff = 1.0;
 	  }
-	
+
 	ray.energy = energy;
 	abs_coeff = absorbtion_coeff (energy);
-	
+
 	num_g0_detected = num_detected = 0;
 	count = num_iterations;
 	while (count)
 	  {
 	     count--;
-	     
+
 	     if ((t_coeff != 1.0)
 		 && (JDMrandom () >= t_coeff))
 	       continue;
-	     
+
 	     if (-1 != process_ray_1 (&ray, &event, abs_coeff))
 	       {
 		  num_detected++;
 		  if ((event.flags & REGULAR_EVENT_OK)
-		      && (*(event.regular_island.phas 
+		      && (*(event.regular_island.phas
 			    + (event.regular_island.island_size * event.regular_island.island_size)/2)
 			  > 0.8 * energy))
 		    num_g0_detected++;
@@ -159,7 +158,4 @@ int main (int argc, char **argv)
      }
    return 0;
 }
-
-	
-
 

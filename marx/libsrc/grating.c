@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -103,7 +102,7 @@ int marx_grating_init (Param_File_Type *pf) /*{{{*/
 int marx_grating_diffract (Marx_Photon_Type *pt, int verbose) /*{{{*/
 {
    int status;
-   
+
    switch (Grating)
      {
       case MARX_GRATING_LETG:
@@ -133,7 +132,7 @@ int marx_grating_diffract (Marx_Photon_Type *pt, int verbose) /*{{{*/
 	marx_error ("Grating not initialized.");
 	return -1;
      }
-   
+
    return status;
 }
 

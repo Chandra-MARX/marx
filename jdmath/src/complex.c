@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -57,10 +56,10 @@ JDMComplex_Type JDMc_div (JDMComplex_Type z1, JDMComplex_Type z2)
    JDMComplex_Type z;
    double r1, r2, i1, i2;
    double ratio, denom;
-   
+
    r1 = z1.r; i1 = z1.i;
    r2 = z2.r; i2 = z2.i;
-   
+
    /* DO it this way to avoid overflow in the denomenator */
    if (fabs(r2) > fabs(i2))
      {
@@ -141,7 +140,7 @@ JDMComplex_Type JDMc_a_bz (double a, double b, JDMComplex_Type z1)
    return z;
 }
 
-JDMComplex_Type JDMc_az1_bz2 (double a, JDMComplex_Type z1, 
+JDMComplex_Type JDMc_az1_bz2 (double a, JDMComplex_Type z1,
 			      double b, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -154,21 +153,21 @@ double JDMc_abs (JDMComplex_Type z)
 {
    double r, i, fr, fi;
    double ratio;
-   
+
    r = z.r;
    i = z.i;
-   
+
    fr = fabs(r);
    fi = fabs(i);
-   
+
    if (fr > fi)
      {
 	ratio = i / r;
 	return fr * sqrt (1.0 + ratio * ratio);
      }
-   
+
    if (fi == 0.0) return 0.0;
-   
+
    ratio = r / i;
    return fi * sqrt (1.0 + ratio * ratio);
 }
@@ -202,11 +201,11 @@ double JDMc_imag (JDMComplex_Type a)
 JDMComplex_Type JDMc_sqrt (JDMComplex_Type a)
 {
    double r;
-   
+
    r = JDMc_abs (a);
-   
+
    if (r == 0.0) return a;
-   
+
    if (a.r >= 0.0)
      {
 	a.r = sqrt (0.5 * (r + a.r));
@@ -217,7 +216,7 @@ JDMComplex_Type JDMc_sqrt (JDMComplex_Type a)
 	r = sqrt (0.5 * (r - a.r));
 	a.r = 0.5 * a.i / r;
 	a.i = r;
-	
+
 	if (a.r < 0.0)
 	  {
 	     a.r = -a.r;
@@ -226,7 +225,6 @@ JDMComplex_Type JDMc_sqrt (JDMComplex_Type a)
      }
    return a;
 }
-
 
 #if 0
 
@@ -269,25 +267,13 @@ static int test_complex_sqrt (void)
    return 0;
 }
 
-	
-	
-		      
-	
-   
-
-
 int main ()
 {
    if (-1 == test_complex_sqrt ())
      return 1;
-   
+
    return 0;
 }
 
 #endif
-
-
-
-
-
 

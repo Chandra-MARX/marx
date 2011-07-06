@@ -35,13 +35,12 @@ static int is_binary_table (JDFits_Type *f)
    return (f->header->type == JDFITS_BINTABLE_HEADER);
 }
 
-
-JDFits_Type *jdfits_find_binary_table (char *file, 
+JDFits_Type *jdfits_find_binary_table (char *file,
 				       int (*fun)(void *, JDFits_Type *),
 				       void *clientdata)
 {
    JDFits_Type *ft;
-  
+
    if (NULL == (ft = jdfits_open_file (file, JDFITS_READ_MODE)))
      return NULL;
 
@@ -66,7 +65,7 @@ JDFits_Type *jdfits_find_binary_table (char *file,
 		  jdfits_close_file (ft);
 		  return NULL;
 	       }
-	     
+
 	     if (status == 1)
 	       return ft;
 	  }
@@ -81,7 +80,6 @@ JDFits_Type *jdfits_find_binary_table (char *file,
      }
 }
 
-
 static int extname_match_fun (void *vstr, JDFits_Type *ft)
 {
    char *str = (char *) vstr;
@@ -93,20 +91,18 @@ static int extname_match_fun (void *vstr, JDFits_Type *ft)
 
    status = (0 == jdfits_strcasecmp (val, str));
    jdfits_free (val);
-   
+
    return status;
 }
-	
-	
+
 JDFits_Type *jdfits_open_binary_table (char *file, char *extname)
 {
    JDFits_Type *ft;
-   
+
    if (NULL == (ft = jdfits_find_binary_table (file, extname_match_fun, (void *) extname)))
      jdfits_error ("Unable to find binary table with EXTNAME=%s in %s", extname, file);
    return ft;
 }
-
 
 static JDFits_Bintable_Field_Type *find_column (JDFits_Bintable_Type *fbt, char *name, unsigned int *ofsp)
 {
@@ -115,19 +111,19 @@ static JDFits_Bintable_Field_Type *find_column (JDFits_Bintable_Type *fbt, char 
 
    finfo = fbt->finfo;
    finfo_max = finfo + fbt->tfields;
-	
+
    ofs = 0;
    while (finfo < finfo_max)
      {
 	char *ttype;
-	
+
 	ttype = finfo->ttype;
 	if (0 == jdfits_strcasecmp (name, ttype))
 	  {
 	     *ofsp = ofs;
 	     return finfo;
 	  }
-	     
+
 	ofs += finfo->repeat * (finfo->size / 8);
 	finfo++;
      }
@@ -146,10 +142,9 @@ int jdfits_bintable_column_exists (JDFits_Type *f, char *column)
 
    if (-1 == jdfits_bintable_parse_headers (f))
      return -1;
-   
+
    return (NULL != find_column (f->header->ext.bintable, column, &unused));
 }
-
 
 JDFits_Bintable_Field_Type *_jdfits_bintable_find_column (JDFits_Bintable_Type *fbt, char *name, unsigned int *ofsp)
 {
@@ -157,14 +152,14 @@ JDFits_Bintable_Field_Type *_jdfits_bintable_find_column (JDFits_Bintable_Type *
 
    if (NULL == (f = find_column (fbt, name, ofsp)))
      jdfits_error ("Column name %s is not in table", name);
-   
+
    return f;
 }
 
 void jdfits_simple_close_btable (JDFits_BTable_Read_Type *fbtrt)
 {
    if (fbtrt == NULL) return;
-   
+
    if (fbtrt->ft != NULL) jdfits_close_file (fbtrt->ft);
    jdfits_free ((char *) fbtrt->row_data);
    jdfits_free ((char *) fbtrt->data_types);
@@ -173,7 +168,7 @@ void jdfits_simple_close_btable (JDFits_BTable_Read_Type *fbtrt)
 }
 
 JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
-						     char *extname, 
+						     char *extname,
 						     unsigned int ncols,
 						     char **column_names)
 {
@@ -190,7 +185,7 @@ JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
    if (fbtrt == NULL)
      return NULL;
    memset ((char *) fbtrt, 0, sizeof (JDFits_BTable_Read_Type));
-   
+
    if (NULL == (fbtrt->ft = jdfits_open_binary_table (file, extname)))
      goto return_error;
 
@@ -219,8 +214,8 @@ JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
 
    fbtrt->num_data_types = ncols;
 
-   /* Make sure that the requested columns exist and that they are 
-    * simple scalars. 
+   /* Make sure that the requested columns exist and that they are
+    * simple scalars.
     */
 
    for (i = 0; i < ncols; i++)
@@ -228,7 +223,7 @@ JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
 	char *colname;
 	JDFits_Bintable_Field_Type *finfo;
 	unsigned int ofs;
-	
+
 	colname = column_names[i];
 
 	if (NULL == (finfo = _jdfits_bintable_find_column (fbt, colname, &ofs)))
@@ -236,7 +231,7 @@ JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
 
 	if (finfo->repeat != 1)
 	  {
-	     jdfits_error ("Column %s does not have repeat count of 1", 
+	     jdfits_error ("Column %s does not have repeat count of 1",
 			   colname);
 	     goto return_error;
 	  }
@@ -244,12 +239,11 @@ JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
 	fbtrt->data_offsets[i] = ofs;
 	fbtrt->data_types[i] = finfo->type;
      }
-   
+
    if (-1 == jdfits_read_open_data (fbtrt->ft))
      goto return_error;
-   
+
    return fbtrt;
-   
 
    /* Get here only if something went wrong */
    return_error:
@@ -258,11 +252,10 @@ JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *file,
    return NULL;
 }
 
-
-JDFits_BTable_Read_Type *jdfits_simple_open_btable (char *file, 
+JDFits_BTable_Read_Type *jdfits_simple_open_btable (char *file,
 						    char *extname,
 						    unsigned int ncols, ...)
-							  
+
 {
    JDFits_BTable_Read_Type *bt;
    va_list ap;
@@ -320,7 +313,7 @@ int jdfits_simple_d_read_btable (JDFits_BTable_Read_Type *bt, double *buf)
 	unsigned char *data_bytes;
 
 	data_bytes = data + data_offsets [i];
-	
+
 	switch (data_types[i])
 	  {
 	   case JDFITS_INT32_TYPE:
@@ -349,7 +342,7 @@ int jdfits_simple_d_read_btable (JDFits_BTable_Read_Type *bt, double *buf)
 	  }
 	buf[i] = d;
      }
-   
+
    return 0;
 }
 
@@ -357,12 +350,12 @@ void jdfits_bintable_close_rows (JDFits_Row_Type *rt)
 {
    if (rt == NULL)
      return;
-   
+
    if (rt->col_data != NULL)
      {
 	JDFits_Col_Data_Type *cd;
 	unsigned int i, num;
-	
+
 	num = rt->num_columns;
 	cd = rt->col_data;
 
@@ -371,14 +364,13 @@ void jdfits_bintable_close_rows (JDFits_Row_Type *rt)
 	     if (cd[i].data.a != NULL)
 	       jdfits_free (cd[i].data.a);
 	  }
-	
+
 	jdfits_free ((char *)cd);
      }
 
    if (rt->row_bytes != NULL) jdfits_free ((char *) rt->row_bytes);
    jdfits_free ((char *) rt);
 }
-
 
 typedef unsigned char *(*Read_Fun_Type)(void *, unsigned int, unsigned char *);
 
@@ -403,7 +395,7 @@ static Read_Fun_Type get_type_read_fun (int from_type, int to_type, unsigned int
 	  }
 	break;
 
-      case 's': 
+      case 's':
 	*sizep = sizeof (short);
 	switch (from_type)
 	  {
@@ -413,8 +405,8 @@ static Read_Fun_Type get_type_read_fun (int from_type, int to_type, unsigned int
 	   case JDFITS_FLOAT64_TYPE: return (Read_Fun_Type)jdfits_read_float64_short;
 	  }
 	break;
-	
-      case 'i': 
+
+      case 'i':
 	*sizep = sizeof (int);
 	switch (from_type)
 	  {
@@ -435,7 +427,7 @@ static Read_Fun_Type get_type_read_fun (int from_type, int to_type, unsigned int
 	   case JDFITS_FLOAT64_TYPE: return (Read_Fun_Type)jdfits_read_float64_long;
 	  }
 	break;
-	
+
       case 'f':
 	*sizep = sizeof (float);
 	switch (from_type)
@@ -446,7 +438,7 @@ static Read_Fun_Type get_type_read_fun (int from_type, int to_type, unsigned int
 	   case JDFITS_FLOAT64_TYPE: return (Read_Fun_Type)jdfits_read_float64_float;
 	  }
 	break;
-	
+
       case 'd':
 	*sizep = sizeof (double);
 	switch (from_type)
@@ -476,7 +468,6 @@ static int get_column_name_and_type (char *s, char **np, int *tp)
    return 0;
 }
 
-	     
 JDFits_Row_Type *
   jdfits_bintable_aopen_rows (JDFits_Type *ft, unsigned int ncols, char **column_names)
 {
@@ -513,10 +504,10 @@ JDFits_Row_Type *
 
    if (NULL == (rt->row_bytes = (unsigned char *) jdfits_malloc (rt->num_bytes)))
      goto return_error;
-   
+
    if (NULL == (rt->col_data = (JDFits_Col_Data_Type *) jdfits_malloc (ncols * sizeof (JDFits_Col_Data_Type))))
      goto return_error;
-   
+
    memset ((char *) rt->col_data, 0, ncols * sizeof (JDFits_Col_Data_Type));
 
    /* Make sure that the requested columns exist. */
@@ -531,13 +522,13 @@ JDFits_Row_Type *
 	unsigned int size;
 
 	cd = rt->col_data + i;
-	
+
 	if (-1 == get_column_name_and_type (column_names[i], &colname, &to_type))
 	  goto return_error;
 
 	if (NULL == (finfo = _jdfits_bintable_find_column (fbt, colname, &ofs)))
 	  goto return_error;
-	
+
 	if (NULL == (cd->read_fun = get_type_read_fun (finfo->type, to_type, &size)))
 	  goto return_error;
 

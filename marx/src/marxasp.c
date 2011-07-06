@@ -116,7 +116,7 @@ typedef struct
    unsigned int location;	       /* a bitmapped quantity */
 #define FULL_COMPONENT	1
 #define SHORT_COMPONENT	2
-   
+
    char *keyword;
    int type;
 #define H_PINT	1
@@ -151,7 +151,7 @@ static Fits_Header_Table_Type CC_NULL_Component [] =
      {3,"HDUCLASS",	H_PSTR,	&HDU_Class,		NULL},
      {3,"HDUCLAS1",	H_PSTR,	&HDU_Class1,		NULL},
      {3,"HDUCLAS2",	H_PSTR,	&HDU_Class2,		NULL},
-   
+
      {0,NULL, 0, NULL, NULL}
 };
 
@@ -162,7 +162,7 @@ static Fits_Header_Table_Type CC_Component [] =
      {3,"CREATOR",	H_STR,	MarxAsp_Pgm, "Program creating this file"},
      {1,"REVISION",	H_FILE,	NULL,		"Processing revision"},
      {3,"CONTENT",	H_PSTR,	&Content_Hdr,	NULL},
-   
+
      {3,"HDUNAME",	H_PSTR,	&HDU_Name_Hdr,		NULL},
      {1,"HDUSPEC",	H_STR,	"ASPSOL ICD V2.4",		NULL},
      {3,"HDUDOC",	H_STR,	"ASC-FITS-1.4",		NULL},
@@ -171,13 +171,13 @@ static Fits_Header_Table_Type CC_Component [] =
      {3,"HDUCLASS",	H_PSTR,	&HDU_Class,		NULL},
      {3,"HDUCLAS1",	H_PSTR,	&HDU_Class1,		NULL},
      {3,"HDUCLAS2",	H_PSTR,	&HDU_Class2,		NULL},
-   
+
      {1,"LONGSTRN",	H_STR, "OGIP 1.0",	"Unofficial Convention"},
-   
+
      {0,NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type Timing_Component [] = 
+static Fits_Header_Table_Type Timing_Component [] =
 {
      {3,"COMMENT",	H_COM,	NULL,	"\n-------- Timing Component -------\n\n"},
      {3,"DATE",		H_STR,	Todays_Date,	"Date and time of file creation (UTC)"},
@@ -213,7 +213,7 @@ static Fits_Header_Table_Type Timing_Component [] =
      {0,NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type Acis_Timing_Component [] = 
+static Fits_Header_Table_Type Acis_Timing_Component [] =
 {
      {1,"STARTMJF", H_PINT, &Int_Value_0,	"Major frame count at start"},
      {1,"STARTMNF", H_PINT, &Int_Value_0,	"Minor frame count at start"},
@@ -257,7 +257,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {0,NULL, 0, NULL, NULL}
 };
 
-static Fits_Header_Table_Type Acis_Obs_Info_Component [] = 
+static Fits_Header_Table_Type Acis_Obs_Info_Component [] =
 {
    {1,"DATAMODE",	H_FILE,	NULL,	"telemetry mode"},
    {0, NULL, 0, NULL, NULL}
@@ -300,7 +300,6 @@ static Fits_Header_Table_Type Acis_Faint_Header_Keywords [] =
      {0, NULL, 0, NULL, NULL}
 };
 
-
 static Fits_Header_Table_Type Hrc_Header_Keywords [] =
 {
      {0,NULL, 0, NULL, NULL}
@@ -319,7 +318,7 @@ static Fits_Header_Table_Type GoodTime_Header_Keywords [] =
      {2,"COMMENT",	H_COM,	NULL,		"\nData model support keywords"},
      {2,"CFIELDS",	H_PINT,	&Int_Value_1,"Number of ASC Table Columns"},
      {2,"CNAM1",	H_STR,	"TIME",	"Time"},
-   
+
      {2,"CNC1",		H_PINT,	&Int_Value_2,"Number of FITS cols for ASC col 1"},
      {2,"CETYP1",	H_STR,	"R",	"Data is an interval"},
      {2,"CITYP1",	H_STR,	"[)",	"Interval is semi-open"},
@@ -339,7 +338,7 @@ static char *make_marx_filename (char *f)
 {
    static char file [1024];
    unsigned int len;
-   
+
    strcpy (file, Marx_Dir);
    if (0 != (len = strlen (file)))
      {
@@ -396,21 +395,19 @@ static int setup_dither (void)
    Nominal_Roll_In_Radians = Nominal_Roll * PI/180.0;
    ra = Nominal_RA * PI/180.0;
    dec = Nominal_Dec * PI/180.0;
-   
+
    Nominal_Pointing = JDMv_spherical_to_vector (1.0, PI/2.0 - dec, ra);
 
    RA_Hat.x = -sin(ra);
    RA_Hat.y = cos (ra);
    RA_Hat.z = 0;
-   
+
    Dec_Hat.x = -sin(dec) * cos (ra);
    Dec_Hat.y = -sin(dec) * sin (ra);
    Dec_Hat.z = cos (dec);
-   
+
    return 0;
 }
-
-   
 
 static int get_marx_pfile_info (Param_File_Type *pf)
 {
@@ -435,7 +432,7 @@ static int get_marx_pfile_info (Param_File_Type *pf)
 
    if (used_dither && (0 == strcmp (SourceType, "SAOSAC")))
      used_dither = 0;
-   
+
    if (used_dither == 0)
      {
 	Ra_Amp = Dec_Amp = Roll_Amp = 0.0;
@@ -461,13 +458,13 @@ static int get_marx_pfile_info (Param_File_Type *pf)
      Simulation_Detector_Type = DETECTOR_HRC_S;
    else if (0 == strcmp (DetectorType, "HRC-I"))
      Simulation_Detector_Type = DETECTOR_HRC_I;
-   
+
   if (0 == strcmp (GratingType, "HETG"))
      Simulation_Grating_Type = 1;
    else if (0 == strcmp (GratingType, "LETG"))
      Simulation_Grating_Type = 2;
    else Simulation_Grating_Type = 0;
-   
+
    if (NULL == (dt = marx_get_detector_info (DetectorType)))
      {
 	pf_close_parameter_file (pf);
@@ -495,16 +492,16 @@ static int get_marx_pfile_info (Param_File_Type *pf)
 	     TimeDel = ACIS_Exposure_Time;
 	     if (ACIS_Frame_Transfer_Time > 0.0)
 	       TimeDel += ACIS_Frame_Transfer_Time;
-	     
+
 	     DT_Cor = ACIS_Exposure_Time/TimeDel;
 	  }
-	else 
+	else
 	  {
 	     TimeDel = 0.0;
 	     DT_Cor = 1.0;
 	  }
      }
-	
+
    return 0;
 }
 
@@ -524,7 +521,7 @@ static Param_File_Type *read_obspar_file (void)
 {
    char *file;
    Param_File_Type *pf;
-   
+
    file = make_marx_filename ("obs.par");
    pf = pf_open_parameter_file (file, "r");
    if (pf == NULL)
@@ -535,7 +532,7 @@ static Param_File_Type *read_obspar_file (void)
 
    if (-1 == pf_get_parameters (pf, ObsPar_Parm_Table))
      return NULL;
-   
+
    Exposure *= DT_Cor;
 
    return pf;
@@ -559,24 +556,23 @@ static int get_simulation_info (void)
 	pf_close_parameter_file (pf);
 	return -1;
      }
-   
+
    pf_close_parameter_file (pf);
 
    if (NULL == (Obs_Par_Parms = read_obspar_file ()))
      return -1;
-   
+
    if (-1 == setup_dither ())
      return -1;
 
    return 0;
 }
 
-
 static int get_date (char *str)
 {
    time_t tloc;
    struct tm *tms;
-   
+
    time (&tloc);
    tms = gmtime (&tloc);
 
@@ -586,7 +582,6 @@ static int get_date (char *str)
 
    return 0;
 }
-
 
 static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
 				Fits_Header_Table_Type *h)
@@ -638,40 +633,40 @@ static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
 	ret = jdfits_write_header_double (f, name, d, h->comment);
 	break;
      }
-   
+
    return ret;
 }
 
-static int write_extra_headers (JDFits_Type *ft, 
+static int write_extra_headers (JDFits_Type *ft,
 				Fits_Header_Table_Type *h,
 				unsigned int mask) /*{{{*/
 {
    get_date (Todays_Date);
-   
+
    while (h->keyword != NULL)
      {
 	int ret;
 	char *str;
 	double d;
 	int i;
-	
+
 	if ((h->location & mask) == 0)
 	  {
 	     h++;
 	     continue;
 	  }
-	
+
 	switch (h->type)
 	  {
 	   case H_FILE:
 	     ret = write_parfile_value (ft, Obs_Par_Parms, h);
 	     break;
-	     
+
 	   case H_ENV:
 	     str = getenv ((char *) h->value);
 	     if (str == NULL)
 	       {
-		  fprintf (stderr, "Warning: Environment variable %s not set.\n", (char *) h->value); 
+		  fprintf (stderr, "Warning: Environment variable %s not set.\n", (char *) h->value);
 		  str = "Unknown";
 	       }
 	     ret = jdfits_write_header_string (ft, h->keyword, str, h->comment);
@@ -684,13 +679,13 @@ static int write_extra_headers (JDFits_Type *ft,
 
 	     ret = jdfits_write_header_string (ft, h->keyword, str, h->comment);
 	     break;
-	     
+
 	   case H_PSTR:
 	     if (h->value == NULL) str = "Unknown";
 	     else str = *(char **)h->value;
 	     ret = jdfits_write_header_string (ft, h->keyword, str, h->comment);
 	     break;
-	     
+
 	   case H_PFLT:
 	     if (h->value == NULL) d = 0.0;
 	     else d = *(double *) h->value;
@@ -700,7 +695,7 @@ static int write_extra_headers (JDFits_Type *ft,
 	   case H_INT:
 	     if (h->value == NULL) i = 0;
 	     else i = (int) h->value;
-	     
+
 	     ret = jdfits_write_header_integer (ft, h->keyword, i, h->comment);
 	     break;
 #endif
@@ -708,30 +703,30 @@ static int write_extra_headers (JDFits_Type *ft,
 	   case H_LOG:
 	     if (h->value == NULL) i = 0;
 	     else i = *(int *) h->value;
-	     
+
 	     ret = jdfits_write_header_logical (ft, h->keyword, i, h->comment);
 	     break;
 
 	   case H_PINT:
 	     if (h->value == NULL) i = 0;
 	     else i = *(int *) h->value;
-	     
+
 	     ret = jdfits_write_header_integer (ft, h->keyword, i, h->comment);
 	     break;
-	     
+
 	   case H_COM:
 	     ret = jdfits_write_header_comment (ft, h->keyword, h->comment);
 	     break;
-	     
+
 	   default:
 	     fprintf (stderr, "write_extra_headers: %s: type %d not supported.\n",
 		      h->keyword, h->type);
 	     ret = 0;
 	  }
-	
+
 	if (ret == -1)
 	  return -1;
-	
+
 	if (h->value == NULL)
 	  {
 	     if ((h->type != H_COM) && (h->type != H_FILE)
@@ -742,7 +737,7 @@ static int write_extra_headers (JDFits_Type *ft,
 	       fprintf (stderr, "Warning: Fits keyword %s has no value\n",
 			h->keyword);
 	  }
-	
+
 	h++;
      }
    return 0;
@@ -750,7 +745,6 @@ static int write_extra_headers (JDFits_Type *ft,
 
 /*}}}*/
 
-	
 #if 0
 static int add_goodtime_extension (JDFits_Type *ft)
 {
@@ -758,7 +752,7 @@ static int add_goodtime_extension (JDFits_Type *ft)
    float64 tmin, tmax;
 
    memset ((char *) keywords, 0, sizeof (keywords));
-   
+
    keywords[0].tform = "1D";
    keywords[0].ttype = "START";
    keywords[0].tunit = "s";
@@ -777,7 +771,7 @@ static int add_goodtime_extension (JDFits_Type *ft)
    HDU_Class1 = "GTI";
    HDU_Class2 = "ALL";
    Content_Hdr = "GTI";
-   
+
    if (-1 == write_extra_headers (ft, CC_Component, 3))
      return -1;
 
@@ -798,7 +792,7 @@ static int add_goodtime_extension (JDFits_Type *ft)
 
    (void) jdfits_write_float64 (ft, &tmin, 1);
    (void) jdfits_write_float64 (ft, &tmax, 1);
-   
+
    return jdfits_end_data (ft);
 }
 #endif
@@ -823,22 +817,22 @@ static void compute_dither (double t, double *rap, double *decp, double *rollp,
    /* The above are actually offsets.  We need to convert them to absolute values
     * in RA and Dec with the roll properly taken care of.  This is achieved
     * in several steps:
-    * 
+    *
     * 1.  Convert ra/dec offsets to absolute pointing.
     * 2.  Roll resulting vector about nominal pointing
     * 3.  Convert result to ra/dec.
     */
-   
+
    /* Step 1. */
    cos_dec = cos (dec);
-   p = JDMv_ax1_bx2_cx3 (cos (ra) * cos_dec, Nominal_Pointing, 
+   p = JDMv_ax1_bx2_cx3 (cos (ra) * cos_dec, Nominal_Pointing,
 			 cos_dec * sin (ra), RA_Hat,
 			 sin (dec), Dec_Hat);
-		   
+
    /* Step 2 */
    roll += Nominal_Roll_In_Radians;
    p = JDMv_rotate_unit_vector (p, Nominal_Pointing, roll);
-   
+
    /* Step 3.  Note that the JDMv_unit_vector_to_spherical returns values in
     * a traditional spherical coordinate system.  This differs from the ra/dec
     * system in the way dec is defined.  So it needs tweeked. */
@@ -849,10 +843,10 @@ static void compute_dither (double t, double *rap, double *decp, double *rollp,
    ra *= 180.0/PI;
    dec *= 180.0/PI;
    roll *= 180.0/PI;
-   
+
    if (ra < 0) ra += 360.0;
    if (roll < 0) roll += 360.0;
-   
+
    /* Make sure dec is somewhere in range -90, 90 */
    if (dec > 180) dec -= 360;
    else if (dec < -180) dec += 360;
@@ -869,7 +863,7 @@ static void compute_dither (double t, double *rap, double *decp, double *rollp,
 
    *dyp = 0;
    *dzp = 0;
-   *dthetap = 0;   
+   *dthetap = 0;
 }
 
 static int write_marxasp (JDFits_Type *ft)
@@ -878,7 +872,7 @@ static int write_marxasp (JDFits_Type *ft)
    JDFits_BTable_Keyword_Type columns[7+1];   /* last is NULL */
 
    memset ((char *) columns, 0, sizeof (columns));
-   
+
    columns[0].ttype = "time";
    columns[0].tform = "1D";
    columns[0].tunit = "s";
@@ -906,10 +900,9 @@ static int write_marxasp (JDFits_Type *ft)
    columns[6].ttype = "dtheta";
    columns[6].tform = "1E";
    columns[6].tunit = "degrees";
-   
+
    num = (Time_Stop - Time_Start + 1.0) / Delta_Time;
 
-   
    if (-1 == jdfits_create_btable_extension (ft,
 					     columns,
 					     num,
@@ -934,16 +927,16 @@ static int write_marxasp (JDFits_Type *ft)
 	if (-1 == write_extra_headers (ft, Acis_Timing_Component, 3))
 	  return -1;
      }
-   
+
    if (-1 == write_extra_headers (ft, Obs_Info_Component, 3))
      return -1;
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Obs_Info_Component, 3))
 	  return -1;
      }
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Faint_Header_Keywords, 3))
@@ -1005,13 +998,13 @@ static int init_fits_file (JDFits_Type *ft)
      return -1;
    if (-1 == write_extra_headers (ft, Timing_Component, 2))
      return -1;
-   
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Timing_Component, 2))
 	  return -1;
      }
-   
+
    if (-1 == write_extra_headers (ft, Obs_Info_Component, 2))
      return -1;
 
@@ -1020,7 +1013,7 @@ static int init_fits_file (JDFits_Type *ft)
 	if (-1 == write_extra_headers (ft, Acis_Obs_Info_Component, 2))
 	  return -1;
      }
-   
+
    if (-1 == jdfits_end_header (ft))
      return -1;
 
@@ -1029,7 +1022,7 @@ static int init_fits_file (JDFits_Type *ft)
 
 static char *Output_File;
 
-static Param_Table_Type Marxasp_Parm_Table [] = 
+static Param_Table_Type Marxasp_Parm_Table [] =
 {
      {"TimeDel",	PF_DOUBLE_TYPE,	&Delta_Time},
 #if 0
@@ -1039,7 +1032,7 @@ static Param_Table_Type Marxasp_Parm_Table [] =
 #endif
      {"OutputFile",	PF_STRING_TYPE,	&Output_File},
      {"MarxDir",	PF_STRING_TYPE,	&Marx_Dir},
-   
+
      {NULL,		0, NULL}
 };
 
@@ -1070,8 +1063,6 @@ static int marxasp_init (Param_File_Type *p)
    return 0;
 }
 
-
-
 int main (int argc, char **argv)
 {
    JDFits_Type *f;
@@ -1099,30 +1090,30 @@ int main (int argc, char **argv)
 	marx_error ("*** Unable to open output file %s\n", Output_File);
 	return 1;
      }
-   
+
    if (-1 == init_fits_file (f))
      {
 	(void) jdfits_close_file (f);
 	return 1;
      }
-   
+
    if (-1 == write_marxasp (f))
      {
 	(void) jdfits_close_file (f);
 	return 1;
      }
-#if 0   
+#if 0
    if (-1 == add_goodtime_extension (f))
      {
 	(void) jdfits_close_file (f);
 	return 1;
      }
-#endif 
+#endif
    if (-1 == jdfits_close_file (f))
      {
 	return 1;
      }
-   
+
    return 0;
 }
 

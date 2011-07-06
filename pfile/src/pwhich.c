@@ -32,29 +32,28 @@
 #include "pfile.h"
 #include "_pfile.h"
 
-static void usage (char *pgm)     
+static void usage (char *pgm)
 {
    fprintf (stderr, "Usage: %s [--verbose] pfile\n", pgm);
    exit (1);
 }
-
 
 int main (int argc, char **argv)
 {
    Param_File_Type *p;
    int verbose = 0;
    char *file = NULL, *pgm;
-   
+
    argc--;
    pgm = *argv++;
-   
+
    while (argc)
      {
 	char *arg;
-	
+
 	argc--;
 	arg = *argv++;
-	
+
 	if (!strcmp (arg, "--verbose")) verbose = 1;
 	else if (argc == 0)
 	  {
@@ -62,22 +61,22 @@ int main (int argc, char **argv)
 	  }
 	else usage (pgm);
      }
-   
+
    if (file == NULL) usage (pgm);
-   
+
    p = pf_open_parameter_file (file, (verbose ? "rWV" : "r"));
-   
+
    if (p == NULL)
      {
 	fprintf (stderr, "Error opening %s as a parameter file.\n", file);
 	return 1;
      }
-   
+
    fprintf (stderr, "Input: %s\nOutput: %s\n",
-	    p->input_filename, 
+	    p->input_filename,
 	    ((p->output_filename == NULL) ? p->input_filename : p->output_filename));
-   
+
    pf_close_parameter_file (p);
-	
+
    return 0;
 }

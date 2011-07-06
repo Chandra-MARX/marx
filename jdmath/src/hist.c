@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #ifndef JDMHISTOGRAM_FUNCTION
 /* file included for float/double */
@@ -22,7 +22,6 @@
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -45,14 +44,14 @@
 static unsigned int binary_search_d (double x, double *xp, unsigned int n)
 {
    unsigned int n0, n1, n2;
-   
+
    n0 = 0;
    n1 = n;
 
    while (n1 > n0 + 1)
      {
 	n2 = (n0 + n1) / 2;
-	if (xp[n2] >= x) 
+	if (xp[n2] >= x)
 	  {
 	     if (xp[n2] == x) return n2;
 	     n1 = n2;
@@ -64,14 +63,14 @@ static unsigned int binary_search_d (double x, double *xp, unsigned int n)
 #endif
 /*
  * histogram routines
- * 
+ *
  * A 1-d histogram is specified by a set of N grid points X_k and some set
  * of values y_i to be grouped into the histogram.  The bin size of the
  * nth bin is given by x_{i+1} - x_i, except for the last bin, which is
  * assumed to be of infinite width.
  */
 
-/* If reverse_indices is NON-NULL, it is assumed to point to an array of 
+/* If reverse_indices is NON-NULL, it is assumed to point to an array of
  * size npts.
  */
 int JDMHISTOGRAM_FUNCTION (FLOAT_TYPE *pts, unsigned int npts,
@@ -101,10 +100,10 @@ int JDMHISTOGRAM_FUNCTION (FLOAT_TYPE *pts, unsigned int npts,
 
 	if (val < xlo)
 	  continue;
-	
+
 	j = BINARY_SEARCH (val, bin_edges, nbins);
 	histogram[j] += 1;
-	
+
 	if (reverse_indices != NULL)
 	  reverse_indices[i] = (int) j;
      }

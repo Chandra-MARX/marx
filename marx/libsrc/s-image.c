@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -103,7 +102,7 @@ static int read_image (JDFits_Type *ft, int bitpix, unsigned int n1, unsigned in
 
 	     if (X_Image_Size != jdfits_read_bytes (ft, read_buf, X_Image_Size))
 	       goto read_error;
-	     
+
 	     im = Image + i * X_Image_Size;
 	     for (j = 0; j < X_Image_Size; j++)
 	       im [j] = (float) read_buf[j];
@@ -121,7 +120,7 @@ static int read_image (JDFits_Type *ft, int bitpix, unsigned int n1, unsigned in
 	     Image [i] = (float) i16;
 	  }
 	break;
-	
+
       case 32:
 	for (i = 0; i < Image_Size; i++)
 	  {
@@ -135,7 +134,7 @@ static int read_image (JDFits_Type *ft, int bitpix, unsigned int n1, unsigned in
 	marx_error ("BITPIX = %d is not supported", bitpix);
 	goto return_error;
      }
-   
+
    /* compute a cumulative distribution */
    sum = 0;
    for (i = 0; i < Image_Size; i++)
@@ -143,13 +142,13 @@ static int read_image (JDFits_Type *ft, int bitpix, unsigned int n1, unsigned in
         sum += (double) Image [i];
         Image [i] = sum;
      }
-   
+
    /* Normalize it. */
    for (i = 0; i < Image_Size; i++)
      Image [i] = Image[i] / sum;
-     
+
    return 0;
-   
+
    read_error:
    marx_error ("Error reading image file");
    /* drop */
@@ -162,17 +161,17 @@ static int read_image (JDFits_Type *ft, int bitpix, unsigned int n1, unsigned in
 static int read_keyword_int (JDFits_Type *ft, char *kw, int *i, int is_error)
 {
    JDFits_Keyword_Type *k;
-   
+
    if (NULL == (k = jdfits_find_keyword (ft, kw)))
      {
 	if (is_error)
 	  marx_error ("Error locating keyword %s", kw);
 	return -1;
      }
-   
+
    if (0 == jdfits_extract_integer (k, i))
      return 0;
-   
+
    if (is_error)
      marx_error ("Keyword %s is not an integer", kw);
 
@@ -182,17 +181,17 @@ static int read_keyword_int (JDFits_Type *ft, char *kw, int *i, int is_error)
 static int read_keyword_double (JDFits_Type *ft, char *kw, double *d, int is_error)
 {
    JDFits_Keyword_Type *k;
-   
+
    if (NULL == (k = jdfits_find_keyword (ft, kw)))
      {
 	if (is_error)
 	  marx_error ("Error locating keyword %s", kw);
 	return -1;
      }
-   
+
    if (0 == jdfits_extract_double (k, d))
      return 0;
-   
+
    if (is_error)
      marx_error ("Keyword %s is not a double", kw);
 
@@ -212,7 +211,7 @@ static int open_image_fits_file (char *file)
 	marx_error ("Failed to open %s", file);
 	return -1;
      }
-   
+
    if ((-1 == read_keyword_int (ft, "NAXIS1", &naxis1, 1))
        || (-1 == read_keyword_int (ft, "NAXIS2", &naxis2, 1))
        || (-1 == read_keyword_int (ft, "BITPIX", &bitpix, 1)))
@@ -220,7 +219,7 @@ static int open_image_fits_file (char *file)
 	jdfits_close_file (ft);
 	return -1;
      }
-   
+
    /* Look for scale factors */
    if (0 == read_keyword_double (ft, "CDELT1", &scale1, 0))
      {
@@ -235,7 +234,7 @@ static int open_image_fits_file (char *file)
    else if (0 == read_keyword_double (ft, "CD1_1", &scale1, 0))
      {
 	double cd1_1, cd1_2, cd2_1, cd2_2;
-	
+
 	cd1_1 = scale1;
 
 	if ((-1 == read_keyword_double (ft, "CD1_2", &cd1_2, 1))
@@ -255,10 +254,10 @@ static int open_image_fits_file (char *file)
 	marx_error ("Cannot determine scale of image.  Assuming 0.5 arc-sec per pixel");
 	scale1 = scale2 = 0.5 / 3600.0;
      }
-   
+
    Rad_Per_XPixel = scale1 * PI / 180.0;
    Rad_Per_YPixel = scale2 * PI / 180.0;
-   
+
    if (-1 == read_image (ft, bitpix, (unsigned int) naxis1, (unsigned int) naxis2))
      {
 	jdfits_close_file (ft);
@@ -268,9 +267,6 @@ static int open_image_fits_file (char *file)
    jdfits_close_file (ft);
    return 0;
 }
-
-	
-
 
 static int image_open_source (Marx_Source_Type *st) /*{{{*/
 {
@@ -304,7 +300,7 @@ static int image_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
     * image center is by definition (-1,0,0).  So, I need to rotate about
     * an axis that rotates (-1,0,0) into p0.
     */
-   
+
    p0 = st->p;
    theta = JDMv_dot_prod (p0, JDMv_vector (-1, 0, 0));
    /* handle roundoff-error */
@@ -314,7 +310,7 @@ static int image_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
 	else theta = 1.0;
      }
    theta = acos (theta);
-   
+
    /* Note: normal could be the NULL vector if the vectors coincide.
     * This is ok since theta would be 0, which implies no rotation.
     */
@@ -341,10 +337,10 @@ static int image_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
 	 */
 	y -= 0.5 * (Y_Image_Size - 1) + JDMrandom ();
 	x -= 0.5 * (X_Image_Size - 1) + JDMrandom ();
-	
+
 	y = y * Rad_Per_YPixel;
 	x = x * Rad_Per_XPixel;
-	
+
 	cos_y = cos (y);
 
 	/* Note that an image on the sky has +X running in -Marx_Y, and
@@ -354,12 +350,12 @@ static int image_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
 	p1.x = -cos_y * cos (x);
 	p1.y = cos_y * sin (x);	       /* <-- no flip here */
 	p1.z = -sin (y);
-	
+
 	at->p = JDMv_rotate_unit_vector (p1, normal, theta);
 
 	at++;
      }
-   
+
    *num_created = num;
    return 0;
 }
@@ -372,14 +368,14 @@ int marx_select_image_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    char buf [PF_MAX_LINE_LEN];
 
    (void) source_id;
-   
+
    st->open_source = image_open_source;
    st->create_photons = image_create_photons;
    st->close_source = image_close_source;
 
    if (-1 == pf_get_file (p, "S-ImageFile", buf, sizeof (buf)))
      return -1;
-   
+
    if (-1 == open_image_fits_file (buf))
      return -1;
 
@@ -387,6 +383,4 @@ int marx_select_image_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 }
 
 /*}}}*/
-
-
 

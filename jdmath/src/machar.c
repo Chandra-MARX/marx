@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -36,12 +35,12 @@ int _JDM_init_machine_constants (void (*silly)(double *, double *))
 {
    JDM_Mach_Eps = 1.0;
 
-   while (1) 
+   while (1)
      {
 	double ans;
 
 	(*silly) (&JDM_Mach_Eps, &ans);
-	
+
 	if (ans == 1.0)
 	  break;
 
@@ -50,6 +49,4 @@ int _JDM_init_machine_constants (void (*silly)(double *, double *))
 
    return 0;
 }
-
-
 

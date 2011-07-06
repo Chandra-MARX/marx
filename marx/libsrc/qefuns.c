@@ -27,7 +27,7 @@ void _marx_qe_free (Marx_QE_Type *qeinfo)
 {
    if (qeinfo == NULL)
      return;
-   
+
    if (qeinfo->num_refs > 1)
      {
 	qeinfo->num_refs--;
@@ -42,11 +42,11 @@ void _marx_qe_free (Marx_QE_Type *qeinfo)
 static Marx_QE_Type *alloc_ccd_qe_type (unsigned int num_energies)
 {
    Marx_QE_Type *qeinfo;
-   
+
    if (NULL == (qeinfo = (Marx_QE_Type *)marx_malloc (sizeof(Marx_QE_Type))))
      return NULL;
    memset ((char *)qeinfo, 0, sizeof(Marx_QE_Type));
-   
+
    qeinfo->num_refs = 1;
    qeinfo->num_energies = num_energies;
    if ((NULL == (qeinfo->energies = (float *)marx_malloc(num_energies*sizeof(float))))
@@ -105,7 +105,7 @@ Marx_QE_Type *_marx_qe_read_file (char *file, char *ext, char *encol, char *qeco
 
    if (NULL == (qeinfo = alloc_ccd_qe_type (num_rows)))
      goto return_error;
-   
+
    c = r->col_data;
    for (i = 0; i < num_rows; i++)
      {
@@ -123,9 +123,9 @@ Marx_QE_Type *_marx_qe_read_file (char *file, char *ext, char *encol, char *qeco
 
 	qeinfo->qes[i] = qe;
      }
-   
+
    goto free_and_return;
-   
+
 return_error:
 
    marx_error ("Error processing %s", file);

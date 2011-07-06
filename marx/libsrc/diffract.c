@@ -55,7 +55,7 @@ typedef struct
     * read in from a file.  Otherwise, it will point to space allocated to
     * the global variable Energies.
     */
-   float *energies;		       
+   float *energies;
    unsigned int num_energies;
 
    float **cum_efficiencies;	       /* malloced quantity.  In MARX, these
@@ -71,7 +71,6 @@ typedef struct
 Grating_Type;
 
 /*}}}*/
-
 
 typedef struct
 {
@@ -93,8 +92,8 @@ static int Use_Hetg_Sector_Files;
 static int Use_Unit_Efficiencies = 0;
 static int Use_This_Order = 0;
 
-static int Use_File_Efficiencies = 0;	       
-/* if 0, perform computation of efficiencies.  Otherwise, read efficiencies 
+static int Use_File_Efficiencies = 0;
+/* if 0, perform computation of efficiencies.  Otherwise, read efficiencies
  * from a file.
  */
 
@@ -121,7 +120,7 @@ static float *Chromium_Factor;
 static void free_grating (Grating_Type *g)
 {
    if (g == NULL) return;
-   
+
    if (g->num_refs > 1)
      {
 	g->num_refs -= 1;
@@ -255,7 +254,7 @@ static int read_grating_optical_consts (char *optfile)
 
 /*}}}*/
 
-/* The grating efficiency function is only used for the LETG support 
+/* The grating efficiency function is only used for the LETG support
  * structures as well as the efficiency computation when Use_File_Efficiencies
  * is 0.
  */
@@ -357,7 +356,6 @@ double marx_compute_grating_efficiency (double energy, int order,
 
 /*}}}*/
 
-
 /* This routines only initializes a grating whose efficiencies are computed.
  * A separate routine is used to initialize the grating structure when the
  * efficiencies are read from a file.
@@ -403,7 +401,7 @@ static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info, int use_thi
      }
 
    /* Initialize the order list.  The orders are arranged as 0, +1, -1, +2...
-    * This is approximately in the direction of decreasing efficiency.  I do 
+    * This is approximately in the direction of decreasing efficiency.  I do
     * this to minimize the amount of time spent determining the order that
     * a photon will go into.
     */
@@ -458,7 +456,7 @@ static double HEG_Rowland_Diameter = 8634.0;	       /* mm */
 static double LEG_Rowland_Diameter = 8634.0;	       /* mm */
 
 #define REST_OF_STRUCT_FIELDS 0, 0, 0
-static Marx_Grating_Info_Type HEG_Grating_Info = 
+static Marx_Grating_Info_Type HEG_Grating_Info =
 {
    0.2,				       /* period (um)*/
    0.7,				       /* bar_height (um) */
@@ -591,7 +589,7 @@ static Param_Table_Type Grating_Parm_Table [] =
 
      {"legFineNumOrders",	PF_INTEGER_TYPE,&LEG_Fine_Grating_Info.num_orders},
      {"legCoarseNumOrders",	PF_INTEGER_TYPE,&LEG_Coarse_Grating_Info.num_orders},
-   
+
      {"legFineBarWidth",	PF_REAL_TYPE,&LEG_Fine_Grating_Info.bar_width},
      {"legFineBarHeight",	PF_REAL_TYPE,&LEG_Fine_Grating_Info.bar_height},
      {"legFinePeriod",		PF_REAL_TYPE,&LEG_Fine_Grating_Info.period},
@@ -702,7 +700,7 @@ static int diffract_photon (Grating_Type *g, double theta,
    double factor;
    double n_lambda_over_d, dp_over_p, dtheta;
    double p_n, p_d, p_l;
-   
+
    n_lambda_over_d = order * (2.0 * PI * HBAR_C) / g->period / at->energy;
 
    x = at->x;
@@ -733,7 +731,7 @@ static int diffract_photon (Grating_Type *g, double theta,
 	unsigned int sector_num;
 	double sector;
 	/* The sector is determined by the y and z coordinates of the ray. */
-	
+
 	sector = atan2 (x.y, x.z);
 	if (sector < 0) sector = 2*PI + sector;
 
@@ -742,10 +740,10 @@ static int diffract_photon (Grating_Type *g, double theta,
 	    || (gs->min_angle[sector_num] > sector))
 	  return -1;
 
-	dtheta = gs->dtheta[sector_num] 
+	dtheta = gs->dtheta[sector_num]
 	  + gs->dtheta_blur[sector_num] * JDMgaussian_random ();
-	
-	dp_over_p = gs->dp_over_p[sector_num] 
+
+	dp_over_p = gs->dp_over_p[sector_num]
 	  + gs->dp_over_p_blur[sector_num] * JDMgaussian_random ();
      }
    else
@@ -781,9 +779,9 @@ static int diffract_photon (Grating_Type *g, double theta,
 
    if (p_n < 0.0)
      return -1;
-	
+
    p_n = sqrt (p_n);
-   
+
    p = JDMv_ax1_bx2 (p_d, d, p_n, n);
    at->p = JDMv_ax1_bx2 (1.0, p, p_l, l);
 
@@ -897,7 +895,7 @@ static void intersect_photons (Marx_Photon_Type *pt)
 
 static void diffract_from_support_grating (Grating_Type *g, double theta,
 					   Marx_Photon_Type *pt,
-					   float *tmp_energies, 
+					   float *tmp_energies,
 					   float **tmp_cum_efficiencies,
 					   int support_index)
 {
@@ -937,7 +935,7 @@ static void diffract_from_support_grating (Grating_Type *g, double theta,
 
 	at = photon_attributes + sorted_index[j];
 	if (at->flags & BAD_PHOTON_MASK) continue;
-	
+
 	gs = NULL;
 
 	if (-1 == diffract_photon_from_grating (g, theta, at, tmp_cum_efficiencies,
@@ -997,7 +995,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
    tmp_energies = JDMfloat_vector (num_sorted);
    if (tmp_energies == NULL)
      return -1;
-   
+
    /* Loop through all valid photons and diffract off the appropriate
     * grating.  The grating is determined by the Mirror shell the photon
     * diffracted from.
@@ -1014,7 +1012,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 	num_orders = g->num_orders;
 
 	tmp_cum_efficiencies = JDMfloat_matrix (num_orders, num_sorted);
-	if (tmp_cum_efficiencies == NULL) 
+	if (tmp_cum_efficiencies == NULL)
 	  {
 	     JDMfree_float_vector (tmp_energies);
 	     return -1;
@@ -1028,8 +1026,8 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 	     tmp_energies[photon_number] = at->energy;
 	     photon_number++;
 	  }
-	
-	if (photon_number == 0) 
+
+	if (photon_number == 0)
 	  {
 	     JDMfree_float_matrix (tmp_cum_efficiencies, num_orders);
 	     continue;
@@ -1041,7 +1039,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 				  num_orders);
 
 	/* and loop through photon list finding diffraction order */
-	
+
 	gs = Grating_Sectors[i];
 	photon_number = 0;
 	for (j = 0; j < num_sorted; j++)
@@ -1064,11 +1062,11 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 	num_orders = LEG_Fine_Grating->num_orders;
 	if (num_orders < LEG_Coarse_Grating->num_orders)
 	  num_orders = LEG_Coarse_Grating->num_orders;
-	
+
 	if (num_orders)
 	  {
 	     tmp_cum_efficiencies = JDMfloat_matrix (num_orders, num_sorted);
-	     if (tmp_cum_efficiencies == NULL) 
+	     if (tmp_cum_efficiencies == NULL)
 	       {
 		  JDMfree_float_vector (tmp_energies);
 		  return -1;
@@ -1078,7 +1076,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 
 	if (LEG_Fine_Grating->num_orders)
 	  {
-	     
+
 	     diffract_from_support_grating (LEG_Fine_Grating, PI/2.0, pt,
 					    tmp_energies, tmp_cum_efficiencies, 0);
 	     pt->history |= MARX_ORDER1_OK;
@@ -1097,7 +1095,7 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 			     | MARX_ORDER3_OK
 			     | MARX_ORDER4_OK);
 	  }
-	
+
 	if (num_orders)
 	  JDMfree_float_matrix (tmp_cum_efficiencies, num_orders);
      }
@@ -1109,7 +1107,6 @@ static int diffract (Marx_Photon_Type *pt) /*{{{*/
 
    return 0;
 }
-
 
 /*}}}*/
 
@@ -1222,12 +1219,12 @@ static int create_order_list (Grating_Type *g)
    num_orders = g->num_orders;
    if (NULL == (order_list = JDMinteger_vector (num_orders)))
      return -1;
-   
+
    max_order = (num_orders - 1) / 2;
-   
+
    for (order = -max_order; order <= max_order; order++)
      order_list[order + max_order] = order;
-   
+
    g->order_list = order_list;
    return 0;
 }
@@ -1277,11 +1274,11 @@ static int sum_file_efficiencies (Grating_Type *g, double scale)
 	       cum_efficiencies [j][i] /= sum;
 	  }
      }
-   
+
    return 0;
 }
 
-static int create_efficiency_arrays (unsigned int num_energies, 
+static int create_efficiency_arrays (unsigned int num_energies,
 				     unsigned int num_orders,
 				     float ***efficiencies_p,
 				     float **energies_p,
@@ -1314,7 +1311,7 @@ static int create_efficiency_arrays (unsigned int num_energies,
 	JDMfree_float_matrix (efficiencies, num_orders);
 	return -1;
      }
-   
+
    *energies_p = energies;
    *efficiencies_p = efficiencies;
    *max_order_p = num_orders / 2;
@@ -1322,8 +1319,8 @@ static int create_efficiency_arrays (unsigned int num_energies,
 }
 
 #if USE_GEFF_CALDB_FILE
-static int read_geff_caldb_file (char *file, int shell, 
-				 float ***efficiencies_p, 
+static int read_geff_caldb_file (char *file, int shell,
+				 float ***efficiencies_p,
 				 float **energies_p,
 				 unsigned int *num_energies_p,
 				 int *max_order_p)
@@ -1347,7 +1344,7 @@ static int read_geff_caldb_file (char *file, int shell,
    r = jdfits_bintable_open_rows (f, 2, "f:ENERGY", "f:EFF");
    if (r == NULL)
      goto return_error;
-   
+
    num_energies = r->num_rows;
    c = r->col_data;
    if (c[0].repeat != 1)
@@ -1400,7 +1397,7 @@ static int read_geff_caldb_file (char *file, int shell,
 
 #else
 static int read_geff_bdat_file (char *file, int shell,
-				float ***efficiencies_p, 
+				float ***efficiencies_p,
 				float **energies_p,
 				unsigned int *num_energies_p,
 				int *max_order_p)
@@ -1413,7 +1410,7 @@ static int read_geff_bdat_file (char *file, int shell,
    unsigned int num;
    JDMBData_File_Type *bf;
    FILE *fp;
-   
+
    (void) shell;
 
    marx_message ("\t%s\n", file);
@@ -1467,7 +1464,7 @@ static int read_geff_bdat_file (char *file, int shell,
    *num_energies_p = num_energies;
    *max_order_p = max_order;
    return 0;
-   
+
    return_error:
    if (bf != NULL)
      JDMbdata_close_file (bf);
@@ -1477,7 +1474,7 @@ static int read_geff_bdat_file (char *file, int shell,
      JDMfree_float_vector (energies);
    *efficiencies_p = NULL;
    *energies_p = NULL;
-   
+
    return -1;
 }
 #endif				       /* USE_GEFF_CALDB_FILE */
@@ -1521,9 +1518,9 @@ static Grating_Type *init_one_file_grating (char *file, int shell, double scale)
    if ((0 == create_order_list (g))
        && (0 == sum_file_efficiencies (g, scale)))
    return g;
-   
+
    /* Get below here only if an error occurs */
-	
+
    return_error:
    if (g != NULL) free_grating (g);
    return NULL;
@@ -1597,29 +1594,28 @@ static int init_file_efficiencies (Param_File_Type *pf, char *prefix_name, doubl
 	g->dp_over_p = dp_over_p;
 	g->vig = vig;
      }
-   
+
    return 0;
 }
 
 static void free_sector_info (void)
 {
    unsigned int i;
-   
+
    for (i = 0; i < MARX_NUM_MIRRORS; i++)
      {
 	Grating_Sector_Type *gs = Grating_Sectors[i];
 	if (gs == NULL) continue;
-	
+
 	marx_free ((char *)gs->min_angle);
 	marx_free ((char *)gs->max_angle);
 	marx_free ((char *)gs->dtheta);
 	marx_free ((char *)gs->dp_over_p);
 	marx_free ((char *) gs);
-	
+
 	Grating_Sectors[i] = NULL;
      }
 }
-
 
 static int read_sector_files (Param_File_Type *pf, char *name)
 {
@@ -1629,7 +1625,7 @@ static int read_sector_files (Param_File_Type *pf, char *name)
    unsigned int i;
 
    free_sector_info ();
-   
+
    i = 0;
    while (shells[i] != 0)
      {
@@ -1654,12 +1650,12 @@ static int read_sector_files (Param_File_Type *pf, char *name)
 	     free_sector_info ();
 	     return -1;
 	  }
-	
+
 	marx_free (file);
 	Grating_Sectors [i] = gs;
 	i++;
      }
-   
+
    return 0;
 }
 
@@ -1693,10 +1689,10 @@ int _marx_hetg_init (Param_File_Type *pf)
 	free_grating (heg);
 	return -1;
      }
-   
+
    Gratings [0] = Gratings [1] = meg;
    meg->num_refs = 2;
-   
+
    Gratings [2] = Gratings [3] = heg;
    heg->num_refs = 2;
 
@@ -1774,11 +1770,10 @@ int marx_set_grating_table_parms (double min_energy, double max_energy, unsigned
 
 /*}}}*/
 
-
 /*
  * The sector data base file is assumed to be as ASCII file with columns of
  * the form:
- * 
+ *
  *    MIN_ANGLE MAX_ANGLE DELTA_THETA DELTA_THETA_BLUR DP_OVER_P DP_OVER_P_BLUR...
  */
 #define NUM_SECTOR_COLUMNS 6
@@ -1798,10 +1793,10 @@ static Grating_Sector_Type *read_sector_info (char *file)
 
    if (-1 == JDMread_column_ddata (file, data, cindex, NUM_SECTOR_COLUMNS, &num_read))
      return NULL;
-   
+
    if (NULL == (gs = (Grating_Sector_Type *) marx_malloc (sizeof (Grating_Sector_Type))))
      goto return_error;
-   
+
    memset ((char *) gs, 0, sizeof (Grating_Sector_Type));
 
    gs->num_sectors = num_read;
@@ -1818,21 +1813,20 @@ static Grating_Sector_Type *read_sector_info (char *file)
 	/* Convert from degrees to radians */
 	gs->min_angle[i] *= PI/180.0;
 	gs->max_angle[i] *= PI/180.0;
-	
+
 	/* dtheta is in ARC-minutes */
 	/* dtheta_blur is in ARC-minutes */
 	gs->dtheta[i] *= PI/(180.0 * 60.0);
 	gs->dtheta_blur[i] *= PI/(180.0 * 60.0);
      }
-   
+
    return gs;
-   
-   
+
    return_error:
 
    for (i = 0; i < NUM_SECTOR_COLUMNS; i++)
      marx_free ((char *) data[i]);
-   
+
    return NULL;
 }
 

@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -63,22 +62,22 @@ static int point_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
    unsigned int i;
    Marx_Photon_Attr_Type *at;
    int (*efun) (Marx_Spectrum_Type *, double *);
-   
+
    at = pt->attributes;
    efun = st->spectrum.energy_function;
-   
+
    for (i = 0; i < num; i++)
      {
 	if (-1 == (*efun) (&st->spectrum, &at->energy))
 	  return -1;
-	
-	/* For a point source, the calculation of the vector to the origin 
+
+	/* For a point source, the calculation of the vector to the origin
 	 * is trivial. */
 	at->p = st->p;
-	
+
 	at++;
      }
-   
+
    *num_created = num;
    return 0;
 }
@@ -89,15 +88,13 @@ int marx_select_point_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 			      char *name, unsigned int source_id)
 {
    (void) source_id;
-   
+
    st->open_source = point_open_source;
    st->create_photons = point_create_photons;
    st->close_source = point_close_source;
-   
+
    return _marx_get_simple_specrum_parms (p, st, name);
 }
 
 /*}}}*/
-
-
 

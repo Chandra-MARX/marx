@@ -24,7 +24,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -47,10 +46,9 @@ int jdfits_init_null_primary_header (JDFits_Type *ft)
        || (-1 == jdfits_write_header_integer (ft, "NAXIS", 0, "No DATA image array present"))
        || (-1 == jdfits_write_header_logical (ft, "EXTEND", 1, "There MAY be standard extensions")))
      return -1;
-   
+
   return 0;
 }
-
 
 int jdfits_create_btable_extension (JDFits_Type *ft,
 				    JDFits_BTable_Keyword_Type *bkw,
@@ -62,17 +60,17 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
    unsigned char ch;
    int repeat;
    JDFits_BTable_Keyword_Type *k;
-   
+
    naxis1 = tfields = 0;
    k = bkw;
-   
+
    while (k->tform != NULL)
      {
 	tfields++;
-	
+
 	repeat = 0;
 	p = (unsigned char *) k->tform;
-	
+
 	ch = *p;
 	if (0 == isdigit (ch))
 	  {
@@ -87,7 +85,7 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 		  repeat = 10 * repeat + (ch - '0');
 	       }
 	  }
-	
+
 	switch (ch)
 	  {
 	   case 'A':
@@ -95,20 +93,20 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 	   case 'L':
 	     size = 1;
 	     break;
-	     
+
 	   case 'I':
 	     size = 2;
 	     break;
-	     
+
 	   case 'E':
 	   case 'J':
 	     size = 4;
 	     break;
-	     
+
 	   case 'D':
 	     size = 8;
 	     break;
-	     
+
 	   case 'X':
 	     switch (repeat)
 	       {
@@ -135,7 +133,7 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 	naxis1 += repeat * size;
 	k++;
      }
-   
+
    if ((-1 == jdfits_write_header_string (ft, "XTENSION", "BINTABLE", "FITS BINARY TABLE"))
        || (-1 == jdfits_write_header_integer (ft, "BITPIX", 8, "Binary data"))
        || (-1 == jdfits_write_header_integer (ft, "NAXIS", 2, "Table is a matrix"))
@@ -147,7 +145,7 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
      {
 	return -1;
      }
-   
+
    k = bkw;
 
    tfields = 0;
@@ -159,9 +157,9 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 	char tlmin[12];
 	char tlmax[12];
 	char *comment, *comment1;
-	
+
 	tfields++;
-	
+
 	sprintf (tform, "TFORM%d", tfields);
 	sprintf (ttype, "TTYPE%d", tfields);
 	sprintf (tunit, "TUNIT%d", tfields);
@@ -172,7 +170,7 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 	  comment = "Data type for field";
 	if (-1 == jdfits_write_header_string (ft, tform, k->tform, comment))
 	  return -1;
-	
+
 	if (k->ttype != NULL)
 	  {
 	     if (NULL == (comment = k->ttype_comment))
@@ -189,12 +187,12 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 	     if (-1 == jdfits_write_header_string (ft, tunit, k->tunit, comment))
 	       return -1;
 	  }
-	
+
 	if (NULL == (comment = k->min_comment))
 	  comment = "Min Value for field";
 	if (NULL == (comment1 = k->min_comment))
 	  comment1 = "Max Value for field";
-	
+
 	switch (k->min_max_type)
 	  {
 	   case 'A':
@@ -241,10 +239,10 @@ int jdfits_create_btable_extension (JDFits_Type *ft,
 	  }
 	k++;
      }
-   
+
    if (-1 == jdfits_write_header_string (ft, "EXTNAME", extname, "Table name"))
      return -1;
 
    return 0;
 }
-   
+

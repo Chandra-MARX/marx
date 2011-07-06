@@ -27,7 +27,7 @@
 
 extern JDMVector_Type _Marx_HRC_Geometric_Center;
 
-typedef struct 
+typedef struct
 {
    double dx, dy, dz;
    double matrix[9];
@@ -38,12 +38,10 @@ extern void _marx_transform_ray (JDMVector_Type *, JDMVector_Type *,
 extern void _marx_transform_ray_reverse (JDMVector_Type *, JDMVector_Type *,
 					 _Marx_Coord_Transform_Type *);
 
-
 #define _MARX_NUM_ACIS_S_CHIPS	6
 #define _MARX_NUM_ACIS_I_CHIPS	4
 #define _MARX_NUM_HRC_S_CHIPS	3
 #define _MARX_NUM_HRC_I_CHIPS	1
-
 
 #define MARX_NUM_MIRRORS 4
 extern double _Marx_HRMA_Cap_Position;
@@ -126,7 +124,7 @@ extern int _marx_init_file_spectrum (Param_File_Type *, Marx_Spectrum_Type *);
 extern int _marx_get_simple_specrum_parms (Param_File_Type *, Marx_Source_Type *, char *);
 
 extern int _Marx_Det_Extend_Flag;
-extern Marx_Detector_Geometry_Type 
+extern Marx_Detector_Geometry_Type
  *_marx_intersect_with_detector (JDMVector_Type, JDMVector_Type,
 				 Marx_Detector_Geometry_Type *,
 				 JDMVector_Type *, double *, double *,
@@ -207,13 +205,13 @@ extern int _marx_caldb_patch_hrc_s_geom (Marx_Detector_Type *d);
 extern int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np);
 extern JDFits_Type *_marx_open_binary_hdu (char *file, char *hduname);
 
-typedef struct 
+typedef struct
 {
    char *name;
    unsigned int num_elements;
    double *data;
    double scale;
-   
+
    /* private */
    int processed;
 }

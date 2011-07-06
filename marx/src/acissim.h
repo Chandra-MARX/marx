@@ -20,7 +20,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-typedef struct 
+typedef struct
 {
    double xpixel, ypixel, zpixel;		       /* pixel units */
    double px, py, pz;		       /* direction cosines */
@@ -29,15 +29,13 @@ typedef struct
 }
 AcisSim_Ray_Type;
 
-
-
 typedef struct
 {
 #define MAX_ISLAND_SIZE 7
    unsigned int island_size;
    double phas [MAX_ISLAND_SIZE * MAX_ISLAND_SIZE];   /* KeV */
 
-   double x, y;			       /* x, y pixel location of center 
+   double x, y;			       /* x, y pixel location of center
 					* pixel.  For example, if x is 12.5
 					* then the center pixel is number 12
 					* and the event happened at its center.
@@ -47,7 +45,7 @@ typedef struct
 }
 AcisSim_Pixel_Island_Type;
 
-typedef struct 
+typedef struct
 {
    AcisSim_Pixel_Island_Type regular_island;
    AcisSim_Pixel_Island_Type fluoresc_island;

@@ -123,7 +123,7 @@ extern char *_pf_unescape_string (char *);
 extern char *_pf_escape_string (char *);
 extern char *_pf_extract_string_element (char *, char *, unsigned int *);
 extern char *_pf_strbrk (char *, char *);
-extern Param_Type *_pf_locate_param_by_type (Param_File_Type *, char *, 
+extern Param_Type *_pf_locate_param_by_type (Param_File_Type *, char *,
 					     unsigned int);
 extern int _pf_get_indirect_value (Param_File_Type *, char *, char **);
 

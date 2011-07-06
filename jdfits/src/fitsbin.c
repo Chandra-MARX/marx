@@ -24,7 +24,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -51,19 +50,19 @@ char *_jdfits_allocate_bytes_of_type (int type, unsigned int nelements)
       case JDFITS_INT16_TYPE:
 	len = sizeof (int16);
 	break;
-	
+
       case JDFITS_INT32_TYPE:
 	len = sizeof (int32);
 	break;
-	
+
       case JDFITS_FLOAT32_TYPE:
 	len = sizeof (float32);
 	break;
-	
+
       case JDFITS_FLOAT64_TYPE:
 	len = sizeof (float64);
 	break;
-	
+
       case JDFITS_STRING_TYPE:
 	len = 1;
 	nelements++;		       /* allow for null termination */
@@ -76,17 +75,16 @@ char *_jdfits_allocate_bytes_of_type (int type, unsigned int nelements)
 	jdfits_error ("_jdfits_allocate_bytes_of_type: Field type '%d' is not implemented.", type);
 	return NULL;
      }
-	
+
    if (nelements == 0)
      nelements = 1;
 
    if (NULL == (s = (char *) SLCALLOC (nelements, len)))
      jdfits_error ("_jdfits_allocate_bytes_of_type: calloc error.");
-   
+
    return s;
 }
 
-   
 static JDFits_Keyword_Type *bt_parse_index_kw (JDFits_Header_Type *h, char *kwd, /*{{{*/
 					       int i, unsigned int type)
 {
@@ -115,21 +113,21 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
    JDFits_Bintable_Type *bt = NULL;
    JDFits_Bintable_Field_Type *bft = NULL;
    int tfields, i;
-   
+
    /* Check to make sure this is a bintable */
-   
+
    if ((ft == NULL) || (NULL == (h = ft->header)))
      {
 	jdfits_error ("jdfits_bintable_parse_headers: header is NULL.");
 	return -1;
      }
-   
+
    if (h->type == JDFITS_EXTENSION_HEADER)
      {
 	if ((h->name != NULL) && !strcmp ((char *) h->name, "BINTABLE"))
 	  h->type = JDFITS_BINTABLE_HEADER;
      }
-   
+
    if (h->type != JDFITS_BINTABLE_HEADER)
      {
 	jdfits_error ("jdfits_bintable_parse_headers: Not a BINTABLE header.");
@@ -137,7 +135,7 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
      }
 
    /* Check to make sure the header meets the other basic requirements. */
-   if ((h->bitpix != 8) 
+   if ((h->bitpix != 8)
        || (h->naxis != 2)
        || (h->gcount != 1))
      {
@@ -155,19 +153,19 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 	jdfits_error ("jdfits_bintable_parse_headers: Bad or missing TFIELDS entry.");
 	goto free_error;
      }
-   
+
    if (NULL == (bt = (JDFits_Bintable_Type *) SLMALLOC (sizeof (JDFits_Bintable_Type))))
      {
 	jdfits_error ("jdfits_bintable_parse_headers: Malloc Error.");
 	goto free_error;
      }
-   
+
    memset ((char *) bt, 0, sizeof (JDFits_Bintable_Type));
-   
+
    if (0 != tfields)
      {
 	bft = (JDFits_Bintable_Field_Type *) SLCALLOC (tfields, sizeof (JDFits_Bintable_Field_Type));
-	if (bft == NULL) 
+	if (bft == NULL)
 	  {
 	     jdfits_error ("jdfits_bintable_parse_headers: Calloc Error.");
 	     goto free_error;
@@ -176,32 +174,31 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 
    bt->finfo = bft;
    bt->tfields = tfields;
-   
+
    if (NULL != (kwt = jdfits_parse_keyword (h, "EXTNAME", JDFITS_STRING_TYPE)))
      bt->extname = (char *) kwt->v.sval;
-     
+
    for (i = 1; i <= tfields; i++)
      {
 	char buf[9], *b;
 	unsigned char ch;
 	unsigned int repeat, type, size;
 	char *fmt, *default_format;
-	
+
 	JDFits_Bintable_Field_Type *bfti = bft + (i - 1);
-	
-	
+
 	sprintf (buf, "TFORM%d", i);
-	
+
 	kwt = jdfits_parse_keyword (h, buf, JDFITS_STRING_TYPE);
 	if (kwt == NULL)
 	  {
 	     jdfits_error ("jdfits_bintable_parse_headers: Bad or missing %s entry.", buf);
 	     goto free_error;
 	  }
-	
+
 	b = (char *) kwt->v.sval;
 	ch = *b;
-	
+
 	/* Some files produced by ftools use spaces like:  "  1J  " */
 	while (ch == ' ')
 	  {
@@ -222,12 +219,12 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 	  }
 
 	bfti->repeat = repeat;
-	
+
 	default_format = "% 16.9E";
-	
+
 	type = 0;
 	pointer_type_label:
-	
+
 	switch (ch)
 	  {
 	   case 'L':
@@ -261,7 +258,7 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 		  break;
 
 		default:
-		  type |= JDFITS_BIT_TYPE; 
+		  type |= JDFITS_BIT_TYPE;
 		  size = 1;
 		  fmt = "%X";
 		  break;
@@ -277,7 +274,7 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 	     size = 16;
 	     fmt = JDFITS_FMT_16;
 	     break;
-	     
+
 	   case 'P':		       /* variable length array */
 	     if (repeat > 1)
 	       {
@@ -290,7 +287,7 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 	     ch = *b;
 	     type = JDFITS_POINTER_FLAG;
 	     goto pointer_type_label;
-	       
+
 	   case 'J':
 	     type |= JDFITS_INT32_TYPE;
 	     size = 32;
@@ -318,43 +315,42 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 	   case 'C':		       /* complex */
 	   case 'M':		       /* double precision complex */
 	   default:
-	     jdfits_error ("jdfits_bintable_parse_headers: Field type '%c' is not implemented. (%s)", 
+	     jdfits_error ("jdfits_bintable_parse_headers: Field type '%c' is not implemented. (%s)",
 			 ch, buf);
 	     goto free_error;
 	  }
 	bfti->size = size;
 	bfti->type = type;
-	
-	
+
 	/* Now pick up the remaining indexed keywords. */
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TTYPE", i, JDFITS_STRING_TYPE)))
 	  bfti->ttype = NULL;
 	else bfti->ttype = kwt->v.sval;
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TUNIT", i, JDFITS_STRING_TYPE)))
 	  bfti->tunit = NULL;
 	else bfti->tunit = kwt->v.sval;
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TDIM", i, JDFITS_STRING_TYPE)))
 	  bfti->tdim = NULL;
 	else bfti->tdim = kwt->v.sval;
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TNULL", i, JDFITS_INT_TYPE)))
 	  bfti->tnull = 0;
 	else bfti->tnull = kwt->v.ival;
-	
+
 	bfti->has_scaling = 0;
 	if (NULL == (kwt = bt_parse_index_kw (h, "TSCAL", i, JDFITS_FLOAT64_TYPE)))
 	  {
 	     bfti->tscal = 1.0;
 	  }
-	else 
+	else
 	  {
 	     bfti->tscal = kwt->v.dval;
 	     bfti->has_scaling = 1;
 	  }
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TZERO", i, JDFITS_FLOAT64_TYPE)))
 	  bfti->tzero = 0.0;
 	else
@@ -362,27 +358,26 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 	     bfti->tzero = kwt->v.dval;
 	     bfti->has_scaling = 1;
 	  }
-	 
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TCRPX", i, JDFITS_FLOAT64_TYPE)))
 	  bfti->tcrpx = 0.0;
-	else 
+	else
 	  {
 	     bfti->tcrpx = kwt->v.dval;
 	     bfti->has_scaling = 1;
 	  }
-	
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TCRVL", i, JDFITS_FLOAT64_TYPE)))
 	  bfti->tcrvl = 0.0;
-	else 
+	else
 	  {
 	     bfti->tcrvl = kwt->v.dval;
 	     bfti->has_scaling = 1;
 	  }
-	
+
 	if (NULL == (kwt = bt_parse_index_kw (h, "TCDLT", i, JDFITS_FLOAT64_TYPE)))
 	  bfti->tcdlt = 1.0;
-	else 
+	else
 	  {
 	     bfti->tcdlt = kwt->v.dval;
 	     bfti->has_scaling = 1;
@@ -390,23 +385,23 @@ int jdfits_bintable_parse_headers (JDFits_Type *ft) /*{{{*/
 #if 0
 	/* We do not yet handled the unsigned int hack.  So avoid float format */
 	if (bfti->has_scaling) fmt = default_format;
-#endif		
+#endif
 	if ((NULL == (kwt = bt_parse_index_kw (h, "TDISP", i, JDFITS_STRING_TYPE)))
 	    || (-1 == jdfits_ffmt_to_cfmt (kwt->v.sval, bfti->tdisp)))
 	  strcpy ((char *) bfti->tdisp, fmt);
      }
-   
+
    h->ext.bintable = bt;
    h->free_routine = free_bintable;
 
-   /* Now set up the remaining fields.  Note that the positions of 
+   /* Now set up the remaining fields.  Note that the positions of
     * naxis1 and naxis2 are fixed.
     */
    bt->naxis1 = h->keys[3].v.ival;
    bt->naxis2 = h->keys[4].v.ival;
-   
+
    return 0;
-   
+
    /* Only get here if something goes wrong.  Here all malloced items in this
     * function are freed.
     */
@@ -428,12 +423,12 @@ static unsigned char *check_buf_size (unsigned char **bufp, unsigned int *max_le
 
    if (len <= *max_lenp)
      return *bufp;
-   
+
    if (*bufp == NULL)
      buf = (unsigned char *) malloc (len);
    else
      buf = (unsigned char *) realloc ((char *) *bufp, len);
-   
+
    if (buf == NULL)
      {
 	jdfits_error ("Out of memory: %u bytes requested", len);
@@ -444,8 +439,6 @@ static unsigned char *check_buf_size (unsigned char **bufp, unsigned int *max_le
    return buf;
 }
 
-   
-
 int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 			       char *colname) /*{{{*/
 {
@@ -454,7 +447,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
    int rows, cols, i;
    unsigned char *buf;
    unsigned int buf_size;
-   
+
    buf = NULL;
    buf_size = 0;
 
@@ -464,21 +457,21 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	jdfits_error ("jdfits_bintable_dump_data: Not a binary table.");
 	return -1;
      }
-   
+
    if (-1 == jdfits_read_open_data (ft)) return -1;
-   
+
    btf = bt->finfo;
    rows = bt->naxis2;
    cols = bt->tfields;
-   
+
    /* dump out the table heading */
    putc ('#', fp);
-   
+
    for (i = 0; i < cols; i++)
      {
 	char fmt[20], *f, *f1, ch;
 	unsigned int repeat = btf[i].repeat;
-	
+
 	/* look at the format to guess the field width */
 	if (btf[i].type & JDFITS_POINTER_FLAG)
 	  f = JDFITS_FMT_32;
@@ -486,18 +479,18 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	  f = btf[i].tdisp;
 
 	f1 = fmt;
-	
+
 	if (*f == '%') f++;
 	/* Take the extra space associated with, e.g., "% 12f" into account. */
 	if (*f == ' ')
 	  f++;
 
 	*f1++ = '%';
-	
+
 	while (((ch = *f++) != 0) && isdigit (ch)) *f1++ = ch;
 	*f1 = 's';
 	*(f1 + 1) = 0;
-	
+
 	if ((f = btf[i].ttype) == NULL) f = "??";
 
 	if ((colname != NULL)
@@ -526,10 +519,10 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	  }
      }
    putc ('\n', fp);
-   
+
    /* dump out the units */
    putc ('#', fp);
-   
+
    for (i = 0; i < cols; i++)
      {
 	char fmt[20], *f, *f1, ch;
@@ -558,11 +551,11 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	  f++;
 
 	*f1++ = '%';
-	
+
 	while (((ch = *f++) != 0) && isdigit (ch)) *f1++ = ch;
 	*f1 = 's';
 	*(f1 + 1) = 0;
-	
+
 	if (btf[i].type == JDFITS_STRING_TYPE)
 	  {
 	     sprintf (fmt, "%%-%ds", repeat);
@@ -570,7 +563,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	  }
 
 	if ((f = btf[i].tunit) == NULL) f = "";
-	
+
 	while (repeat--)
 	  {
 	     if (0 > fprintf (fp, (char *) fmt, f))
@@ -580,8 +573,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	  }
      }
    putc ('\n', fp);
-   
-	
+
    while (rows-- > 0)
      {
 	putc (' ', fp);	       /* to match # in column names */
@@ -612,7 +604,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	     if ((colname == NULL) && (repeat > 128) && (cols > 1)
 		 && (btf[i].type != JDFITS_STRING_TYPE))
 	       repeat = 16;
-	     
+
 #if 0
 	     has_scaling = btf[i].has_scaling;
 #else				       /* avoid unsiged int hack */
@@ -627,13 +619,12 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 	       }
 
 	     type = btf[i].type;
-	     
+
 	     if (type & JDFITS_POINTER_FLAG)
 	       {
 		  type = JDFITS_INT32_TYPE;
 	       }
 
-	     
 	     switch (type)
 	       {
 		case JDFITS_INT32_TYPE:
@@ -665,7 +656,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		       i32++;
 		    }
 		  break;
-		  
+
 		case JDFITS_INT16_TYPE:
 		  if (NULL == (i16 = (int16 *) check_buf_size (&buf, &buf_size, num_to_read * 2)))
 		    goto return_error;
@@ -701,7 +692,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		       i16++;
 		    }
 		  break;
-		  
+
 		case JDFITS_FLOAT64_TYPE:
 		  if (NULL == (f64 = (float64 *) check_buf_size (&buf, &buf_size, num_to_read * 8)))
 		    goto return_error;
@@ -729,7 +720,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		       f64++;
 		    }
 		  break;
-		  
+
 		case JDFITS_FLOAT32_TYPE:
 		  if (NULL == (f32 = (float32 *) check_buf_size (&buf, &buf_size, num_to_read * 4)))
 		    goto return_error;
@@ -757,7 +748,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		       f32++;
 		    }
 		  break;
-		  
+
 		case JDFITS_BYTE_TYPE:
 		  if (NULL == (b = (unsigned char *) check_buf_size (&buf, &buf_size, num_to_read * 1)))
 		    goto return_error;
@@ -778,7 +769,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		       b++;
 		    }
 		  break;
-		  
+
 		case JDFITS_STRING_TYPE:
 		  if (NULL == (b = (unsigned char *) check_buf_size (&buf, &buf_size, num_to_read * 1)))
 		    goto return_error;
@@ -792,7 +783,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		  bmax = b + repeat;
 		  while (b < bmax)
 		    {
-		       if (*b == 0) 
+		       if (*b == 0)
 			 {
 			    do
 			      {
@@ -811,8 +802,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 		  if (EOF == putc (' ', fp))
 		    goto return_error;
 		  break;
-		  
-		  
+
 		case JDFITS_BOOL_TYPE:
 		  if (NULL == (b = (unsigned char *) check_buf_size (&buf, &buf_size, num_to_read * 1)))
 		    goto return_error;
@@ -849,7 +839,7 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
    jdfits_read_close_data (ft);
    jdfits_free ((char *) buf);
    return 0;
-   
+
    return_error:
    jdfits_read_close_data (ft);
    jdfits_free ((char *) buf);
@@ -858,37 +848,37 @@ int jdfits_bintable_dump_data (JDFits_Type *ft, int scale, FILE *fp,
 }
 
 /*}}}*/
-     
+
 int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 {
    unsigned int tfields, i, j;
    unsigned int rows;
    JDFits_Bintable_Type *fbt;
-   
+
    fbt = ft->header->ext.bintable;
-   
+
    rows = fbt->naxis2;
    tfields = (unsigned int) fbt->tfields;
-		    
+
    for (i = 0; i < tfields; i++)
      {
 	unsigned int nelements;
 	unsigned int type;
 	JDFits_Bintable_Field_Type *finfo;
 	JDFits_Data_Array_Type *fdat;
-	
+
 	finfo = &fbt->finfo[i];
 	nelements = rows * finfo->repeat;
 	type = finfo->type;
 	fdat = &(finfo->data_array);
-	
+
 	fdat->nelements = nelements;
 	fdat->type = type;
 
 	if (NULL == (fdat->v.sval = _jdfits_allocate_bytes_of_type (type, nelements)))
 	  goto close_error;
      }
-   
+
    /* Now data arrays are malloced, so read in the data.  There is no scaling
     * performed.
     */
@@ -901,14 +891,14 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 	  {
 	     JDFits_Bintable_Field_Type *finfo;
 	     JDFits_Data_Array_Type *fdat;
-	     unsigned int repeat; 
-	     unsigned int offset; 
-	     
+	     unsigned int repeat;
+	     unsigned int offset;
+
 	     finfo = &fbt->finfo[j];
 	     fdat = &(finfo->data_array);
 	     repeat = finfo->repeat;
 	     offset = i * repeat;
-	     
+
 	     switch (fdat->type)
 	       {
 		case JDFITS_INT16_TYPE:
@@ -918,7 +908,7 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 		       goto close_error;
 		    }
 		  break;
-		  
+
 		case JDFITS_INT32_TYPE:
 		  if (repeat != jdfits_read_int32 (ft, fdat->v.lval + offset, repeat))
 		    {
@@ -926,7 +916,7 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 		       goto close_error;
 		    }
 		  break;
-	     
+
 		case JDFITS_FLOAT32_TYPE:
 		  if (repeat != jdfits_read_float32 (ft, fdat->v.fval + offset, repeat))
 		    {
@@ -934,7 +924,7 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 		       goto close_error;
 		    }
 		  break;
-	     
+
 		case JDFITS_FLOAT64_TYPE:
 		  if (repeat != jdfits_read_float64 (ft, fdat->v.dval + offset, repeat))
 		    {
@@ -942,7 +932,7 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 		       goto close_error;
 		    }
 		  break;
-		  
+
 		case JDFITS_STRING_TYPE:
 		case JDFITS_BOOL_TYPE:
 		case JDFITS_BIT_TYPE:
@@ -955,7 +945,7 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
      }
    jdfits_read_close_data (ft);
    return 0;
-   
+
    close_error:
    jdfits_read_close_data (ft);
    for (i = 0; i < tfields; i++)
@@ -970,5 +960,4 @@ int jdfits_bintable_read_data (JDFits_Type *ft) /*{{{*/
 }
 
 /*}}}*/
-
 

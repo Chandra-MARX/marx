@@ -27,13 +27,13 @@ int main (int argc, char **argv)
 {
    JDFits_Type *ftin, *ftout;
    char *infile, *outfile;
-   
+
    if (argc != 3)
      {
 	fprintf (stderr, "Usage: copyfits input-file output-file\n");
 	return -1;
      }
-   
+
    infile = argv[1];
    outfile = argv[2];
 
@@ -43,16 +43,16 @@ int main (int argc, char **argv)
 	jdfits_error ("Unable to open %s.", infile);
 	return -1;
      }
-   
+
    ftout = jdfits_open_file (outfile, JDFITS_WRITE_MODE);
    if (ftout == NULL)
      {
 	jdfits_error ("Unable to create %s.", outfile);
 	return -1;
      }
-   
-   /* This is a do loop because the act of opening a fits file for read 
-    * causes the header to be read.   We keep looping while there are 
+
+   /* This is a do loop because the act of opening a fits file for read
+    * causes the header to be read.   We keep looping while there are
     * extension headers.
     */
    do
@@ -62,16 +62,16 @@ int main (int argc, char **argv)
 	     jdfits_error ("Error copying header.");
 	     return -1;
 	  }
-	
+
 	/* Add more keywords here....*/
-	
+
 	/* Now close the header. */
 	if (-1 == jdfits_end_header (ftout))
 	  {
 	     jdfits_error ("Error writing header.");
 	     return -1;
 	  }
-	
+
 	/* copy the data section */
 	if (-1 == jdfits_copy_data (ftin, ftout))
 	  {
@@ -80,10 +80,9 @@ int main (int argc, char **argv)
 	  }
      }
    while (0 == jdfits_read_header (ftin));
-   
+
    jdfits_close_file (ftin);
    jdfits_close_file (ftout);
    return 0;
 }
 
-   

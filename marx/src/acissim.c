@@ -25,15 +25,15 @@
  * was written in Fortran by Lumb and later modified by Nousek.  The Townsley
  * converted it to Fortran.  It was later converted to C by Bob Zacher.
  * Unfortunately, the original code had some bugs and those bugs were
- * propagated along with each translation.  Finally, the translations 
+ * propagated along with each translation.  Finally, the translations
  * themselves introduced new bugs.  The bugs I found were reported to Bob
  * Zacher at SAO.
  *
  * To produce this version, I went back to the original papers that the
- * previous version was based on and rewrote the simulator from scratch 
+ * previous version was based on and rewrote the simulator from scratch
  * by taking the ideas in the original papers as well as the ideas of the
  * Lumb/Nousek/Townsley/Zacher implementation.
- * 
+ *
  * --John E. Davis
  * davis@space.mit.edu
  */
@@ -117,7 +117,7 @@ static int apply_filter_qe (double);
 #define JANESICK_FACTOR 1.0
 
 /* Background.
- * 
+ *
  * An xray photon will give up its energy via the photoelectric
  * effect a kick out an electron.  This electron will scatter giving
  * up its energy to electron-hole pairs.  This will happen at some
@@ -130,14 +130,14 @@ static int apply_filter_qe (double);
  * will differ from the XRay energy-- the binding energy of K shell electrons
  * in silicon is 1.78 KeV.
  * The factor of 0.5 is necessary to convert diameter to radius.
- * 
+ *
  * It is also possible for the initial photon to give rise to a fluorescence
  * photon.  This photon is also included in the simulation.
- * 
- * The charge cloud then begins to diffuse until it has reached the channel 
+ *
+ * The charge cloud then begins to diffuse until it has reached the channel
  * where it will be ``detected''.  The actual rate of diffusion will depend
- * upon the properties of the layer that it is travelling through.  It is 
- * possible for the charge cloud to spread across several pixels before 
+ * upon the properties of the layer that it is travelling through.  It is
+ * possible for the charge cloud to spread across several pixels before
  * detection.
  */
 
@@ -151,7 +151,7 @@ static double absorbtion_coeff (double energy)
    if ((energy < 0.03) || (energy > 14.0))
      fprintf(stderr, "**Warning: absorbtion_coeff: energy (%e) out of range.\n",
 	     energy);
-   
+
    x = log10 (energy);
    x += 3.0;			       /* convert to ev */
 
@@ -165,13 +165,13 @@ static double absorbtion_coeff (double energy)
      }
    else if (energy < 1.84)
      {
-	x = -421.2560 + x * (800.2535 + x * 
-			     (-596.4018 + x * 
+	x = -421.2560 + x * (800.2535 + x *
+			     (-596.4018 + x *
 			      (221.1723 + x * (-40.89891 + x * 3.014328))));
      }
    else				       /* < 14.0 */
      {
-	x = -80.59615 + x * (91.47612 + x * (-35.69339 + x * 
+	x = -80.59615 + x * (91.47612 + x * (-35.69339 + x *
 					     (6.007395 + x * (-0.3795995))));
      }
 
@@ -185,13 +185,12 @@ static double absorbtion_coeff (double energy)
    return x * 2.33 * 1.0e-4;
 }
 
-
 /* In this function, xoff is the offset from the middle cell (ncells/2).
  * If the photon lands in the middle of the cell, xoff would be 0.5.  That is,
  * the x here is in pixel units whose size is pixel_size microns.
  *
  * ncells should be odd.  This is not checked.
- * 
+ *
  * This routine is called alot.  Profiling indicates the program spends
  * about 10% of its time here.  For that reason the erf(x) call is
  * avoided if abs(x) is large.
@@ -202,19 +201,19 @@ static void integrate_erf (double sigma, double *prob, unsigned int ncells,
    double xmin, xmax;
    unsigned int i;
    double last_val, val;
-   
+
    if (sigma == 0.0)
      {
 	for (i = 0; i < ncells; i++) prob[i] = 0;
 	prob [ncells/2] = 1.0;
 	return;
      }
-	     
+
    pixel_size = pixel_size / sigma;
-   
+
    xmin = -((ncells / 2) + xoff) * pixel_size;
    xmax = xmin + ncells * pixel_size;
-   
+
    if (xmin < -4.0) last_val = 0.0;
    else if (xmin > 4.0) last_val = 1.0;
    else last_val = 0.5 * (1 + JDMerf (xmin));
@@ -222,7 +221,7 @@ static void integrate_erf (double sigma, double *prob, unsigned int ncells,
    for (i = 0; i < ncells; i++)
      {
 	val = xmin + (i + 1) * pixel_size;
-	
+
 	if (val > 4.0) val = 1.0;
 	else if (val < -4.0) val = 0.0;
 	else if (val == 0.0) val = 0.5;
@@ -232,7 +231,6 @@ static void integrate_erf (double sigma, double *prob, unsigned int ncells,
 	last_val = val;
      }
 }
-
 
 static int compute_phas (double energy, double sigma, double charge_fraction,
 			 AcisSim_Pixel_Island_Type *island)
@@ -250,9 +248,9 @@ static int compute_phas (double energy, double sigma, double charge_fraction,
     * Then, Q(\infty) = 1 and Q(\sigma) = 1 - 1/e
     *
     * In terms of cartesian coordinates:
-    * 
+    *
     * @ Q(X,Y) = 1/4 (1 + \erf(X/\sigma)) (1 + \erf(Y/\sigma))
-    * where Q(X,Y) represents the charge fraction for 
+    * where Q(X,Y) represents the charge fraction for
     * @ x < X and y < Y.
     */
 
@@ -262,19 +260,19 @@ static int compute_phas (double energy, double sigma, double charge_fraction,
     * fractional number of pairs.
     */
    energy = charge_fraction * energy;
-   
-   integrate_erf (sigma, xprobs, Island_Size, island->x - (int) island->x, 
+
+   integrate_erf (sigma, xprobs, Island_Size, island->x - (int) island->x,
 		  Pixel_Size);
    integrate_erf (sigma, yprobs, Island_Size, island->y - (int) island->y,
 		  Pixel_Size);
-   
+
    phas = island->phas;
    island_size = island->island_size = Island_Size;
 
    for (i = 0; i < island_size; i++)
      {
 	double yprob = yprobs [i];
-	
+
 	/* Note: the memset near the top level of these routines
 	 * ensures that island is zeroed.
 	 */
@@ -296,9 +294,9 @@ static int compute_phas (double energy, double sigma, double charge_fraction,
 	       continue;
 
 	     energy_times_prob = energy * prob;
-	     pha = energy_times_prob 
+	     pha = energy_times_prob
 	       + JDMgaussian_random () * sqrt (energy_times_prob * Energy_Per_Pair * (1 - prob));
-	     
+
 	     if (pha > 0.0)
 	       phas [j] = pha;
 	  }
@@ -311,13 +309,12 @@ static int compute_phas (double energy, double sigma, double charge_fraction,
    return 0;
 }
 
-
 /* Here we assume that a photon depth comes from an exponential distribution
  */
 static double compute_depth (double abs_coeff)
 {
    double r;
-   
+
    do
      {
 	r = JDMrandom ();
@@ -352,10 +349,10 @@ static double substrate_spread (double z)
    double f = 0.6;
    double eps = 1.0e-6, diff;
    unsigned int max_its;
-   
+
    if ((z <= 0.0) || (Substrate_Diffusion_Length <= 0.0))
      return 0.0;
-   
+
    u_R = z / Substrate_Diffusion_Length;   /* seed */
    alpha = (1 - f) * (Substrate_Diffusion_Length / z) * exp (-u_R);
 
@@ -406,28 +403,28 @@ static int epi_spread (double energy, double depth, double *radius, double *cfra
    if (depth < Dead_Thickness)
      return -1;
 
-   r_squared = initial_cloud_size (energy);  
+   r_squared = initial_cloud_size (energy);
    r_squared = r_squared * r_squared;
-   
-   /* We know that it at least made it through the depletion region and 
+
+   /* We know that it at least made it through the depletion region and
     * the cloud must spread there from the other layers.
     */
-   
-   /* In the depletion region, use equation 7 from Hopkinson.  If the photon 
+
+   /* In the depletion region, use equation 7 from Hopkinson.  If the photon
     * is too close to the boundary, the equation will not hold so use
     * a cutoff suggested by Hopkinson.  The cutoff also enters as a
     * factor in eq 7 of Hopkinson.
     */
-   
+
    dz_cutoff = (Diffusion_Constant * epsilon) / (mobility * echarge * Dopant_Concentration);
    dz_cutoff = sqrt (dz_cutoff);
-   
+
    dz = Depletion_Boundary - depth;
    if (dz < dz_cutoff) dz = dz_cutoff;
 
    r_depletion = dz_cutoff * sqrt (2.0 * log (Depletion_Boundary / dz));
    r_squared += r_depletion * r_depletion;
-   
+
    charge_fraction = 1.0;
 
    /* Now check contribution from the other layers. */
@@ -449,8 +446,8 @@ static int epi_spread (double energy, double depth, double *radius, double *cfra
 	 */
 	r_ff = JANESICK_FACTOR * Field_Free_Thickness * sqrt (1.0 - ratio * ratio);
 	r_squared += r_ff * r_ff;
-	
-	/* Did the charge cloud start from the substrate?  If so, add its 
+
+	/* Did the charge cloud start from the substrate?  If so, add its
 	 * effect.  If not, be sure to compute the charge fraction lost
 	 * here due to recombination
 	 */
@@ -468,7 +465,7 @@ static int epi_spread (double energy, double depth, double *radius, double *cfra
 	else return -1;
 #if 0
 	  {
-	     /* We are in the substrate.  Equation 8 from Hopkinson holds 
+	     /* We are in the substrate.  Equation 8 from Hopkinson holds
 	      * again except now take R = 0 and T = 1.
 	      */
 	     dz = Substrate_Boundary - depth;
@@ -479,18 +476,16 @@ static int epi_spread (double energy, double depth, double *radius, double *cfra
 	  }
 #endif
      }
-   
+
    *radius = sqrt (r_squared);
    *cfrac = charge_fraction;
-   
+
    return 0;
 }
 
-
-
 static int (*Spread_Function) (double, double, double *, double *);
 
-static int charge_cloud_spread (double energy, double depth, 
+static int charge_cloud_spread (double energy, double depth,
 				AcisSim_Pixel_Island_Type *island)
 {
    double radius, charge_fraction;
@@ -507,7 +502,6 @@ static int charge_cloud_spread (double energy, double depth,
    return 0;
 }
 
-   
 static int handle_fluorescent_photon (AcisSim_Ray_Type *ray, double energy, double depth,
 				      AcisSim_Pixel_Island_Type *island)
 {
@@ -516,25 +510,25 @@ static int handle_fluorescent_photon (AcisSim_Ray_Type *ray, double energy, doub
    /* The fluorescent photon is going to travel some distance before it
     * stops.  First, compute its direction.
     */
-   
+
    theta = PI * JDMrandom ();
    phi = 2.0 * PI * JDMrandom ();
-   
+
    do
      {
 	r = JDMrandom ();
      }
    while (r == 0.0);
    r = log (r) / -Fluor_Absorbtion_Coeff;
-   
+
    depth += r * cos (theta);
    if ((depth < 0.0) || (depth >= Total_Thickness))
      return -1;
-   
+
    r = r * sin (theta);
 
    r = r / Pixel_Size;
-   
+
    island->x = ray->xpixel + r * cos (phi);
    island->y = ray->ypixel + r * sin (phi);
 
@@ -550,15 +544,14 @@ static int handle_regular_event (AcisSim_Ray_Type *ray, double energy, double de
    return charge_cloud_spread (energy, depth, island);
 }
 
-
-static int process_ray_1 (AcisSim_Ray_Type *ray, AcisSim_Pixel_Event_Type *event, 
+static int process_ray_1 (AcisSim_Ray_Type *ray, AcisSim_Pixel_Event_Type *event,
 			  double abs_coeff)
 {
    double depth;
    double energy = ray->energy;
 
    depth = compute_depth (abs_coeff);
-   
+
    if (depth >= Total_Thickness)
      return -1;
 
@@ -573,21 +566,21 @@ static int process_ray_1 (AcisSim_Ray_Type *ray, AcisSim_Pixel_Event_Type *event
 	 * the leftover energy.
 	 */
 	energy -= Fluor_Absorbtion_Energy;
-	if (0 == handle_fluorescent_photon (ray, Fluor_Emission_Energy, 
+	if (0 == handle_fluorescent_photon (ray, Fluor_Emission_Energy,
 					    depth, &event->fluoresc_island))
 	  event->flags |= FLUOR_EVENT_OK;
      }
-   
+
    if (0 == handle_regular_event (ray, energy, depth, &event->regular_island))
      event->flags |= REGULAR_EVENT_OK;
-   
+
    if (event->flags & (REGULAR_EVENT_OK | FLUOR_EVENT_OK))
      return 0;
-   
+
    return -1;
 }
 
-int acissim_process_ray (AcisSim_Ray_Type *ray, 
+int acissim_process_ray (AcisSim_Ray_Type *ray,
 			 AcisSim_Pixel_Event_Type *event)
 {
    double energy;
@@ -597,9 +590,9 @@ int acissim_process_ray (AcisSim_Ray_Type *ray,
 
    if (-1 == apply_filter_qe (energy))
      return -1;
-   
+
    abs_coeff = absorbtion_coeff (energy);
-   
+
    return process_ray_1 (ray, event, abs_coeff);
 }
 
@@ -619,22 +612,20 @@ static unsigned int Num_Filter_Energies;
 static int apply_filter_qe (double energy)
 {
    float t;
-   
+
    if (Filter_Trans_Coeffs == NULL)
      return 0;
-   
+
    t = JDMlog_interpolate_f (energy, Filter_Energies, Filter_Trans_Coeffs, Num_Filter_Energies);
-   
+
    if (JDMrandom () < t)
      return 0;
-   
+
    return -1;
 }
 
-     
-
 static int setup_filter (void)
-{   
+{
    Henke_Type *al, *lexan, *sio2;
    float *sio2_betas;
    float *lexan_betas;
@@ -660,7 +651,7 @@ static int setup_filter (void)
 	     goto return_error;
 	  }
      }
-   
+
    if ((Aluminum_Thickness > 0.0) && (Aluminum_Density > 0.0))
      {
 	if (NULL == (al = henke_read_henke_table ("Al")))
@@ -689,9 +680,9 @@ static int setup_filter (void)
 	     fprintf (stderr, "Error computing BETA for SiO2.\n");
 	     goto return_error;
 	  }
-	
+
      }
-   
+
    if ((lexan == NULL) && (al == NULL) && (sio2 == NULL))
      return 0;
 
@@ -700,10 +691,9 @@ static int setup_filter (void)
        || (NULL == (Filter_Trans_Coeffs = JDMfloat_vector (Num_Filter_Energies))))
      goto return_error;
 
-
    emin = 0.03;			       /* see absorbtion_coeff */
    emax = 14.0;
-   
+
    if (sio2 != NULL)
      {
 	num_sio2 = sio2->num_elements;
@@ -758,16 +748,16 @@ static int setup_filter (void)
 	     beta = JDMlog_interpolate_f (energy, lexan->energy, lexan_betas, num_lexan);
 	     a += beta * Lexan_Thickness;
 	  }
-		  
+
 	if (sio2_betas != NULL)
 	  {
 	     beta = JDMlog_interpolate_f (energy, sio2->energy, sio2_betas, num_sio2);
 	     a += beta * SiO2_Thickness;
 	  }
-		  
+
 	Filter_Trans_Coeffs [i] = exp (-(k * a));
      }
-   
+
    if (lexan != NULL) henke_free_henke_table (lexan);
    if (al != NULL) henke_free_henke_table (al);
    if (al_betas != NULL) free ((char *) al_betas);
@@ -777,7 +767,7 @@ static int setup_filter (void)
    return 0;
 
    return_error:
-   
+
    if (lexan != NULL) henke_free_henke_table (lexan);
    if (al != NULL) henke_free_henke_table (al);
 
@@ -794,9 +784,6 @@ static int setup_filter (void)
 
    return -1;
 }
-
-				
-   
 
 static char *Illumination_Type;
 
@@ -816,13 +803,12 @@ static Param_Table_Type Acis_Parm_Table [] =
 
      {"SiO2Thickness",		PF_REAL_TYPE,	&SiO2_Thickness},
      {"SiO2Density",		PF_REAL_TYPE,	&SiO2_Density},
-   
+
      {"LexanThickness",		PF_REAL_TYPE,	&Lexan_Thickness},
      {"LexanDensity",		PF_REAL_TYPE,	&Lexan_Density},
      {"AluminumThickness",	PF_REAL_TYPE,	&Aluminum_Thickness},
      {"AluminumDensity",	PF_REAL_TYPE,	&Aluminum_Density},
      {"HenkeDir",		PF_FILE_TYPE,	&Henke_Dir},
-   
 
      {"FanoFactor",		PF_REAL_TYPE,	&Fano_factor},
      {"PairEnergy",		PF_REAL_TYPE,	&Energy_Per_Pair},
@@ -832,9 +818,8 @@ static Param_Table_Type Acis_Parm_Table [] =
      {NULL, 0, NULL}
 };
 
-
 int acissim_init (Param_File_Type *p)
-{  
+{
    char *dir;
    char dirbuf [1024];
 
@@ -849,7 +834,7 @@ int acissim_init (Param_File_Type *p)
      {
 	char *env_end;
 	char *env = dir + 1;
-	
+
 	env_end = strchr (env, '/');
 	if (env_end != NULL)
 	  {
@@ -858,23 +843,23 @@ int acissim_init (Param_File_Type *p)
 	     dirbuf [env_len] = 0;
 	     env = dirbuf;
 	  }
-	
+
 	fprintf (stdout, "Setting HENKE data directory from %s environment variable\n", env);
-	
+
 	dir = getenv (env);
 	if (dir == NULL)
 	  {
 	     fprintf (stderr, "Environment variable %s needs set\n", env);
 	     return -1;
 	  }
-	
+
 	if (env_end != NULL)
 	  {
 	     sprintf (dirbuf, "%s%s", dir, env_end);
 	     dir = dirbuf;
 	  }
      }
-   
+
    fprintf (stdout, "Setting Henke Directory to %s.\n", dir);
    if (-1 == henke_set_data_dir (dir))
      {
@@ -884,18 +869,18 @@ int acissim_init (Param_File_Type *p)
 
    if (-1 == setup_filter ())
      return -1;
-	  
+
    Diffusion_Constant = Diffusion_Constant * 1.0e8;   /* from cm^2 to um^2 */
    Dopant_Concentration = Dopant_Concentration * 1.0e-12;   /* to 1/um^3 */
-   
+
    Depletion_Boundary = Dead_Thickness + Depletion_Thickness;
    Field_Free_Boundary = Depletion_Boundary + Field_Free_Thickness;
    Substrate_Boundary = Field_Free_Boundary + Substrate_Thickness;
-   
+
    Total_Thickness = Substrate_Boundary;
-   
+
    Spread_Function = epi_spread;
-   
+
    Fluor_Absorbtion_Coeff = absorbtion_coeff (Fluor_Emission_Energy);
    return 0;
 }

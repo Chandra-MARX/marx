@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
@@ -33,10 +32,10 @@
 void JDM3m_rot_x_matrix (JDM_3Matrix_Type m, double theta)
 {
    double c, s;
-   
+
    c = cos (theta);
    s = sin (theta);
-   
+
    s = -s;
 
    m[0][0] = 1.0;  m[0][1] = 0.0;  m[0][2] = 0.0;
@@ -47,10 +46,10 @@ void JDM3m_rot_x_matrix (JDM_3Matrix_Type m, double theta)
 void JDM3m_rot_y_matrix (JDM_3Matrix_Type m, double theta)
 {
    double c, s;
-   
+
    c = cos (theta);
    s = sin (theta);
-   
+
    s = -s;
 
    m[0][0] = c;    m[0][1] = 0.0;  m[0][2] = -s;
@@ -61,10 +60,10 @@ void JDM3m_rot_y_matrix (JDM_3Matrix_Type m, double theta)
 void JDM3m_rot_z_matrix (JDM_3Matrix_Type m, double theta)
 {
    double c, s;
-   
+
    c = cos (theta);
    s = sin (theta);
-   
+
    s = -s;
 
    m[0][0] = c;    m[0][1] = s;    m[0][2] = 0.0;
@@ -76,16 +75,16 @@ void JDM3m_rot_z_matrix (JDM_3Matrix_Type m, double theta)
  * about an arbitrary direction.  It is easy to show that the matrix R_ij
  * is given by:
  *    R_ij = cos(t) d_ij + n_i n_j (1 - cos(t))  sin t e_ijk n_k
- * where d_ij is the Kronecker delta and e_ijk is the completely 
+ * where d_ij is the Kronecker delta and e_ijk is the completely
  * anti-symmetric tensor.  Also n_i are the components of a unit vector.
  */
 void JDM3m_rot_matrix (JDM_3Matrix_Type m, JDMVector_Type n, double theta)
 {
    double c, s, n_0, n_1, n_2, n_01, n_02, n_12, c1;
-   
+
    c = cos (theta);
    s = sin (theta);
-   
+
    c1 = 1 - c;
 
    n_0 = n.x;
@@ -94,7 +93,7 @@ void JDM3m_rot_matrix (JDM_3Matrix_Type m, JDMVector_Type n, double theta)
    n_01 = n_0 * n_1 * c1;
    n_02 = n_0 * n_2 * c1;
    n_12 = n_1 * n_2 * c1;
-   
+
    m[0][0] = n_0 * n_0 * c1 + c;
    m[0][1] = n_01 - s * n_2;
    m[0][2] = n_02 + s * n_1;
@@ -108,11 +107,10 @@ void JDM3m_rot_matrix (JDM_3Matrix_Type m, JDMVector_Type n, double theta)
    m[2][2] = n_2 * n_2 * c1 + c;
 }
 
-
 void JDM3m_mul (JDM_3Matrix_Type c, JDM_3Matrix_Type a, JDM_3Matrix_Type b)
 {
    unsigned int i, j;
-   
+
    for (i = 0; i < 3; i++)
      {
 	for (j = 0; j < 3; j++)
@@ -123,12 +121,11 @@ void JDM3m_mul (JDM_3Matrix_Type c, JDM_3Matrix_Type a, JDM_3Matrix_Type b)
 JDMVector_Type JDM3m_vector_mul (JDM_3Matrix_Type a, JDMVector_Type v)
 {
    JDMVector_Type b;
-   
+
    b.x = a[0][0] * v.x + a[0][1] * v.y + a[0][2] * v.z;
    b.y = a[1][0] * v.x + a[1][1] * v.y + a[1][2] * v.z;
    b.z = a[2][0] * v.x + a[2][1] * v.y + a[2][2] * v.z;
-   
+
    return b;
 }
 
-   

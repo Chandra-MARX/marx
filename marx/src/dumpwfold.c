@@ -28,13 +28,13 @@ int main (int argc, char **argv)
 {
    char *file;
    /* Marx_WFold_Table_Type *table; */
-   
+
    if (argc != 2)
      {
 	fprintf (stderr, "Usage: %s FILENAME\n", argv[0]);
 	return 1;
      }
-   
+
    file = argv[1];
 #if 0
    if (NULL == (table = marx_read_wfold_file (file)))

@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 #include "jdmath.h"
@@ -64,7 +64,7 @@ unsigned int JDMcheck_finite (double *x, unsigned int n)
 	if (isinf (xi) || isnan (xi))
 	  return i + 1;
      }
-# endif   
+# endif
 #endif
    return 0;
 }

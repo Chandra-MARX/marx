@@ -61,7 +61,7 @@ static Mirror_Blur_Type Mirr_Blur;
 static void free_mirror_blurs (void) /*{{{*/
 {
    unsigned int i;
-	
+
    if (Mirr_Blur.energies != NULL)
      {
 	JDMfree_float_vector (Mirr_Blur.energies);
@@ -73,7 +73,7 @@ static void free_mirror_blurs (void) /*{{{*/
 	JDMfree_float_vector (Mirr_Blur.encircled_energies);
 	Mirr_Blur.encircled_energies = NULL;
      }
-	
+
    for (i = 0; i < MARX_NUM_MIRRORS; i++)
      {
 	if (Mirr_Blur.thetas[i] != NULL)
@@ -90,14 +90,14 @@ int _marx_init_mirror_blur (Param_File_Type *p) /*{{{*/
 {
    FILE *fp;
    unsigned int num_energies;
-   unsigned int num_ee;   
+   unsigned int num_ee;
    unsigned int i;
    char filebuf[PF_MAX_LINE_LEN];
    char *file;
-   
+
    if (-1 == pf_get_boolean (p, "MirrorBlur", &Perform_Blur))
      return -1;
-   
+
    if (Perform_Blur == 0) return 0;
 
    if (-1 == pf_get_file (p, "MirrorBlurFile", filebuf, sizeof (filebuf)))
@@ -105,43 +105,43 @@ int _marx_init_mirror_blur (Param_File_Type *p) /*{{{*/
 	Perform_Blur = 0;
 	return -1;
      }
-   
+
    if (NULL == (file = marx_make_data_file_name (filebuf)))
      return -1;
-   
+
    marx_message ("Reading blur data file:\n\t%s\n", file);
-   
-   if (NULL == (fp = fopen (file, "rb"))) 
+
+   if (NULL == (fp = fopen (file, "rb")))
      {
 	marx_error ("Unable to open file: %s", file);
 	marx_free (file);
 	JDMath_Error = JDMATH_FILE_OPEN_ERROR;
 	return -1;
      }
-   
+
    if ((1 != JDMread_int32 ((int32 *)&num_energies, 1, fp))
        || (1 != JDMread_int32 ((int32 *)&num_ee, 1, fp)))
      {
 	JDMath_Error = JDMATH_FILE_READ_ERROR;
 	goto return_error;
      }
-   
+
    marx_free (file);
    file = NULL;
-   
+
    free_mirror_blurs ();
-   
+
    /* Now allocate space for the blur data */
    Mirr_Blur.num_energies = num_energies;
    if (NULL == (Mirr_Blur.energies = JDMfloat_vector (num_energies)))
      goto return_error;
-   
+
    if (num_energies != JDMread_float32(Mirr_Blur.energies, num_energies, fp))
      {
 	JDMath_Error = JDMATH_FILE_READ_ERROR;
 	goto return_error;
      }
-   
+
    Mirr_Blur.num_ee = num_ee;
    if (NULL == (Mirr_Blur.encircled_energies = JDMfloat_vector (num_ee)))
      goto return_error;
@@ -151,13 +151,13 @@ int _marx_init_mirror_blur (Param_File_Type *p) /*{{{*/
 	JDMath_Error = JDMATH_FILE_READ_ERROR;
 	goto return_error;
      }
-   
+
    for (i = 0; i < MARX_NUM_MIRRORS; i++)
      {
 	unsigned int n;
 	if (NULL == (Mirr_Blur.thetas[i] = JDMfloat_matrix (num_energies, num_ee)))
 	  goto return_error;
-	
+
 	for (n = 0; n < num_energies; n++)
 	  {
 	     if (num_ee != JDMread_float32(Mirr_Blur.thetas[i][n], num_ee, fp))
@@ -169,7 +169,7 @@ int _marx_init_mirror_blur (Param_File_Type *p) /*{{{*/
      }
    fclose (fp);
    return 0;
-   
+
    /* Get here only if something goes wrong. */
    return_error:
    if (file != NULL) marx_free (file);
@@ -184,15 +184,14 @@ static void blur_photon (Marx_Photon_Attr_Type *at, double blur) /*{{{*/
 {
    double alpha, beta, px;
    JDMVector_Type *p;
-   
-   
+
    p = &(at->p);
    px = p->x;
-   
+
    /* Note: by construction in calling routines, px is NOT 1.0 */
    beta = sin (blur) / sqrt (1.0 - px * px);
    alpha = cos (blur) - beta * px;
-   
+
    p->x = alpha * px + beta;
    p->y = alpha * p->y;
    p->z = alpha * p->z;
@@ -206,9 +205,9 @@ int _marx_mirror_blur (Marx_Photon_Type *pt) /*{{{*/
    unsigned int n, i, *sorted_index;
    float *encircled_energies, *energies;
    unsigned int num_ee, num_energies;
-   
+
    if (Perform_Blur == 0) return 0;
-   
+
    marx_prune_photons (pt);
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
@@ -218,36 +217,36 @@ int _marx_mirror_blur (Marx_Photon_Type *pt) /*{{{*/
    num_ee = Mirr_Blur.num_ee;
    energies = Mirr_Blur.energies;
    num_energies = Mirr_Blur.num_energies;
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int j;
 	float energy, r, theta0, theta1;
 	float e0, e1;
 	double blur;
-	
+
 	at = photon_attributes + sorted_index[i];
-	
+
 	energy = (float) at->energy;
 	/* Now find which two energy curves to use: j and j + 1 */
 	j = JDMbinary_search_f (energy, energies, num_energies);
 	e0 = energies[j];
 	e1 = energies[j + 1];
-	
+
 	/* Ideally a random number between 0 and 1 would be used.  However,
 	 * the blur data close to 1.0 cannot be trusted.
 	 */
 	r = (float) 0.99 * JDMrandom ();
-	
+
 	/* Now interpolate thetas on the two energy curves */
-	theta0 = JDMinterpolate_f (r, encircled_energies, 
+	theta0 = JDMinterpolate_f (r, encircled_energies,
 				   Mirr_Blur.thetas[at->mirror_shell][j],
 				   num_ee);
-	theta1 = JDMinterpolate_f (r, encircled_energies, 
+	theta1 = JDMinterpolate_f (r, encircled_energies,
 				   Mirr_Blur.thetas[at->mirror_shell][j + 1],
 				   num_ee);
 	blur = theta0 + (theta1 - theta0) * (energy - e0) / (e1 - e0);
-	
+
 	/* pick the sign of the blur angle */
 	if (2.0 * JDMrandom () < 1.0) blur = -blur;
 	blur_photon (at, blur);

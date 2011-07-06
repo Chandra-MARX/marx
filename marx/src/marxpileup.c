@@ -174,7 +174,7 @@ static FILE *Det_DY_Dat_Fp;
 static FILE *Det_DZ_Dat_Fp;
 static FILE *Det_Theta_Dat_Fp;
 
-static Input_File_Type Dither_Input_files [] = 
+static Input_File_Type Dither_Input_files [] =
 {
 #define INPUT_SKY_RA_DAT	0
 #define INPUT_SKY_DEC_DAT	1
@@ -190,7 +190,6 @@ static Input_File_Type Dither_Input_files [] =
      {"det_theta.dat", 'E', NULL},
      {NULL, 0, NULL}
 };
-
 
 typedef struct
 {
@@ -381,7 +380,7 @@ static void close_marx_input_files (void)
 static int open_some_input_files (Input_File_Type *ift, int *num_rowsp)
 {
    int num_rows;
-   
+
    num_rows = *num_rowsp;
 
    while (ift->name != NULL)
@@ -407,7 +406,6 @@ static int open_some_input_files (Input_File_Type *ift, int *num_rowsp)
    return 0;
 }
 
-   
 static int open_marx_input_files (void)
 {
    int num_rows = -1;
@@ -436,7 +434,7 @@ static int open_marx_input_files (void)
 
    if (Verbose > 1)
      fprintf (stdout, "%d input events available (across all CCDs)\n", num_rows);
-   
+
    Total_Num_Input_Rows = num_rows;
    return 0;
 }
@@ -453,7 +451,6 @@ typedef struct
 CCD_Pixel_Type;
 
 static CCD_Pixel_Type *CCD_Arrays[MAX_NUM_CCDS];
-
 
 typedef struct Input_Event_Type
 {
@@ -486,7 +483,7 @@ static int allocate_ccd_array (unsigned int ccdid)
 
    if (NULL == (p = (CCD_Pixel_Type *) marx_malloc (size)))
      return -1;
-   
+
    memset ((char *) p, 0, size);
    CCD_Arrays[ccdid] = p;
    return 0;
@@ -516,7 +513,7 @@ static CCD_Pixel_Type *get_pixel_list (unsigned int ccdid)
 	fprintf (stderr, "Invalid CCD_ID (%u)\n", ccdid);
 	return NULL;
      }
-   
+
    if ((CCD_Arrays[ccdid] == NULL)
        && (-1 == allocate_ccd_array (ccdid)))
      return NULL;
@@ -531,14 +528,14 @@ static Input_Event_Type *allocate_input_event (int ccd, float x, float y, float 
 {
    Input_Event_Type *evt;
    CCD_Pixel_Type *ccd_pixels;
-   
+
    if (NULL == (ccd_pixels = get_pixel_list (ccd)))
      return NULL;
 
    evt = (Input_Event_Type *) marx_malloc (sizeof (Input_Event_Type));
    if (evt == NULL)
      return NULL;
-   
+
    evt->ccd_pixels = ccd_pixels;
    evt->ccdid = ccd;
    evt->x = x;
@@ -555,7 +552,7 @@ static Input_Event_Type *allocate_input_event (int ccd, float x, float y, float 
 
    evt->can_be_center = ((x >= 1) && (x < NUM_X_PIXELS - 1)
 			 && (y >= 1) && (y < NUM_Y_PIXELS - 1));
-   
+
    if ((evt->can_be_center == 0)
        && ((x >= NUM_Y_PIXELS) || (y >= NUM_Y_PIXELS)))
      {
@@ -563,7 +560,7 @@ static Input_Event_Type *allocate_input_event (int ccd, float x, float y, float 
 	fprintf (stderr, "Corrupt file?  X or Y pixel coord is out of range.\n");
 	return NULL;
      }
-   
+
    return evt;
 }
 
@@ -616,7 +613,6 @@ read_input_event (Input_Event_Type **evtp, unsigned int *frame)
    return 1;
 }
 
-
 static int write_event (char ccd, float32 xpix, float32 ypix, float32 energy,
 			int32 frame, float32 ra, float32 dec, float32 roll,
 			float32 dy, float32 dz, float32 theta,
@@ -666,7 +662,7 @@ static int write_event (char ccd, float32 xpix, float32 ypix, float32 energy,
 static int will_grade_migrate (unsigned int num)
 {
    double prob;
-   
+
    prob = pow (Alpha, num - 1);
    return (JDMrandom () >= prob);
 }
@@ -706,7 +702,7 @@ event_detect (Input_Event_Type *event_list, unsigned int frame)
 	     evt = evt->next;
 	     continue;
 	  }
-#endif	
+#endif
 #if 1
 	if (((xy0[0].island_benergy >= island_benergy) || (xy0[1].island_benergy >= island_benergy) || (xy0[2].island_benergy >= island_benergy))
 	    || (xy1[0].island_benergy > island_benergy) ||                                             (xy1[2].island_benergy >= island_benergy)
@@ -715,7 +711,7 @@ event_detect (Input_Event_Type *event_list, unsigned int frame)
 	     evt = evt->next;
 	     continue;
 	  }
-#endif	
+#endif
 
 	if (island_num_photons >= 2)
 	  {
@@ -757,7 +753,7 @@ static int store_event (Input_Event_Type *evt, int *is_duplicatep)
 #else
 	e = evt->benergy;
 #endif
-	/* This ought to be replaced by real energy-dependent grade 
+	/* This ought to be replaced by real energy-dependent grade
 	 * splitting patterns.  However, such data do not appear to be
 	 * available.
 	 */
@@ -808,7 +804,7 @@ static int collect_charge (Input_Event_Type *event_list)
 	     xy1 = xy0 + NUM_X_PIXELS;
 	     xy2 = xy1 + NUM_X_PIXELS;
 
-	     xy1[1].island_benergy = 
+	     xy1[1].island_benergy =
 	       CORNER_FRACTION*xy0[0].benergy + SIDE_FRACTION*xy0[1].benergy + CORNER_FRACTION*xy0[2].benergy
 	       + SIDE_FRACTION*xy1[0].benergy + CENTER_FRACTION*xy1[1].benergy + SIDE_FRACTION*xy1[2].benergy
 	       + CORNER_FRACTION*xy2[0].benergy + SIDE_FRACTION*xy2[1].benergy + CORNER_FRACTION*xy2[2].benergy;
@@ -817,7 +813,7 @@ static int collect_charge (Input_Event_Type *event_list)
 	       + xy1[0].num_photons + xy1[1].num_photons + xy1[2].num_photons
 	       + xy2[0].num_photons + xy2[1].num_photons + xy2[2].num_photons;
 	  }
-	
+
 	evt = evt->next;
      }
    return 0;
@@ -878,19 +874,19 @@ static int process_frame (Input_Event_Type *event_list, unsigned int frame)
 	int is_dup;
 	if (-1 == store_event (evt, &is_dup))
 	  return -1;
-	
+
 	if (is_dup)
 	  {
 	     levt->next = evt->next;
 	     marx_free ((char *)evt);
 	     evt = levt;
 	  }
-	else 
+	else
 	  levt = evt;
 
 	evt = evt->next;
      }
-   
+
    if (-1 == collect_charge (event_list))
      return -1;
 
@@ -924,7 +920,7 @@ static int cp_file (char *file, char *dir, char *name) /*{{{*/
      {
 	return -1;
      }
-   
+
    if ((0 == strcmp (file, ofile))
        || ((0 == stat (file, &in_stat))
 	   && (0 == stat (ofile, &out_stat))
@@ -935,7 +931,7 @@ static int cp_file (char *file, char *dir, char *name) /*{{{*/
 	marx_error ("Don't shoot yourself in the foot, choose a different OutputDir name");
 	goto return_error;
      }
-   
+
    if (NULL == (fpin = fopen (file, "rb")))
      {
 	pf_error ("Unable to open file %s for reading.", file);
@@ -958,7 +954,7 @@ static int cp_file (char *file, char *dir, char *name) /*{{{*/
 	  }
      }
    while (readlen == sizeof (buf));
-   
+
    if (EOF == fclose (fpout))
      {
 	fpout = NULL;
@@ -967,10 +963,10 @@ static int cp_file (char *file, char *dir, char *name) /*{{{*/
    marx_free (ofile);
    fclose (fpin);
    return 0;
-   
+
    /* Get here only if error occurs. */
    write_error:
-   
+
    marx_error ("Write to %s failed.", ofile);
 
    return_error:
@@ -985,10 +981,10 @@ static int cp_file (char *file, char *dir, char *name) /*{{{*/
 static int copy_files (void)
 {
    char *marx_dir_file;
-   
+
    if (NULL == (marx_dir_file = make_marx_filename (Output_Marx_Dir, "marx.par")))
      return -1;
-   
+
    if (-1 == cp_file (marx_dir_file, Output_Pileup_Dir, "marx.par"))
      {
 	free ((char *) marx_dir_file);
@@ -998,7 +994,7 @@ static int copy_files (void)
 
    if (NULL == (marx_dir_file = make_marx_filename (Output_Marx_Dir, "obs.par")))
      return -1;
-   
+
    if (-1 == cp_file (marx_dir_file, Output_Pileup_Dir, "obs.par"))
      {
 	free ((char *) marx_dir_file);
@@ -1012,7 +1008,7 @@ static int copy_files (void)
 	free ((char *) marx_dir_file);
 	return -1;
      }
-   
+
    return 0;
 }
 
@@ -1038,7 +1034,7 @@ static int initialize (int argc, char **argv)
 	return -1;
      }
 
-   /* Get a copy of the parameter file output name so we can copy it 
+   /* Get a copy of the parameter file output name so we can copy it
     * to the output directory later on.
     */
    if (NULL == (Parameter_File = pf_get_output_filename (p)))
@@ -1047,9 +1043,9 @@ static int initialize (int argc, char **argv)
 	pf_close_parameter_file (p);
 	return -1;
      }
-   
+
    pf_close_parameter_file (p);
-   
+
    if ((Alpha <= 0) || (Alpha > 1.0))
      {
 	fprintf (stderr, "Alpha is out of range.  It is required to be in the range (0,1]\n");
@@ -1058,26 +1054,26 @@ static int initialize (int argc, char **argv)
 
    if (Frame_Transfer_Time > 0.0)
      Frame_Time += Frame_Transfer_Time;
-   
+
    if (NULL == (file = make_marx_filename (Output_Marx_Dir, "marx.par")))
      return -1;
-   
+
    if (NULL == (p = pf_open_parameter_file (file, "r")))
      {
 	marx_error ("*** Unable to open %s\n", file);
 	free (file);
 	return -1;
      }
-   
+
    if (-1 == pf_get_string (p, "DetectorType", detector, sizeof(detector)))
      {
 	free (file);
 	(void) pf_close_parameter_file (p);
 	return -1;
      }
-   
+
    free (file);
-   
+
    status = 0;
    if (0 == strcmp (detector, "ACIS-S"))
      {
@@ -1092,7 +1088,7 @@ static int initialize (int argc, char **argv)
 	marx_error ("DetectorType=%s is not supported\n", detector);
 	status = -1;
      }
-   
+
    pf_close_parameter_file (p);
    return status;
 }
@@ -1123,11 +1119,11 @@ int main (int argc, char **argv)
      {
 	Input_Event_Type *evt;
 	int status;
-	
+
         status = read_input_event (&evt, &frame);
 	if (status == -1)
 	  goto return_error;
-	
+
 	if ((status == 1)
 	    && (frame == last_frame))
 	  {
@@ -1142,7 +1138,7 @@ int main (int argc, char **argv)
 	     if (-1 == process_frame (event_list, last_frame))
 	     goto return_error;
 	     free_event_list (event_list);
-	     
+
 	     if (Verbose > 1)
 	       {
 		  int percent = (Num_Input * 100)/Total_Num_Input_Rows;
@@ -1181,7 +1177,7 @@ int main (int argc, char **argv)
    return 0;
 
    return_error:
-   
+
    close_marx_input_files ();
    if (event_list != NULL)
      free_event_list (event_list);

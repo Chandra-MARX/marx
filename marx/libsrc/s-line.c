@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -73,7 +72,7 @@ static int line_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{
 
    at = pt->attributes;
    efun = st->spectrum.energy_function;
-   
+
    cos_phi = cos (Line_Phi);
    sin_phi = sin (Line_Phi);
 
@@ -86,18 +85,18 @@ static int line_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{
 
 	if (-1 == (*efun) (&st->spectrum, &at->energy))
 	  return -1;
-	
+
 	theta = Line_Theta * (-1.0 + 2.0 * JDMrandom ());
-	
+
 	sin_theta = -sin (theta);
 	p.x = -cos (theta);
 	p.y = sin_theta * cos_phi;
 	p.z = sin_theta * sin_phi;
-	
+
 	at->p = JDMv_rotate_unit_vector (p, normal, alpha);
 	at++;
      }
-   
+
    *num_created = num;
    return 0;
 }
@@ -111,19 +110,17 @@ int marx_select_line_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    st->open_source = line_open_source;
    st->create_photons = line_create_photons;
    st->close_source = line_close_source;
-   
+
    if ((-1 == pf_get_double (p, "S-LinePhi", &Line_Phi))
        || (-1 == pf_get_double (p, "S-LineTheta", &Line_Theta)))
      return -1;
-   
+
    /* Convert to radians */
    Line_Theta = Line_Theta * (1.0 / 3600.0 *  PI / 180.0);    /* 1 arc sec */
    Line_Phi = Line_Phi * (PI / 180.0);    /* degrees --> radians */
-   
+
    return _marx_get_simple_specrum_parms (p, st, name);
 }
 
 /*}}}*/
-
-
 

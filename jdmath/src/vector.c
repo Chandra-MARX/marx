@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
@@ -43,7 +42,7 @@ JDMVector_Type JDMv_cross_prod (JDMVector_Type a, JDMVector_Type b)
    c.z = a.x * b.y - a.y * b.x;
    c.x = a.y * b.z - a.z * b.y;
    c.y = a.z * b.x - a.x * b.z;
-   
+
    return c;
 }
 
@@ -53,7 +52,7 @@ JDMVector_Type JDMv_pcross_prod (JDMVector_Type *a, JDMVector_Type *b)
    c.z = a->x * b->y - a->y * b->x;
    c.x = a->y * b->z - a->z * b->y;
    c.y = a->z * b->x - a->x * b->z;
-   
+
    return c;
 }
 
@@ -78,11 +77,11 @@ double JDMv_pdot_prod (JDMVector_Type *a, JDMVector_Type *b)
 double JDMv_length (JDMVector_Type a)
 {
    double x, y, z, tmp;
-   
+
    x = fabs (a.x);
    y = fabs (a.y);
    z = fabs (a.z);
-   
+
    if (z < x)
      {
 	tmp = z; z = x; x = tmp;
@@ -100,7 +99,7 @@ double JDMv_length (JDMVector_Type a)
 extern void JDMv_normalize (JDMVector_Type *a)
 {
    double len;
-   
+
    if ((len = JDMv_length (*a)) != 0.0)
      {
 	a->x = a->x / len;
@@ -109,39 +108,37 @@ extern void JDMv_normalize (JDMVector_Type *a)
      }
 }
 
-
 JDMVector_Type JDMv_unit_vector (JDMVector_Type a)
 {
    JDMVector_Type n;
-   
+
    n = a;
    JDMv_normalize (&n);
    return n;
 }
 
-
-JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1, 
+JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1,
 			     double b, JDMVector_Type x2)
 {
    JDMVector_Type c;
-   
+
    c.x = a * x1.x + b * x2.x;
    c.y = a * x1.y + b * x2.y;
    c.z = a * x1.z + b * x2.z;
-   
+
    return c;
 }
 
-JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1, 
+JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1,
 				 double b, JDMVector_Type x2,
 				 double c, JDMVector_Type x3)
 {
    JDMVector_Type d;
-   
+
    d.x = a * x1.x + b * x2.x + c * x3.x;
    d.y = a * x1.y + b * x2.y + c * x3.y;
    d.z = a * x1.z + b * x2.z + c * x3.z;
-   
+
    return d;
 }
 
@@ -149,33 +146,33 @@ JDMVector_Type JDMv_pax1_bx2 (double a, JDMVector_Type *x1,
 			      double b, JDMVector_Type *x2)
 {
    JDMVector_Type c;
-   
+
    c.x = a * x1->x + b * x2->x;
    c.y = a * x1->y + b * x2->y;
    c.z = a * x1->z + b * x2->z;
-   
+
    return c;
 }
 
 JDMVector_Type JDMv_sum (JDMVector_Type x1, JDMVector_Type x2)
 {
    JDMVector_Type c;
-   
+
    c.x = x1.x + x2.x;
    c.y = x1.y + x2.y;
    c.z = x1.z + x2.z;
-   
+
    return c;
 }
 
 JDMVector_Type JDMv_diff (JDMVector_Type x1, JDMVector_Type x2)
 {
    JDMVector_Type c;
-   
+
    c.x = x1.x - x2.x;
    c.y = x1.y - x2.y;
    c.z = x1.z - x2.z;
-   
+
    return c;
 }
 
@@ -184,11 +181,11 @@ double JDMv_distance (JDMVector_Type a, JDMVector_Type b)
    a.x -= b.x;
    a.y -= b.y;
    a.z -= b.z;
-   
+
    return JDMv_length (a);
 }
 
-JDMVector_Type JDMv_rotate_vector1 (JDMVector_Type p, JDMVector_Type n, 
+JDMVector_Type JDMv_rotate_vector1 (JDMVector_Type p, JDMVector_Type n,
 					 double cos_theta, double sin_theta)
 {
    double pn = JDMv_dot_prod (p, n);
@@ -198,29 +195,28 @@ JDMVector_Type JDMv_rotate_vector1 (JDMVector_Type p, JDMVector_Type n,
 			    sin_theta, JDMv_pcross_prod(&n,&p));
 }
 
-JDMVector_Type JDMv_rotate_unit_vector1 (JDMVector_Type p, JDMVector_Type n, 
+JDMVector_Type JDMv_rotate_unit_vector1 (JDMVector_Type p, JDMVector_Type n,
 					 double cos_theta, double sin_theta)
 {
    JDMVector_Type u;
-   
+
    u = JDMv_rotate_vector1 (p, n, cos_theta, sin_theta);
    JDMv_normalize (&u);
    return u;
 }
 
-JDMVector_Type JDMv_rotate_unit_vector (JDMVector_Type p, JDMVector_Type n, 
+JDMVector_Type JDMv_rotate_unit_vector (JDMVector_Type p, JDMVector_Type n,
 					double theta)
 {
    return JDMv_rotate_unit_vector1 (p, n, cos(theta), sin(theta));
 }
-
 
 void JDMv_unit_vector_to_spherical (JDMVector_Type p,
 				    double *thetap, double *phip)
 {
    double theta, phi;
    double sin_theta;
-   
+
    if (fabs (p.z) >= 1.0)
      {
 	if (p.z >= 1.0)
@@ -230,10 +226,10 @@ void JDMv_unit_vector_to_spherical (JDMVector_Type p,
 	*phip = 0;
 	return;
      }
-   
+
    theta = acos (p.z);		       /* [0, PI] */
    sin_theta = sin (theta);
-   
+
    if (fabs (p.x) <= fabs (p.y))
      {
 	phi = acos (p.x / sin_theta);       /* [0, PI] */
@@ -246,7 +242,7 @@ void JDMv_unit_vector_to_spherical (JDMVector_Type p,
 	if (p.x < 0)
 	  {
 	     if (phi >= 0) phi = PI - phi;
-	     else phi = -PI - phi; 
+	     else phi = -PI - phi;
 	  }
      }
 
@@ -254,32 +250,31 @@ void JDMv_unit_vector_to_spherical (JDMVector_Type p,
    *phip = phi;
 }
 
-void JDMv_vector_to_spherical (JDMVector_Type p, 
+void JDMv_vector_to_spherical (JDMVector_Type p,
 			       double *rp, double *thetap, double *phip)
 {
    double r;
-   
+
    r = JDMv_length (p);
    if (r == 0.0)
      {
 	*thetap = *phip = *rp = 0;
 	return;
      }
-   
+
    p.x /= r;
    p.y /= r;
    p.z /= r;
-   
+
    *rp = r;
    JDMv_unit_vector_to_spherical (p, thetap, phip);
 }
 
-	
 JDMVector_Type JDMv_spherical_to_vector (double r, double theta, double phi)
 {
    JDMVector_Type p;
    double s;
-   
+
    s = sin(theta);
    p.x = r * s * cos (phi);
    p.y = r * s * sin (phi);
@@ -287,7 +282,6 @@ JDMVector_Type JDMv_spherical_to_vector (double r, double theta, double phi)
    return p;
 }
 
-   
 /* Find the rotation axis and angle such that when a is rotated about that
  * axis by the angle, it rotates into b.  a and b are assumed to be
  * unit vectors.
@@ -330,31 +324,31 @@ double JDMv_find_rotation_axis (JDMVector_Type a, JDMVector_Type b, JDMVector_Ty
 	c->y = 0.0;
 	c->z = 0.0;
      }
-   
+
    JDMv_normalize (c);
    return theta;
 }
 
 void
-JDMv_spherical_to_triad (double theta, double phi, 
+JDMv_spherical_to_triad (double theta, double phi,
 			 JDMVector_Type *r_hat, JDMVector_Type *theta_hat,
 			 JDMVector_Type *phi_hat)
 {
    double ct, st, cp, sp;
-   
+
    ct = cos (theta);
    st = sin (theta);
    cp = cos (phi);
    sp = sin (phi);
-   
+
    r_hat->x = st * cp;
    r_hat->y = st * sp;
    r_hat->z = ct;
-   
+
    phi_hat->x = -sp;
    phi_hat->y = cp;
    phi_hat->z = 0.0;
-   
+
    theta_hat->x = ct * cp;
    theta_hat->y = ct * sp;
    theta_hat->z = -st;

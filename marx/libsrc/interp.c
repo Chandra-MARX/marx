@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -46,8 +45,6 @@
 #include <slang.h>
 
 #include "marx.h"
-
-
 
 #ifdef USE_SLWDG
 # include "slwdg.h"
@@ -70,7 +67,7 @@ static void sim_print (char *txt)
    fputs (txt, stderr);
 }
 
-typedef struct 
+typedef struct
 {
    char name[16];
    Sim_Name_Type *tbl;
@@ -104,20 +101,20 @@ static Sim_Name_Type *do_module_variable (void)
    int free_name = 0, free_tbl = 0;
    unsigned int i;
    Sim_Name_Type *t;
-   
+
    if (SLang_pop_string (&name, &free_name)
        || SLang_pop_string (&tbl, &free_tbl))
      {
 	t = NULL;
 	goto cleanup;
      }
-   
+
    for (i = 0; i < MAX_TABLES; i++)
      {
 	if (*Var_Tables[i].name == 0) break;
 	if (strcmp (Var_Tables[i].name, tbl)) continue;
 	t = Var_Tables[i].tbl;
-	
+
 	while (t->name != NULL)
 	  {
 	     if (!strcmp (t->name, name))
@@ -131,11 +128,11 @@ static Sim_Name_Type *do_module_variable (void)
      }
    t = NULL;
    marx_error ("Unknown module: %s.", tbl);
-   
+
    cleanup:
    if (free_tbl) SLFREE (tbl);
    if (free_name) SLFREE (name);
-   
+
    return t;
 }
 
@@ -144,7 +141,7 @@ static void set_module_variable (void)
    double val;
    int unused;
    Sim_Name_Type *t;
-   
+
    if (SLang_pop_float (&val, &unused, &unused)) return;
    t = do_module_variable ();
    if (t != NULL) *t->ptr = val;
@@ -153,13 +150,11 @@ static void set_module_variable (void)
 static double get_module_variable (void)
 {
    Sim_Name_Type *t;
-   
+
    t = do_module_variable ();
    if (t != NULL) return *t->ptr;
    return 0.0;
 }
-
-
 
 static SLang_Name_Type *Spectrum_Function;
 
@@ -167,30 +162,28 @@ static double user_spectrum_function (double en)
 {
    double flux;
    int dum1, dum2;
-   
+
    SLang_push_float (en);
    if (SLang_Error) goto error;
-   
+
    SLexecute_function (Spectrum_Function);
-	
+
    if (SLang_pop_float (&flux, &dum1, &dum2)) goto error;
-   
+
    return flux;
-   
+
    error:
    marx_error ("Error in user defined spectrum.");
    return 0.0;
 }
 
-   
-   
 static void user_spectrum (void)
 {
    double emin, emax;
    int npts;
    char *function_name;
    int unused, do_free = 0;
-   
+
    if (SLang_pop_string (&function_name, &do_free)
        || SLang_pop_integer (&npts)
        || SLang_pop_float (&emax, &unused, &unused)
@@ -198,30 +191,30 @@ static void user_spectrum (void)
      {
 	goto clean_up;
      }
-   
-   if (npts <= 0) 
+
+   if (npts <= 0)
      {
 	marx_error ("Number of points must be grater than zero.");
 	goto clean_up;
      }
-   
+
    Spectrum_Function = SLang_get_function (function_name);
    if (Spectrum_Function == NULL)
      {
 	marx_error ("Function %s is undefined.", function_name);
 	goto clean_up;
      }
-   
+
    Marx_Spectrum.n_energies = (unsigned int) npts;
    Marx_Spectrum.min_energy = emin;
    Marx_Spectrum.max_energy = emax;
-   
+
    if (-1 == generic_spectrum (&Marx_Spectrum, user_spectrum_function))
      {
 	marx_error ("Unable to initialize user defined spectrum (%s)", function_name);
 	goto clean_up;
      }
-   
+
    clean_up:
    if (do_free) SLFREE (function_name);
 }
@@ -234,8 +227,6 @@ static void datafile_spectrum (char *file)
      }
 }
 
-
-   
 static void do_acis_init_detector (char *file)
 {
 #if 0
@@ -251,7 +242,7 @@ static void do_hrc_init_detector (char *file1, char *file2)
 #if 0
    if (-1 == hrc_init_detector (file1, file2))
      {
-	marx_error ("Unable to get detector efficiencies from %s and %s", 
+	marx_error ("Unable to get detector efficiencies from %s and %s",
 		   file1, file2);
      }
 #endif
@@ -261,12 +252,12 @@ static void do_flat_spectrum_init (void)
 {
    double emin, emax, flux;
    int unused;
-   
+
    if (SLang_pop_float (&flux, &unused, &unused)
        || SLang_pop_float (&emax, &unused, &unused)
        || SLang_pop_float (&emin, &unused, &unused))
      return;
-   
+
    Marx_Spectrum.min_energy = emin;
    Marx_Spectrum.max_energy = emax;
    if (-1 == flat_spectrum (&Marx_Spectrum, flux))
@@ -276,7 +267,7 @@ static void do_flat_spectrum_init (void)
 }
 
 static void do_mirror_init (char *file)
-{   
+{
 #if 0
    if (-1 == mirror_init (file))
      {
@@ -305,8 +296,6 @@ static void do_mirror_blur_init (void)
 #endif
 }
 
-   
-   
 static void do_collect_photons (int *num_photons)
 {
    if (*num_photons <= 0)
@@ -314,7 +303,7 @@ static void do_collect_photons (int *num_photons)
 	marx_error ("collect_photons: number of photons must be positive.");
 	return;
      }
-   
+
    if (-1 == collect_photons ((unsigned int) *num_photons, &Marx_Photon_List, &Marx_Spectrum))
      {
 	marx_error ("Error collecting photons.");
@@ -334,14 +323,13 @@ static void append_string_to_file (char *file, char *str)
    fclose (fp);
 }
 
-   
 static void do_regrid_curves (char *file)
 {
    unsigned int i, imax, col;
    double energy;
    Spectrum_Type *st = &Marx_Spectrum;
    FILE *fp;
-   
+
    if ((st->cum_flux == NULL)
        || (st->energies == NULL))
      {
@@ -349,25 +337,25 @@ static void do_regrid_curves (char *file)
 	return;
      }
    imax = st->n_energies;
-   
+
    if (NULL == (fp = fopen (file, "w")))
      {
 	marx_error ("regrid_curves: unable to open %s", file);
 	return;
      }
-   
+
    col = 1;
    fprintf (fp, "#Column %d: energy in KeV", col);
    col = dump_mirror_curves_open (col, fp);
    col = dump_acis_curves_open (col, fp);
    col = dump_grating_curves_open (col, fp);
    fputc ('\n', fp);
-   
+
    for (i = 0; i < imax; i++)
      {
 	energy = st->energies[i];
 	fprintf (fp, "%e", energy);
-	
+
 	if (
 	    (-1 == dump_mirror_curves (energy, fp))
 	    || (-1 == dump_acis_curves (energy, fp))
@@ -377,14 +365,14 @@ static void do_regrid_curves (char *file)
 	     marx_error ("regrid_curves: unknown regrid error.");
 	     break;
 	  }
-	
+
 	if (EOF == fputc ('\n', fp))
 	  {
 	     marx_error ("regrid_curves: write error.");
 	     break;
 	  }
      }
-   
+
    if (EOF == fclose (fp))
      marx_error ("regrid_curves: Error closing file.");
 }
@@ -393,7 +381,7 @@ static char *get_time (void)
 {
    char *the_time;
    time_t myclock;
-   
+
    myclock = time((time_t *) 0);
    the_time = (char *) ctime(&myclock);
    /* returns the form Sun Sep 16 01:03:52 1985\n\0 */
@@ -402,17 +390,17 @@ static char *get_time (void)
 }
 
 static void dump_to_log_file (char *file)
-{  
+{
    FILE *fp;
    if (NULL == (fp = fopen (file, "a")))
      {
 	fprintf (stderr, "Unable to create logfile %s", file);
 	return;
      }
-   fprintf (fp, "\n****%s: LOG FILE ENTRY CREATED by user %s\n", 
-	    get_time (), 
+   fprintf (fp, "\n****%s: LOG FILE ENTRY CREATED by user %s\n",
+	    get_time (),
 	    (getenv ("USER") == NULL ? "unknown" : getenv("USER")));
-   
+
    (void) dump_mirror_variables (fp);
    (void) dump_grating_variables (fp);
    (void) dump_acis_variables (fp);
@@ -420,10 +408,9 @@ static void dump_to_log_file (char *file)
    (void) dump_hrc_variables (fp);
    /* (void) dump_disperse_variables (fp); */
 #endif
-   
+
    (void) fclose (fp);
 }
-
 
 static void do_mirror_reflect (void)
 {
@@ -457,7 +444,6 @@ static void do_mirror_blur (void)
      }
 }
 
-   
 static void do_disperse_photons (void)
 {
 #if 0
@@ -508,20 +494,20 @@ static int write_formatted (FILE *fp, char *fmt)
    float start_time;
    char output_buf[4096], *f, *p;
    unsigned int count;
-   
+
    start_time = Sim_Total_Time - Marx_Photon_List.total_time;
-   
+
    imax = Marx_Photon_List.n_photons;
-   
+
    attr = Marx_Photon_List.attributes;
    count = 0;
    if (attr != NULL) for (i = 0; i < imax; i++)
      {
 	char ch;
-	
+
 	at = attr + i;
 	if (at->flags & BAD_PHOTON_MASK) continue;
-	
+
 	if (fmt == NULL)
 	  {
 	     fprintf (fp, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%u\t%u\t%u\t%u\t%d\t%f\n",
@@ -533,21 +519,21 @@ static int write_formatted (FILE *fp, char *fmt)
 		      );
 	     continue;
 	  }
-	
+
 	f = fmt;
 	count++;
 	p = output_buf;
-	
+
 	while ((ch = *f++) != 0)
 	  {
-	     if (ch != '%') 
+	     if (ch != '%')
 	       {
 		  *p++ = ch;
 		  continue;
 	       }
-	     
+
 	     ch = *f++;
-	     
+
 	     switch (ch)
 	       {
 		case 'e':
@@ -603,7 +589,7 @@ static int write_formatted (FILE *fp, char *fmt)
 		  marx_error ("Unknown format specifier: %c.", ch);
 		  return -1;
 	       }
-	     
+
 	     p += strlen (p);
 	  }
 	*p = '\n';
@@ -617,10 +603,10 @@ static void write_formatted_photon_list (char *fmt, char *file, int *append)
 {
    FILE *fp;
    char *mode;
-   
+
    if (*append == 0) mode = "wt";
    else mode = "at";
-       
+
    fp = fopen (file, mode);
    if (fp == NULL)
      {
@@ -649,7 +635,7 @@ static void make_simulator_version_string (void)
    b = MARX_VERSION % 10000;
    c = b % 100;
    b = b / 100;
-   
+
    sprintf (Simulator_Version, "%d.%02d.%02d", a, b, c);
 }
 
@@ -658,7 +644,7 @@ static char *make_date (int what)
    static char date[20];
    struct tm *tm_struct;
    time_t tloc;
-   
+
    time (&tloc);
    tm_struct = gmtime (&tloc);
    if (what)
@@ -667,7 +653,7 @@ static char *make_date (int what)
 		 tm_struct->tm_mday, 1 + tm_struct->tm_mon, tm_struct->tm_year);
      }
    else sprintf (date, "%02d:%02d:%02d",
-		 tm_struct->tm_hour, 
+		 tm_struct->tm_hour,
 		 tm_struct->tm_min, tm_struct->tm_sec);
    return date;
 }
@@ -709,19 +695,19 @@ static void plot_data (int *idp, char *fmt)
    char fmtbuf[10];
    unsigned int id = (unsigned int) *idp;
    FILE *fp;
-   
+
    fp = gnuplot_get_fp (id);
    if (fp == NULL) return;
-   
+
    if (-1 == gnuplot_cmd (id, "plot '-'"))
      return;
-   
+
    if ((fmt[0] == 0)
        || (fmt[1] == 0))
      fmt = "xy";
-   
+
    sprintf (fmtbuf, "%%%c %%%c", fmt[0], fmt[1]);
-   
+
    write_formatted (fp, fmtbuf);
    gnuplot_cmd (id, "e");
 }
@@ -776,7 +762,6 @@ static SLang_Name_Type Sim_Intrinsics[] =
    MAKE_VARIABLE(".SIMULATOR_VERSION", Simulator_Version, STRING_TYPE, 1),
    MAKE_VARIABLE(".SIM_LIB_DIR", Sim_Lib_Dir, STRING_TYPE, 1),
 
-     
    SLANG_END_TABLE
 };
 
@@ -784,27 +769,27 @@ static void run_startup_file (void)
 {
    char file[256], *sld;
    unsigned int len = sizeof (Sim_Lib_Dir) - 3;
-   
+
    sld = getenv ("SIM_LIB_DIR");
-   
+
    if (sld != NULL)
      {
 	strncpy (Sim_Lib_Dir, sld, len);
 	Sim_Lib_Dir[len] = 0;
      }
-   
+
    len = strlen (Sim_Lib_Dir);
-   
+
    if (len)
      {
 	struct stat st;
-	
+
 	if (Sim_Lib_Dir[len - 1] != '/')
 	  {
 	     Sim_Lib_Dir[len] = '/';
 	     Sim_Lib_Dir[len + 1] = 0;
 	  }
-	
+
 	sprintf (file, "%sstartup.sl", Sim_Lib_Dir);
 	if (0 == stat (file, &st))
 	  {
@@ -818,7 +803,7 @@ static void run_startup_file (void)
 Unable to read startup file because the simulator library directory has not\n\
 been specified.\n"
 		 );
-   
+
    fprintf (stderr, "\
 You may need to set the environment variable SIM_LIB_DIR to point to the\n\
 directory where the simulator startup file 'startup.sl' can be found.\n"
@@ -826,11 +811,10 @@ directory where the simulator startup file 'startup.sl' can be found.\n"
    exit (-1);
 }
 
-
 int marx_interp_main (char *file)
 {
    /* Initialize the library.  This is always needed. */
-   
+
    if (!init_SLang()		       /* basic interpreter functions */
        || !init_SLmath() 	       /* sin, cos, etc... */
 #ifdef unix
@@ -851,7 +835,7 @@ int marx_interp_main (char *file)
 	fprintf(stderr, "Unable to initialize Interpreter\n");
 	exit(-1);
      }
-   
+
    if ((-1 == init_mirror_module ())
        || (-1 == init_grating_module ())
        || (-1 == init_acis_module ()))
@@ -859,20 +843,20 @@ int marx_interp_main (char *file)
 	fprintf (stderr, "Unable to initialize module symbols.\n");
 	exit (-1);
      }
-   
+
    make_simulator_version_string ();
-   
+
 #ifdef USE_SLWDG
    SLwdg_initialize (0);
 #endif
    /* Turn on debugging */
    SLang_Traceback = 1;
-   
+
    run_startup_file ();
-   
+
    /* Now load an initialization file and exit */
    SLang_load_file (file);
-   
+
 #ifdef USE_SLWDG
    SLwdg_end ();
 #endif

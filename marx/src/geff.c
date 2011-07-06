@@ -62,7 +62,7 @@ int main (int argc, char **argv) /*{{{*/
    double emin, emax, de;
    int min_order, max_order;
    int num_energies;
-     
+
    if ((argc != 7)
        || (1 != sscanf (argv[2], "%lf", &emin))
        || (1 != sscanf (argv[3], "%lf", &emax))
@@ -78,56 +78,53 @@ int main (int argc, char **argv) /*{{{*/
 	usage (argv[0]);
 	return 1;
      }
-   
-   
+
    pfile = argv[1];
-   
+
    if (NULL == (pf = pf_open_parameter_file (pfile, "r")))
      {
 	fprintf (stderr, "Unable to open param file %s.\n", pfile);
 	return 1;
      }
-   
+
    if (-1 == pf_get_parameters (pf, Grating_Parm_Table))
      {
 	fprintf (stderr, "Error obtain parameters from %s\n", pfile);
 	pf_close_parameter_file (pf);
 	return 1;
      }
-   
+
    pf_close_parameter_file (pf);
 
-   
    if (-1 == marx_create_grating_opt_const_tables (Optical_Constants))
      {
 	fprintf (stderr, "Error getting optical constants from %s\n", Optical_Constants);
 	return 1;
      }
-   
-   
+
    order = 0;
    de = (emax - emin) / num_energies;
-   
+
    while (emin < emax)
      {
 	fprintf (stdout, "%e", emin);
 	for (order = min_order; order <= max_order; order++)
 	  {
 	     double eff;
-	     
+
 	     eff = marx_compute_grating_efficiency (emin, order, &Geom);
 	     if (emin < 0.0)
 	       {
 		  fprintf (stderr, "Error occured while computing efficiency\n");
 		  return 1;
 	       }
-	     
+
 	     fprintf (stdout, "\t%e", eff);
 	  }
 	fputc ('\n', stdout);
 	emin += de;
      }
-   
+
    return 0;
 }
 

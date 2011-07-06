@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -19,7 +18,6 @@
 
 #include <jdmath.h>
 #include <pfile.h>
-
 
 #include "marx.h"
 #include "_marx.h"
@@ -58,7 +56,7 @@ typedef struct
    /* These are computed */
    /* The equation of the conic is rearranged in form
     * x^2 + y^2 + z^2 = a x^2 + b x + c
-    * (0,0,0) is at the center of the conic.  This is the origin of the OSAC 
+    * (0,0,0) is at the center of the conic.  This is the origin of the OSAC
     * coordinate system.
     */
    double conic_a_p;		       /* osac_r_p ^2 */
@@ -93,7 +91,7 @@ typedef struct
 }
 Wolter1_Type;
 
-typedef struct 
+typedef struct
 {
    unsigned int num_shells;
    Wolter1_Type *shell_info;
@@ -136,7 +134,6 @@ static Param_Table_Type IXOMirror_Parm_Table [] =
    {NULL, 0, NULL}
 };
 
-
 /* Arrays of optical constants */
 static float *Betas;
 static float *Deltas;
@@ -160,7 +157,7 @@ static IXO_Mirror_Type *allocate_ixo_mirror (unsigned int num_shells)
 
    if (NULL == (m = (IXO_Mirror_Type *)marx_malloc (sizeof(IXO_Mirror_Type))))
      return NULL;
-   
+
    m->num_shells = num_shells;
    if (NULL == (m->shell_info = (Wolter1_Type *)marx_calloc (num_shells, sizeof(Wolter1_Type))))
      {
@@ -169,7 +166,6 @@ static IXO_Mirror_Type *allocate_ixo_mirror (unsigned int num_shells)
      }
    return m;
 }
-
 
 /*{{{ conic section routines */
 
@@ -181,14 +177,12 @@ static double compute_conic_radius (double a, double b, double c, double x)
    return sqrt (c + x * (b + x * (a - 1)));
 }
 
-
-
-/* This function computes the intersection of a ray (x0, p) with the 
+/* This function computes the intersection of a ray (x0, p) with the
  * portion of the surface
  *   x^2 + y^2 + z^2 = a x^2 + b x + c
  * that lies between planes x=xmin and x=xmax.
- * If the ray intersects, 0 is returned as well as the 
- * intersection point (x0) and normal (via parameter list).  If no 
+ * If the ray intersects, 0 is returned as well as the
+ * intersection point (x0) and normal (via parameter list).  If no
  * intersection, -1 is returned.
  */
 static int compute_conic_intersection (double a, double b, double c,
@@ -198,16 +192,16 @@ static int compute_conic_intersection (double a, double b, double c,
 {
    double alpha, beta, gamma, x_y, x_z;
    double t_plus, t_minus, x_plus, x_minus;
-   
+
    /* project ray to x = 0 plane */
    t_plus = -x0->x / p.x;
    x_y = x0->y + t_plus * p.y;
    x_z = x0->z + t_plus * p.z;
-   
+
    alpha = a * p.x * p.x - 1.0;
    beta = b * p.x - 2.0 * (p.y * x_y + p.z * x_z);
    gamma = c - x_z * x_z - x_y * x_y;
-   
+
    if (alpha == 0.0)
      {
 	if (beta == 0.0) return -1;
@@ -217,11 +211,11 @@ static int compute_conic_intersection (double a, double b, double c,
    else
      if (0 >= JDMquadratic_root (alpha, beta, gamma, &t_plus, &t_minus))
        return -1;
-   
+
    /* Now find out what x coordinate the ts correspond to. */
    x_plus = p.x * t_plus;
    x_minus = p.x * t_minus;
-   
+
    if ((x_plus >= xmin) && (x_plus < xmax))
      {
 	/* x_plus looks good.  Check x_minus. If ok, choose greatest */
@@ -260,7 +254,6 @@ static int compute_conic_intersection (double a, double b, double c,
    return 0;
 }
 
-
 /* Conic has equation
  * x^2 + y^2 + z^2 = a x^2 + b x + c
  *
@@ -270,8 +263,8 @@ static int compute_conic_intersection (double a, double b, double c,
  */
 
 static int reflect_from_conic (double a, double b, double c,
-			       JDMVector_Type *x, JDMVector_Type *p, 
-			       double xmin, double xmax, 
+			       JDMVector_Type *x, JDMVector_Type *p,
+			       double xmin, double xmax,
 			       double blur,
 			       double energy, double beta, double delta,
 			       double correction_factor)
@@ -289,7 +282,7 @@ static int reflect_from_conic (double a, double b, double c,
      blur_normal (&normal, blur, energy);
 
    p_dot_n = JDMv_pdot_prod (p, &normal);
-   
+
    if (Mirror_Is_Ideal == 0)
      {
 	r = JDMrandom ();
@@ -303,7 +296,6 @@ static int reflect_from_conic (double a, double b, double c,
 
    return 0;
 }
-
 
 /*}}}*/
 
@@ -331,18 +323,18 @@ static int get_shell_geometry (Param_File_Type *pf, int shell) /*{{{*/
    h->conic_c_h = h->osac_r_h * h->osac_r_h;
    h->conic_b_h = -2.0 * h->osac_k_h;
    h->conic_a_h = 1.0 - h->osac_p_h;
-   
+
    h->conic_xmin_h = -0.5 * h->length_h;
    h->conic_xmax_h = 0.5 * h->length_h;
 
    /* Note that a ray whose X coordinate is cap_pos, will have an OSAC coord
     * of -|osac_z0_p| for the parabola, and +|osac_z0_h| for the hyperbola.
     * For reference, the relations between the systems are:
-    * 
+    *
     *    MARX_X = -SAOSAC_Z
     *    MARX_Y = +SAOSAC_X
     *    MARX_Z = -SAOSAC_Y
-    * 
+    *
     * Also, a ray at the OSAC origin will have the MARX coordinate of
     * cap - osac_z0_p.
     */
@@ -372,10 +364,10 @@ static int init_mirror_shells (Param_File_Type *pf) /*{{{*/
    unsigned int num_shells;
 
    /* Note: the area_fraction is really the cumulative area fraction. */
-   
+
    num_shells = IXO_Mirrors->num_shells;
    shell_info = IXO_Mirrors->shell_info;
-   
+
    total_area = 0.0;
    for (i = 0; i < num_shells; i++)
      {
@@ -383,7 +375,7 @@ static int init_mirror_shells (Param_File_Type *pf) /*{{{*/
 	  return -1;
 
 	h = shell_info + i;
-	
+
 	/* For now use back of parabola as min radius and front as max */
 #if 1
 	h->min_radius = compute_conic_radius (h->conic_a_p, h->conic_b_p, h->conic_c_p,
@@ -404,7 +396,7 @@ static int init_mirror_shells (Param_File_Type *pf) /*{{{*/
 
 	h->area_fraction = total_area;
      }
-   
+
    if (total_area <= 0.0)
      {
 	marx_error ("The mirror geometric area <= 0.");
@@ -415,9 +407,9 @@ static int init_mirror_shells (Param_File_Type *pf) /*{{{*/
     * cm^2
     */
    Marx_Mirror_Geometric_Area = (total_area * PI) / 100.0;
-   
+
    /* Now normalize the cumulative area fraction. */
-   for (i = 0; i < num_shells; i++) 
+   for (i = 0; i < num_shells; i++)
      {
 	h = shell_info + i;
 	h->area_fraction = h->area_fraction / total_area;
@@ -436,31 +428,30 @@ static void free_optical_constants (void)
    if (NULL != Betas) JDMfree_float_vector (Betas);
    if (NULL != Deltas) JDMfree_float_vector (Deltas);
    if (NULL != Energies) JDMfree_float_vector (Energies);
-   
+
    Betas = Deltas = Energies = NULL;
    Num_Energies = 0;
 }
-
 
 static int read_opt_constants (void)
 {
    unsigned int nread;
    char *file;
-   
+
    free_optical_constants ();
-   
+
    file = IXO_Opt_File;
    if ((file == NULL) || (*file == 0))
      return 0;
 
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
-   
+
    /* The optical constant file consists of:
     *   energy (KeV), beta, delta
     */
    marx_message ("Reading binary HRMA optical constants:\n\t%s\n", file);
-   
+
    if (-1 == marx_f_read_bdat (file, &nread, 3, &Energies, &Betas, &Deltas))
      {
 	marx_free (file);
@@ -495,10 +486,10 @@ static int init_yaw_pitch (void)
 	 * is a NEGATIVE rotation about the SAOSAC X' axis.  The X' axis is
 	 * the new X axis after the osac_az rotation.  The SAOSAC X axis
 	 * corresponds to the MARX Y axis.  Thus:
-	 * 
+	 *
 	 * 1. Rotate by osac_az about the -Z Marx axis.  Or, equivalently,
 	 *    rotate by -osac_az about the +Z axis.
-	 * 
+	 *
 	 * 2. Rotate about the new Y Marx axis by -osac_el.
 	 */
 
@@ -529,7 +520,7 @@ static int init_yaw_pitch (void)
 
 	h++;
      }
-   
+
    return 0;
 }
 #endif
@@ -541,12 +532,12 @@ static int project_photon_to_mirror (Marx_Photon_Attr_Type *at, /*{{{*/
    unsigned int i;
    Wolter1_Type *shell_info;
    unsigned int num_shells;
-   
+
    num_shells = IXO_Mirrors->num_shells;
    shell_info = IXO_Mirrors->shell_info;
 
    /* FIXME: Use a lookup table!!! */
-   while (1) 
+   while (1)
      {
 	r = JDMrandom ();
 	for (i = 0; i < num_shells; i++)
@@ -558,16 +549,16 @@ static int project_photon_to_mirror (Marx_Photon_Attr_Type *at, /*{{{*/
 		  double theta, radius;
 
 		  at->mirror_shell = i;
-		  
-		  radius = h->min_radius 
+
+		  radius = h->min_radius
 		    + (h->max_radius - h->min_radius) * JDMrandom ();
-		  
+
 		  theta = (2.0 * PI) * JDMrandom();
-		  
+
 		  at->x.z = radius * cos (theta);
 		  at->x.y = radius * sin (theta);
 		  at->x.x = h->front_position;
-		  
+
 		  /* Account for mis-alignment of this shell */
 		  at->x.z -= h->to_osac_p.z;
 		  at->x.y -= h->to_osac_p.y;
@@ -579,7 +570,7 @@ static int project_photon_to_mirror (Marx_Photon_Attr_Type *at, /*{{{*/
 		   * will stay the same.  So, consider only change for finite
 		   * source.
 		   */
-		  
+
 		  if (source_distance > 0.0)
 		    {
 		       at->p = JDMv_ax1_bx2 (1.0, at->x, source_distance, at->p);
@@ -598,16 +589,16 @@ static void blur_normal (JDMVector_Type *n, double blur, double energy) /*{{{*/
    double phi;
    double n_y, n_z, len;
    JDMVector_Type perp;
-   
+
    (void) energy;
    /* Choose a random axis perp to p and rotate by a gaussian distributed angle
     * about it.  This is accompished in two steps:
-    * 
+    *
     *   1.  Pick a vector perp to p.  Now rotate it by a random angle about p.
-    *   2.  Rotate the normal by gaussian distributed angle about this 
+    *   2.  Rotate the normal by gaussian distributed angle about this
     *        random axis.
     */
-   
+
    /* Step 1.
     * The vector n will never have both y and z components zero.  So
     * a vect perp to it is:
@@ -615,11 +606,11 @@ static void blur_normal (JDMVector_Type *n, double blur, double energy) /*{{{*/
    n_y = n->y;
    n_z = n->z;
    len = sqrt (n_y * n_y + n_z * n_z);
-   
+
    perp.x = 0.0;
    perp.y = n_z / len;
    perp.z = -n_y / len;
-   
+
    /* Now rotate this about n. */
    phi = (2.0 * PI) * JDMrandom ();
    perp = JDMv_rotate_unit_vector (perp, *n, phi);
@@ -627,7 +618,7 @@ static void blur_normal (JDMVector_Type *n, double blur, double energy) /*{{{*/
    /* Step 2.
     * Rotate n about perp by gaussian distributed angle.
     */
-   
+
    phi = blur * (1.0 / 3600.0 *  PI / 180.0);    /* 1 arc sec */
    phi = phi * JDMgaussian_random ();
 
@@ -643,7 +634,7 @@ static int read_mirror_geometry_file (char *file)
    unsigned int num_cols = 8;
    static char *columns[8] =
      {
-	"i:shell", "d:d", "d:e", "d:a", 
+	"i:shell", "d:d", "d:e", "d:a",
 	"d:zmin", "d:zmax", "d:h_zmin", "d:h_zmax"
      };
 #define GEOM_COLUMN_shell	0
@@ -669,7 +660,7 @@ static int read_mirror_geometry_file (char *file)
    marx_message ("Opening IXO Mirror Geometry fits file %s\n", file);
    if (NULL == (f = jdfits_open_binary_table (file, extname)))
      {
-	marx_error ("Unable to find a binary table called %s in %s\n", 
+	marx_error ("Unable to find a binary table called %s in %s\n",
 		    extname, file);
 	return -1;
      }
@@ -680,9 +671,9 @@ static int read_mirror_geometry_file (char *file)
 	jdfits_close_file (f);
 	return -1;
      }
-   
+
    num_rows = r->num_rows;
-   
+
    if (NULL == (mirror = allocate_ixo_mirror (num_rows)))
      goto return_error;
    shell_info = mirror->shell_info;
@@ -699,7 +690,7 @@ static int read_mirror_geometry_file (char *file)
 	     marx_error ("Unexpected end of IXO Mirror Geom table %s", file);
 	     goto return_error;
 	  }
-	
+
 	c = r->col_data;
 	shell =c[GEOM_COLUMN_shell].data.i[0];
 	d = c[GEOM_COLUMN_d].data.d[0];
@@ -709,11 +700,11 @@ static int read_mirror_geometry_file (char *file)
 	zmax = c[GEOM_COLUMN_zmax].data.d[0];
 	h_zmin = c[GEOM_COLUMN_h_zmin].data.d[0];
 	h_zmax = c[GEOM_COLUMN_h_zmax].data.d[0];
-	
+
 	shell_info->mirror_number = shell;
 	shell_info->length_p = zmax - zmin;
 	shell_info->length_h = h_zmax - h_zmin;
-	
+
 	/* For the paraboloid, The IXO mirror prescription uses:
 	 *   r^2 = (d+a+z)^2 - (a+z)^2
 	 * Where z is measured from the focus.
@@ -723,7 +714,7 @@ static int read_mirror_geometry_file (char *file)
 	 * towards the narrow end of the optic, i.e., to the focus.  Let
 	 * z0=(zmin+zmax)/2 in the IXO system, which corresponds to z'=0 in
 	 * the SAOSAC system.  Then z = z0 - z'.
-	 * ==> 
+	 * ==>
 	 *   r^2 = (d+a+z0-z')^2 - (a+z0-z')^2
 	 *       = d^2 + 2*d*(a+z0-z')
 	 *       = d^2 + 2*d*(a+z0) - 2*d*z'
@@ -755,14 +746,14 @@ static int read_mirror_geometry_file (char *file)
 	shell_info->osac_z0_h = -(z0 - IXO_Cap_Position);
 	shell_info->osac_x0_h = 0.0;
 	shell_info->osac_y0_h = 0.0;
-	
+
 	shell_info->p_blur = IXO_Mirror_Blur;
 	shell_info->h_blur = IXO_Mirror_Blur;
 	shell_info->osac_az_p = Az_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_el_p = El_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_az_h = Az_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_el_h = El_Blur_Sigma * JDMgaussian_random();
-	
+
 	shell_info->osac_x0_p += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_y0_p += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_z0_p += Defocus_Blur_Sigma * JDMgaussian_random();
@@ -805,7 +796,7 @@ int _marx_ixo_mirror_init (Param_File_Type *p) /*{{{*/
 	return -1;
      }
    marx_free (file);
-   
+
    if (Mirror_Is_Ideal == 0)
      {
 	if (-1 == read_opt_constants ())
@@ -822,7 +813,7 @@ int _marx_ixo_mirror_init (Param_File_Type *p) /*{{{*/
    if (-1 == init_yaw_pitch ())
      return -1;
 #endif
-   
+
    return 0;
 }
 
@@ -842,7 +833,7 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
    if (pt->history & MARX_MIRROR_SHELL_OK)
      return 0;			       /* been here already */
    pt->history |= MARX_MIRROR_SHELL_OK;
-   
+
    marx_prune_photons (pt);
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
@@ -851,7 +842,7 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
    /* First of all, apply vignetting factor to kill a certain percentage
     * of photons.
     */
-   if (Mirror_Is_Ideal == 0) 
+   if (Mirror_Is_Ideal == 0)
      {
 	for (i = 0; i < n; i++)
 	  {
@@ -861,8 +852,8 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 		  at->flags |= PHOTON_MIRROR_VBLOCKED;
 	       }
 	  }
-	
-	/* I could have pruned in the previous loop but it is a better idea to 
+
+	/* I could have pruned in the previous loop but it is a better idea to
 	 * leave it for a function call.
 	 */
 	marx_prune_photons (pt);
@@ -879,7 +870,7 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
    for (i = 0; i < n; i++)
      {
 	Wolter1_Type *h;
-	double energy; 
+	double energy;
 	int status;
 
 	at = photon_attributes + sorted_index[i];
@@ -887,35 +878,35 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 
 	h = shell_info + at->mirror_shell;
 
-	/* The conic intersection/reflection routines are expressed in a 
-	 * coordinate system whose origin is at the center of the conic.  
-	 * For that reason, we need to move our ray to that position. 
+	/* The conic intersection/reflection routines are expressed in a
+	 * coordinate system whose origin is at the center of the conic.
+	 * For that reason, we need to move our ray to that position.
 	 */
 	at->x = JDMv_sum (at->x, h->to_osac_p);
 
 #if MARX_HAS_HRMA_PITCH_YAW
 	at->x = JDM3m_vector_mul (h->fwd_matrix_p, at->x);
 	/* We only consider the change in direction induced by the
-	 * HRMA orientation and not the change in the photon position.  
+	 * HRMA orientation and not the change in the photon position.
 	 * The reason for this is that except for very
 	 * near sources, the incoming rays will be parallel and the only real
 	 * effect of the pitch/yaw would be to reduce the effective area
-	 * by an extremely small amount.  
-	 * 
+	 * by an extremely small amount.
+	 *
 	 * Unfortunately, this assumption is not valid after reflection.
 	 */
 	at->p = JDM3m_vector_mul (h->fwd_matrix_p, at->p);
 #endif
-	
+
 	energy = at->energy;
-	
+
 	if (Num_Energies == 0)
 	  {
 	     beta = 0.0;
 	     delta = 1.0;	       /* perfect reflect */
 	     correction_factor = 1.0;
 	  }
-	else 
+	else
 	  {
 	     if (energy != last_energy)
 	       {
@@ -928,7 +919,7 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	last_h = h;
 
 	status = reflect_from_conic (h->conic_a_p, h->conic_b_p, h->conic_c_p,
-				     &at->x, &at->p, 
+				     &at->x, &at->p,
 				     h->conic_xmin_p, h->conic_xmax_p,
 				     h->p_blur,
 				     energy, beta, delta, correction_factor);
@@ -950,7 +941,6 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	at->p = JDM3m_vector_mul (h->bwd_matrix_p, at->p);
 	at->x = JDM3m_vector_mul (h->bwd_matrix_p, at->x);
 #endif
-	
 
 	/* Now go back to our coordinate system and then into OSAC for hyperbola */
 	at->x = JDMv_diff (at->x, h->to_osac_p);
@@ -959,12 +949,12 @@ int _marx_ixo_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 
 #if MARX_HAS_HRMA_PITCH_YAW
 	/* Now rotate into the coordinate system of the hyperbola */
-	
+
 	at->p = JDM3m_vector_mul (h->fwd_matrix_h, at->p);
 	at->x = JDM3m_vector_mul (h->fwd_matrix_h, at->x);
-#endif	
+#endif
 
-	if (0 != reflect_from_conic (h->conic_a_h, h->conic_b_h, h->conic_c_h, 
+	if (0 != reflect_from_conic (h->conic_a_h, h->conic_b_h, h->conic_c_h,
 				     &at->x, &at->p,
 				     h->conic_xmin_h, h->conic_xmax_h,
 				     h->h_blur,

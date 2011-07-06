@@ -92,13 +92,13 @@ static double compute_contamination (Single_Component_Contam_Type *c,
    double fxy;
    unsigned int i;
    double v;
-   
+
    fxy = (*c->fxy)(cx, cy);
    v = 0.0;
    for (i = 0; i < c->num_layers; i++)
      {
 	double mu;
-	
+
 	mu = JDMinterpolate_f (en, c->energies[i], c->mus[i], c->num_mus[i]);
 	v += mu*(c->tau_0s[i] + c->tau_1s[i]*fxy);
      }
@@ -146,9 +146,9 @@ static double fxy_acis456789 (double x, double y)
    double y_0 = 512.0;
    double alpha_1 = 5.5;
    double alpha_2 = 4.5;
-   
+
    (void) x;
-   
+
    if (y <= 512.0)
      return pow(fabs((y-y_0)/(64.0-y_0)), alpha_1);
    else
@@ -196,7 +196,7 @@ static char *Contam_File_Columns[NUM_CONTAM_COLUMNS] =
    "f:tau1"
 };
 
-static void compute_tau_values (Single_Component_Contam_Type *contam, 
+static void compute_tau_values (Single_Component_Contam_Type *contam,
 				unsigned int layer, unsigned int ntimes,
 				double *times, float *tau0s, float *tau1s)
 {
@@ -206,7 +206,7 @@ static void compute_tau_values (Single_Component_Contam_Type *contam,
 
    n0 = JDMbinary_search_d (t, times, ntimes);
    n1 = n0+1;
-   
+
    if (n1 == ntimes)
      {
 	if (n0 == 0)
@@ -225,7 +225,6 @@ static void compute_tau_values (Single_Component_Contam_Type *contam,
    contam->tau_0s[layer] = tau0s[n0] + (tau0s[n1] - tau0s[n0]) * t;
    contam->tau_1s[layer] = tau1s[n0] + (tau1s[n1] - tau1s[n0]) * t;
 }
-
 
 static void free_contam_table_entry (int ccd)
 {
@@ -250,7 +249,7 @@ static int read_contam_file_for_ccd (char *file, int ccd)
    unsigned int num_layers, layer;
    char extname[16];
    Single_Component_Contam_Type *contam;
-   
+
    free_contam_table_entry (ccd);
 
    contam = Single_Component_Contam_Table+ccd;
@@ -260,7 +259,7 @@ static int read_contam_file_for_ccd (char *file, int ccd)
       case 1: contam->fxy = fxy_acis1; break;
       case 2: contam->fxy = fxy_acis2; break;
       case 3: contam->fxy = fxy_acis3; break;
-	
+
       default:
 	contam->fxy = fxy_acis456789;
      }
@@ -291,22 +290,22 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	return -1;
      }
    contam->num_layers = num_layers;
-   
+
    c = r->col_data;
-   
+
    for (layer = 0; layer < num_layers; layer++)
      {
 	unsigned int n_time, n_energy;
 	double *times;
 	float *tau0s, *tau1s, *energies, *mus;
-	
+
 	if (1 != jdfits_read_next_row (f, r))
 	  {
 	     marx_error ("Unexpected end of binary table", file, extname);
 	     goto return_error_bad_row;
 	  }
 	c = r->col_data;
-	
+
 	/* This implementation assumes a single component */
 	if (0 != c[COMPONENT_COLUMN].data.i[0])
 	  {
@@ -315,7 +314,7 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	  }
 	n_time = (unsigned int) c[N_TIME_COLUMN].data.i[0];
 	n_energy = (unsigned int) c[N_ENERGY_COLUMN].data.i[0];
-	
+
 	if ((n_time <= 1) || (n_energy <= 1))
 	  {
 	     marx_error ("Expecting n_energy or n_time to be greater than 1");
@@ -328,14 +327,14 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	     marx_error ("n_time value is larger than data arrays");
 	     goto return_error_bad_row;
 	  }
-	
+
 	if ((n_energy > c[ENERGY_COLUMN].repeat)
 	    || (n_energy > c[MU_COLUMN].repeat))
 	  {
 	     marx_error ("n_energy value is larger than data arrays");
 	     goto return_error_bad_row;
 	  }
-	
+
 	times = c[TIME_COLUMN].data.d;
 	tau0s = c[TAU0_COLUMN].data.f;
 	tau1s = c[TAU1_COLUMN].data.f;
@@ -355,11 +354,11 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	  }
 
 	compute_tau_values (contam, layer, n_time, times, tau0s, tau1s);
-	
+
 	if ((NULL == (contam->energies[layer] = (float *)marx_malloc (sizeof(float)*n_energy)))
 	    || (NULL == (contam->mus[layer] = (float *)marx_malloc (sizeof(float)*n_energy))))
 	  goto return_error_bad_row;
-	
+
 	memcpy ((char *)contam->energies[layer], energies, n_energy*sizeof(float));
 	memcpy ((char *)contam->mus[layer], mus, n_energy*sizeof(float));
 	contam->num_mus[layer] = n_energy;
@@ -371,13 +370,12 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 
 return_error_bad_row:
 
-   marx_error ("Error encountered reading row %d of %s[%s]", 
+   marx_error ("Error encountered reading row %d of %s[%s]",
 	       layer+1, file, extname);
    jdfits_bintable_close_rows (r);
    jdfits_close_file (f);
    return -1;
 }
-
 
 int _marx_acis_contam_init (Param_File_Type *p, _Marx_Acis_Chip_Type *ccd)
 {
@@ -394,7 +392,7 @@ int _marx_acis_contam_init (Param_File_Type *p, _Marx_Acis_Chip_Type *ccd)
 	return -1;
      }
    marx_free (file);
-   
+
    switch (ccd->ccd_id)
      {
       case 0:
@@ -427,7 +425,7 @@ int _marx_acis_contam_init (Param_File_Type *p, _Marx_Acis_Chip_Type *ccd)
       case 9:
 	ccd->contam_fun = contam_9;
 	break;
-	
+
       default:
 	marx_error ("_marx_acis_contam_init: unsupported ccdid: %d", ccd->ccd_id);
 	return -1;

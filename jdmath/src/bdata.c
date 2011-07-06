@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -28,7 +28,7 @@
 #include "jdmath.h"
 #include "_jdmath.h"
 
-static unsigned char Magic_Bytes[4] = 
+static unsigned char Magic_Bytes[4] =
 {
    0x83, 0x43, 0x59, 0x8E
 };
@@ -49,23 +49,23 @@ static int validate_data_type (int data_type)
       case 'E':
       case 'F':
 	break;
-	
+
       default:
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	JDMmsg_error ("Unsupported data type.");
 	return -1;
      }
-   
+
    return 0;
 }
 
 static JDMBData_File_Type *allocate_bdata_file_type (unsigned int len)
 {
    JDMBData_File_Type *h;
-   
+
    h = (JDMBData_File_Type *) _JDMmalloc (sizeof (JDMBData_File_Type), NULL);
    if (h == NULL) return NULL;
-   
+
    memset ((char *) h, 0, sizeof (JDMBData_File_Type));
 
    if (NULL == (h->comment = (char *)_JDMmalloc (len + 1, NULL)))
@@ -76,7 +76,6 @@ static JDMBData_File_Type *allocate_bdata_file_type (unsigned int len)
    *h->comment = 0;
    return h;
 }
-
 
 JDMBData_File_Type *JDMbdata_open_file (char *file)
 {
@@ -93,10 +92,10 @@ JDMBData_File_Type *JDMbdata_open_file (char *file)
 	JDMath_Error = JDMATH_FILE_OPEN_ERROR;
 	return NULL;
      }
-   
+
    if (BDATA_HEADER_SIZE != fread (header, 1, BDATA_HEADER_SIZE, fp))
      goto read_error;
-   
+
    if (memcmp ((char *) header, (char *)Magic_Bytes, 4))
      {
 	JDMath_Error = JDMATH_CORRUPT_FILE_ERROR;
@@ -104,7 +103,7 @@ JDMBData_File_Type *JDMbdata_open_file (char *file)
 	fclose (fp);
 	return NULL;
      }
-   
+
    JDMstr_read_int32 (rc_comment, 3, header + NROWS_OFFSET);
    comment_len = (unsigned int) rc_comment [2];
    bf = allocate_bdata_file_type (comment_len);
@@ -113,7 +112,7 @@ JDMBData_File_Type *JDMbdata_open_file (char *file)
 	fclose (fp);
 	return NULL;
      }
-   
+
    bf->nrows = (unsigned int) rc_comment[0];
    bf->ncols = (unsigned int) rc_comment[1];
    bf->data_type = (int) header [DATA_TYPE_OFFSET];
@@ -125,16 +124,16 @@ JDMBData_File_Type *JDMbdata_open_file (char *file)
 	fclose (fp);
 	return NULL;
      }
-   
+
    if (comment_len != fread (bf->comment, 1, comment_len, fp))
      goto read_error;
-   
+
    bf->comment[comment_len] = 0;
    bf->fp = fp;
    bf->flags = JDMBDATA_READ_MODE;
 
    return bf;
-   
+
    read_error:
 
    JDMath_Error = JDMATH_FILE_READ_ERROR;
@@ -148,7 +147,6 @@ JDMBData_File_Type *JDMbdata_open_file (char *file)
    return NULL;
 }
 
-
 static int write_header (JDMBData_File_Type *b)
 {
    unsigned char header[BDATA_HEADER_SIZE];
@@ -161,42 +159,41 @@ static int write_header (JDMBData_File_Type *b)
    memcpy ((char *) header, (char *)Magic_Bytes, 4);
 
    header[DATA_TYPE_OFFSET] = (unsigned char) b->data_type;
-   
+
    rc_comment[0] = (int32) b->nrows;
    rc_comment[1] = (int32) b->ncols;
    rc_comment[2] = (int32) b->comment_len;
    JDMstr_write_int32 (rc_comment, 3, header + NROWS_OFFSET);
-   
+
    if (BDATA_HEADER_SIZE != fwrite ((char *) header, 1, BDATA_HEADER_SIZE, fp))
      return -1;
 
    return 0;
 }
 
-
-JDMBData_File_Type *JDMbdata_create_file (char *file, 
-					  int data_type, 
-					  unsigned int nrows, 
+JDMBData_File_Type *JDMbdata_create_file (char *file,
+					  int data_type,
+					  unsigned int nrows,
 					  unsigned int ncols,
 					  char *comment)
 {
    FILE *fp;
    JDMBData_File_Type *bf;
    unsigned int comment_len;
-   
+
    if (-1 == validate_data_type (data_type))
      {
 	return NULL;
      }
-   
+
    if (comment == NULL)
      comment_len = 0;
    else comment_len = strlen (comment);
-   
+
    bf = allocate_bdata_file_type (comment_len);
    if (bf == NULL)
      return NULL;
-   
+
    fp = fopen (file, "wb");
    if (fp == NULL)
      {
@@ -213,7 +210,7 @@ JDMBData_File_Type *JDMbdata_create_file (char *file,
 
    if (-1 == write_header (bf))
      goto write_error;
-   
+
    if (comment_len)
      {
 	if (comment_len != fwrite (comment, 1, comment_len, fp))
@@ -222,7 +219,7 @@ JDMBData_File_Type *JDMbdata_create_file (char *file,
      }
 
    return bf;
-   
+
    write_error:
    JDMath_Error = JDMATH_FILE_WRITE_ERROR;
    fclose (fp);
@@ -231,7 +228,7 @@ JDMBData_File_Type *JDMbdata_create_file (char *file,
 	if (bf->comment != NULL) _JDMfree (bf->comment);
 	_JDMfree ((char *)bf);
      }
-   
+
    return NULL;
 }
 
@@ -242,7 +239,7 @@ int JDMbdata_close_file (JDMBData_File_Type *bf)
 
    if (bf == NULL)
      return -1;
-   
+
    if (NULL == (fp = bf->fp))
      return -1;
 
@@ -267,7 +264,7 @@ int JDMbdata_close_file (JDMBData_File_Type *bf)
 	     ret = -1;
 	  }
      }
-   
+
    if (EOF == fclose (bf->fp))
      {
 	JDMath_Error = JDMATH_FILE_CLOSE_ERROR;
@@ -277,6 +274,6 @@ int JDMbdata_close_file (JDMBData_File_Type *bf)
    bf->fp = NULL;
    if (bf->comment != NULL) _JDMfree (bf->comment);
    _JDMfree ((char *)bf);
-   
+
    return ret;
 }

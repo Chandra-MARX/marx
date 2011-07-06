@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -57,7 +56,6 @@
  * Note that N(r) is normalized to 1; that is, it is the fractional number.
  */
 
-
 /* Half width of source (arc-seconds) */
 static double Sigma_Theta = 0.0;
 
@@ -85,62 +83,61 @@ static int gauss_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
    JDMVector_Type normal, *p;
    double sigma_theta;
    Marx_Photon_Attr_Type *at;
-   
+
    /* Convert to radians from arc-secs. */
    sigma_theta = Sigma_Theta * (1.0 / 3600.0 *  PI / 180.0);    /* 1 arc sec */
-   
+
    at = pt->attributes;
    efun = st->spectrum.energy_function;
-   
-   /* The gaussian point source consists of rays whose directions are 
-    * normally distributed about the direction to the origin.  To compute 
+
+   /* The gaussian point source consists of rays whose directions are
+    * normally distributed about the direction to the origin.  To compute
     * the direction, we need proceed in 3 steps:
-    * 
+    *
     *    1.  Construct a unit vector normal to the unit vector that
     *        points to the origin (st->p).  This step should have already
     *        been performed by calling routine (st->p_normal).
     *
     *    2.  Rotate this vector by a random angle about st->p to produce
     *        a new normal.
-    *    3.  Rotate st->p about the normal of step 2 by a normally 
+    *    3.  Rotate st->p about the normal of step 2 by a normally
     *        distributed random angle.
-    * 
+    *
     * Only the first step is independent of the ray.  The other steps
     * must be performed on every ray.
     */
-   
+
    /* Step 1 */
    normal = st->p_normal;
    p = &st->p;
-   
+
    for (i = 0; i < num; i++)
      {
 	double rnd;
-	
+
 	if (-1 == (*efun) (&st->spectrum, &at->energy))
 	  return -1;
-	
-   
+
 	/* Step 2.
 	 * Rotate about p.
 	 */
 	normal = JDMv_rotate_unit_vector (normal, *p, 2.0 * PI * JDMrandom ());
-	
+
 	/* Step 3. */
-	
+
 	do
 	  {
 	     rnd = JDMrandom ();
 	  }
 	while (rnd == 0.0);
-	
+
 	rnd = sqrt (-log (rnd));
-	
-	at->p = JDMv_rotate_unit_vector (*p, normal, 
+
+	at->p = JDMv_rotate_unit_vector (*p, normal,
 					 sigma_theta * rnd);
 	at++;
      }
-   
+
    *num_created = num;
    return 0;
 }
@@ -154,14 +151,12 @@ int marx_select_gauss_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    st->open_source = gauss_open_source;
    st->create_photons = gauss_create_photons;
    st->close_source = gauss_close_source;
-   
+
    if (-1 == pf_get_double (p, "S-GaussSigma", &Sigma_Theta))
      return -1;
-   
+
    return _marx_get_simple_specrum_parms (p, st, name);
 }
 
 /*}}}*/
-
-
 

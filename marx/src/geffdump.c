@@ -42,34 +42,32 @@ int main (int argc, char **argv)
 	return 1;
      }
    file = argv[1];
-   
+
    g = marx_read_grating_efficiencies (file);
    if (g == NULL) return 1;
-   
+
    max_order = g->max_order;
    num_energies = g->num_energies;
 
    fprintf (stdout, "Max_Order: %d\n", max_order);
    fprintf (stdout, "Num_Energies: %d\n", num_energies);
-   
+
    for (num = 0; num < num_energies; num++)
      {
 	float *eff;
-	
+
 	fprintf (stdout, "%e", g->energies [num]);
 
 	eff = g->efficiencies[num];
-	
+
 	for (order = -max_order; order <= max_order; order++)
 	  fprintf (stdout, "\t%e", eff[order + max_order]);
-	
+
 	fputs ("\n", stdout);
      }
-   
+
    /* marx_free_grating_efficiencies (g); */
    return 0;
 #endif
 }
 
-		      
-   

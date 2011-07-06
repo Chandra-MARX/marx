@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -27,7 +27,7 @@
 #include "jdmath.h"
 #include "_jdmath.h"
 
-typedef struct 
+typedef struct
 {
    unsigned int num_vary;
    unsigned int *parm_index;
@@ -47,8 +47,7 @@ static void free_lm (JDMLevMarq_Type *lm)
    _JDMfree ((char *) lm);
 }
 
-
-JDMLevMarq_Type *JDMleven_marq_open (unsigned int *vary_list, 
+JDMLevMarq_Type *JDMleven_marq_open (unsigned int *vary_list,
 				     unsigned int num_parms,
 				     unsigned int num_to_vary)
 {
@@ -82,7 +81,7 @@ JDMLevMarq_Type *JDMleven_marq_open (unsigned int *vary_list,
      {
 	if (vary_list [i] == 0)
 	  continue;
-	
+
 	lm->parm_index[j] = i;
 	j++;
      }
@@ -91,7 +90,6 @@ JDMLevMarq_Type *JDMleven_marq_open (unsigned int *vary_list,
    return lm;
 }
 
-   
 int JDMleven_marq (JDMLevMarq_Type *lm,
 		   double *x, double *y, double *dy, unsigned int npts,
 		   double *parm_list, double **covar, double **alpha,

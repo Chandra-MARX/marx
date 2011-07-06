@@ -18,13 +18,13 @@ static void usage (char *pgm)
 	  }
 	p--;
      }
-   
+
    fprintf (stderr, "%s Usage:\n", p);
    fprintf (stderr, "\
 %s [--help] [-z] [-i] [-c COL-NUM] [-min MIN] [-max MAX] [-numbins NUMBINS]\n\
 %s [--help] [-z] [-i] [-c COL-NUM] [-min MIN] [-max MAX] [-dx DX]\n",
 	    p, p);
-   
+
    exit (1);
 }
 
@@ -44,9 +44,9 @@ int main (int argc, char **argv)
    unsigned int *bin;
    int zero_flag = 0;
    float *a0, *a1, *amax;
-   
+
    pgm = argv[0];
-   
+
    has_min = 0;
    has_max = 0;
    has_dx = 0;
@@ -60,7 +60,7 @@ int main (int argc, char **argv)
    while (i < (unsigned int) argc)
      {
 	char *arg;
-   
+
 	arg = argv[i++];
 	if (!strcmp (arg, "-z")) zero_flag = 1;
 	else if (i < (unsigned int) argc)
@@ -108,25 +108,25 @@ int main (int argc, char **argv)
 
    if (isatty (fileno(stdin)))
      usage (pgm);
-   
+
    cindex [column - 1] = 1;
    if (-1 == (nread = JDMread_column_fdata (NULL, data, cindex, column)))
      {
 	JDMmsg_error (pgm);
 	return 1;
      }
-   
+
    array = data[column - 1];
 
    a1 = a0 = array;
    amax = a0 + nread;
-   if (has_min) 
+   if (has_min)
      {
 	fmin = user_min;
 	while (a1 < amax)
 	  {
 	     float aval;
-	     
+
 	     if ((aval = *a1) >= fmin)
 	       *a0++ = aval;
 	     a1++;
@@ -142,17 +142,17 @@ int main (int argc, char **argv)
 	     a0++;
 	  }
      }
-   
+
    a1 = a0 = array;
    amax = a0 + nread;
 
-   if (has_max) 
+   if (has_max)
      {
 	fmax = user_max;
 	while (a1 < amax)
 	  {
 	     float aval;
-	     
+
 	     if ((aval = *a1) < fmax)
 	       *a0++ = aval;
 	     a1++;
@@ -168,7 +168,7 @@ int main (int argc, char **argv)
 	     a0++;
 	  }
      }
-   
+
    if (nread == 0)
      {
 	fprintf (stderr, "No data in range\n");
@@ -183,9 +183,9 @@ int main (int argc, char **argv)
 	JDMmsg_error (pgm);
 	return 1;
      }
-   
+
    JDMhistogram_f (array, nread, bin, num_bins, fmin, fmax);
-   
+
    i = 0;
    while (i < num_bins)
      {
@@ -193,7 +193,7 @@ int main (int argc, char **argv)
 	fprintf (stdout, "%e %u\n", fmin, bin[i]);
 	i++;
 	fmin += dx;
-	
+
 	if ((b == 0) && zero_flag)
 	  {
 	     while ((i < num_bins) && (bin[i] == 0))
@@ -203,9 +203,7 @@ int main (int argc, char **argv)
 	       }
 	  }
      }
-   
-   
+
    return 0;
 }
 
-   

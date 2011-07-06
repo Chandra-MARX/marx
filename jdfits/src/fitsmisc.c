@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 
-
 #include <string.h>
 #include <memory.h>
 #include <ctype.h>
@@ -55,12 +54,12 @@ void jdfits_error (char *fmt, ...)
    Fits_Error_Num = 1;
 
    if ((Fits_Message_Type & JDFITS_ERRORS) == 0) return;
-   
+
    fprintf (stderr, "ERROR: ");
    va_start(ap, fmt);
    (void) vfprintf(stderr, fmt, ap);
    va_end(ap);
-   
+
    putc('\n', stderr);
 }
 
@@ -73,7 +72,7 @@ void jdfits_warning (char *fmt, ...)
    va_start(ap, fmt);
    (void) vfprintf(stderr, fmt, ap);
    va_end(ap);
-   
+
    putc('\n', stderr);
 }
 
@@ -98,7 +97,7 @@ int jdfits_check_mode (JDFits_Type *ft, unsigned int mode)
 	jdfits_error ("File not open for requested operation.");
 	return -1;
      }
-   
+
    return 0;
 }
 
@@ -107,15 +106,15 @@ int jdfits_strcasecmp (char *a, char *b)
    while (1)
      {
 	char cha, chb;
-	
+
 	cha = *a;
 	chb = *b;
 	if (tolower(cha) != tolower(chb))
 	  return (int)cha - (int)chb;
-	
+
 	if (cha == 0)
 	  return 0;
-	
+
 	a++;
 	b++;
      }
@@ -126,7 +125,7 @@ char *jdfits_make_string (char *s)
    char *s1 = jdfits_malloc (strlen (s) + 1);
    if (s1 != NULL)
      strcpy (s1, s);
-   
+
    return s1;
 }
 

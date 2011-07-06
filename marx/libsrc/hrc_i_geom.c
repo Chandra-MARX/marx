@@ -50,7 +50,7 @@ static int setup_coordinate_xforms (void)
 {
    double len;
    JDMVector_Type center, ll, lr, a, b, dx;
-   
+
    a = JDMv_vector (LL_to_LR_Vector[0],
 		    LL_to_LR_Vector[1],
 		    LL_to_LR_Vector[2]);
@@ -73,10 +73,10 @@ static int setup_coordinate_xforms (void)
 	marx_error ("The LL corner must not be the center");
 	return -1;
      }
-   
+
    lr = JDMv_ax1_bx2 (1.0, ll,
 		      -2.0 * JDMv_dot_prod (a, ll), a);
-   
+
    LR_Vector = JDMv_sum (center, lr);
    UR_Vector = JDMv_sum (center, JDMv_smul (-1.0, ll));
    UL_Vector = JDMv_sum (center, JDMv_smul (-1.0, lr));
@@ -110,7 +110,6 @@ static int setup_coordinate_xforms (void)
    return 0;
 }
 
-
 static int patch_hrc_i_geom (Marx_Detector_Type *d)
 {
    Marx_Detector_Geometry_Type *g;
@@ -134,7 +133,7 @@ static int patch_hrc_i_geom (Marx_Detector_Type *d)
 
    g->tdet_xoff = -1.0;
    g->tdet_yoff = 0.0;
-   
+
    g->xpixel_offset = LL_CXCY[0];
    g->ypixel_offset = LL_CXCY[1];
 
@@ -154,8 +153,7 @@ int _marx_hrc_i_compute_pixel (double dx, double dy,
    return 0;
 }
 
-
-static _Marx_Simple_Data_Type Array_Data_Table [] = 
+static _Marx_Simple_Data_Type Array_Data_Table [] =
 {
    {"HRC_I_X_Pixel_Size",	1, &X_Pixel_Size,	1.0, 0},
    {"HRC_I_Y_Pixel_Size",	1, &Y_Pixel_Size,	1.0, 0},
@@ -177,7 +175,7 @@ int _marx_hrc_i_geom_init (Param_File_Type *pf)
    static int initialized = 0;
 
    (void) pf;
-   
+
    if (initialized)
      return 0;
 
@@ -187,14 +185,14 @@ int _marx_hrc_i_geom_init (Param_File_Type *pf)
      return -1;
 
    marx_message ("\t%s\n", file);
-   
+
    if (-1 == _marx_read_simple_data_file (file, Array_Data_Table))
      {
 	marx_free (file);
 	return -1;
      }
    marx_free (file);
-   
+
    if (-1 == setup_coordinate_xforms ())
      return -1;
 
@@ -203,7 +201,7 @@ int _marx_hrc_i_geom_init (Param_File_Type *pf)
 }
 
 static int
-hrc_i_to_tiled (Marx_Detector_Type *det, 
+hrc_i_to_tiled (Marx_Detector_Type *det,
 		Marx_Detector_Geometry_Type *g,
 		int chip, unsigned int x, unsigned int y,
 		unsigned int *xp, unsigned int *yp)
@@ -230,11 +228,11 @@ static Marx_Detector_Geometry_Type HRC_I_Geom[_MARX_NUM_HRC_I_CHIPS];
 
 static int print_info (Marx_Detector_Type *det, FILE *fp)
 {
-   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n",
 		   det->stt_lsi_offset.x,
 		   det->stt_lsi_offset.y,
 		   det->stt_lsi_offset.z);
-   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n",
 		   det->stf_stt_offset.x,
 		   det->stf_stt_offset.y,
 		   det->stf_stt_offset.z);
@@ -266,13 +264,13 @@ Marx_Detector_Type *_marx_get_hrc_i_detector (void)
    g->num_y_pixels = 16384;
    g->x_pixel_size = 6.429e-3;
    g->y_pixel_size = 6.429e-3;
-   
+
    if (-1 == patch_hrc_i_geom (d))
      return NULL;
 
    if (-1 == _marx_caldb_patch_aimpoint (d))
      return NULL;
-   
+
    if (-1 == _marx_compute_detector_basis (d))
      return NULL;
 

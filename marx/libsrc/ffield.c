@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -38,7 +37,6 @@
 
 #include <jdmath.h>
 #include <pfile.h>
-
 
 #include "marx.h"
 #include "_marx.h"
@@ -58,10 +56,9 @@ static Param_Table_Type FlatField_Parm_Table [] =
    {"FF_MaxY",	PF_REAL_TYPE,	&FF_MaxY},
    {"FF_MaxZ",	PF_REAL_TYPE,	&FF_MaxZ},
    {"FF_XPos",	PF_REAL_TYPE,	&FF_XPos},
-	  
+
    {NULL, 0, NULL}
 };
-
 
 static void project_photon (Marx_Photon_Attr_Type *at, /*{{{*/
 			    double source_distance)
@@ -76,7 +73,7 @@ static void project_photon (Marx_Photon_Attr_Type *at, /*{{{*/
     * pointing toward the origin.  In other words, at->p
     * will stay the same.  So, consider only change for finite
     * source.
-    */		  
+    */
    if (source_distance > 0.0)
      {
 	at->p = JDMv_ax1_bx2 (1.0, at->x, source_distance, at->p);
@@ -86,42 +83,39 @@ static void project_photon (Marx_Photon_Attr_Type *at, /*{{{*/
 
 /*}}}*/
 
-
-
 int _marx_ff_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 {
    Marx_Photon_Attr_Type *photon_attributes, *at;
    unsigned int n, i, *sorted_index;
    double source_distance;
-   
+
    marx_prune_photons (pt);
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
    sorted_index = pt->sorted_index;
 
-   /* I could have pruned in the previous loop but it is a better idea to 
+   /* I could have pruned in the previous loop but it is a better idea to
     * leave it for a function call.
     */
    /* source_distance is in mm */
    source_distance = pt->source_distance;
-   
+
    for (i = 0; i < n; i++)
      {
 	at = photon_attributes + sorted_index[i];
 	project_photon (at, source_distance);
      }
-   
+
    return 0;
 }
 
 /*}}}*/
 
-
 int _marx_ff_mirror_init (Param_File_Type *p) /*{{{*/
 {
    if (-1 == pf_get_parameters (p, FlatField_Parm_Table))
      return -1;
-   
+
    if ((FF_MaxY <= FF_MinY)
        || (FF_MaxZ <= FF_MinZ)
        || (FF_XPos < 0.0))
@@ -129,7 +123,7 @@ int _marx_ff_mirror_init (Param_File_Type *p) /*{{{*/
 	marx_error ("FF_* parameters not physical");
 	return -1;
      }
-   Marx_Mirror_Geometric_Area 
+   Marx_Mirror_Geometric_Area
      = 0.01 * (FF_MaxY - FF_MinY) * (FF_MaxZ - FF_MinZ);   /* cm^2 */
    return 0;
 }

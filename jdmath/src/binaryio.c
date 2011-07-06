@@ -14,7 +14,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -28,7 +28,7 @@
 static void byte_swap64 (unsigned char *ss, unsigned int n) /*{{{*/
 {
    unsigned char *p, *pmax, ch;
-   
+
    if (n <= 0) return;
    p = (unsigned char *) ss;
    pmax = p + 8 * n;
@@ -37,19 +37,19 @@ static void byte_swap64 (unsigned char *ss, unsigned int n) /*{{{*/
 	ch = *p;
 	*p = *(p + 7);
 	*(p + 7) = ch;
-	
+
 	ch = *(p + 6);
 	*(p + 6) = *(p + 1);
 	*(p + 1) = ch;
-	
+
 	ch = *(p + 5);
 	*(p + 5) = *(p + 2);
 	*(p + 2) = ch;
-	
+
 	ch = *(p + 4);
 	*(p + 4) = *(p + 3);
 	*(p + 3) = ch;
-	
+
 	p += 8;
      }
 }
@@ -58,7 +58,7 @@ static void byte_swap64 (unsigned char *ss, unsigned int n) /*{{{*/
 static void byte_swap32 (unsigned char *ss, unsigned int n) /*{{{*/
 {
    unsigned char *p, *pmax, ch;
-   
+
    p = (unsigned char *) ss;
    pmax = p + 4 * n;
    while (p < pmax)
@@ -66,7 +66,7 @@ static void byte_swap32 (unsigned char *ss, unsigned int n) /*{{{*/
 	ch = *p;
 	*p = *(p + 3);
 	*(p + 3) = ch;
-	
+
 	ch = *(p + 1);
 	*(p + 1) = *(p + 2);
 	*(p + 2) = ch;
@@ -78,7 +78,7 @@ static void byte_swap32 (unsigned char *ss, unsigned int n) /*{{{*/
 static void byte_swap16 (unsigned char *p, unsigned int nread) /*{{{*/
 {
    unsigned char *pmax, ch;
-   
+
    pmax = p + 2 * nread;
    while (p < pmax)
      {
@@ -119,7 +119,7 @@ unsigned int JDMread_int16 (int16 *ss, unsigned int n, FILE *fp) /*{{{*/
 unsigned int JDMread_float64 (float64 *ss, unsigned int n, FILE *fp) /*{{{*/
 {
    unsigned int nread = fread (ss, 8, n, fp);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap64 ((unsigned char *)ss, nread);
 #endif
@@ -131,7 +131,7 @@ unsigned int JDMread_float64 (float64 *ss, unsigned int n, FILE *fp) /*{{{*/
 unsigned int JDMread_float32 (float32 *ss, unsigned int n, FILE *fp) /*{{{*/
 {
    unsigned int nread = fread (ss, 4, n, fp);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *)ss, nread);
 #endif
@@ -148,12 +148,12 @@ unsigned int JDMread_f_float32 (float *f, unsigned int n, FILE *fp) /*{{{*/
    /* Do it the hard way. */
    float32 f32;
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	if (1 != JDMread_float32 (&f32, 1, fp))
 	  break;
-	
+
 	f[i] = (float) f32;
      }
    return i;
@@ -169,12 +169,12 @@ unsigned int JDMread_d_float64 (double *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    float64 f64;
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	if (1 != JDMread_float64 (&f64, 1, fp))
 	  break;
-	
+
 	d[i] = (double) f64;
      }
    return i;
@@ -192,15 +192,15 @@ unsigned int JDMread_d_float32 (double *d, unsigned int n, FILE *fp) /*{{{*/
    /* Do it the hard way. */
    float32 f32;
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	if (1 != JDMread_float32 (&f32, 1, fp))
 	  break;
-	
+
 	d[i] = (double) f32;
      }
-   
+
    return i;
 #endif
 }
@@ -214,12 +214,12 @@ unsigned int JDMread_f_float64 (float *f, unsigned int n, FILE *fp) /*{{{*/
 #else
    float64 f64;
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	if (1 != JDMread_float64 (&f64, 1, fp))
 	  break;
-	
+
 	f[i] = (float) f64;
      }
    return i;
@@ -244,7 +244,7 @@ unsigned int JDMread_l_int32 (long *d, unsigned int n, FILE *fp) /*{{{*/
 
 	d[i] = (long) i32;
      }
-   
+
    return i;
 #endif
 }
@@ -267,7 +267,7 @@ unsigned int JDMread_l_int16 (long *d, unsigned int n, FILE *fp) /*{{{*/
 
 	d[i] = (long) x;
      }
-   
+
    return i;
 #endif
 }
@@ -282,7 +282,7 @@ unsigned int JDMread_i_int16 (int *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    /* Do it the hard way. */
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	int16 i16;
@@ -291,7 +291,7 @@ unsigned int JDMread_i_int16 (int *d, unsigned int n, FILE *fp) /*{{{*/
 
 	d[i] = (int) i16;
      }
-   
+
    return i;
 #endif
 }
@@ -306,7 +306,7 @@ unsigned int JDMread_i_int32 (int *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    /* Do it the hard way. */
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	int32 x;
@@ -315,7 +315,7 @@ unsigned int JDMread_i_int32 (int *d, unsigned int n, FILE *fp) /*{{{*/
 
 	d[i] = (int) x;
      }
-   
+
    return i;
 #endif
 }
@@ -329,7 +329,7 @@ unsigned int JDMread_s_int16 (short *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    /* Do it the hard way. */
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	int16 x;
@@ -338,7 +338,7 @@ unsigned int JDMread_s_int16 (short *d, unsigned int n, FILE *fp) /*{{{*/
 
 	d[i] = (short) x;
      }
-   
+
    return i;
 #endif
 }
@@ -352,7 +352,7 @@ unsigned int JDMread_s_int32 (short *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    /* Do it the hard way. */
    unsigned int i;
-   
+
    for (i = 0; i < n; i++)
      {
 	int32 x;
@@ -361,13 +361,12 @@ unsigned int JDMread_s_int32 (short *d, unsigned int n, FILE *fp) /*{{{*/
 
 	d[i] = (short) x;
      }
-   
+
    return i;
 #endif
 }
 
 /*}}}*/
-
 
 /*}}}*/
 
@@ -376,7 +375,7 @@ unsigned int JDMread_s_int32 (short *d, unsigned int n, FILE *fp) /*{{{*/
 unsigned int JDMwrite_float32 (float32 *ss, unsigned int n, FILE *fp) /*{{{*/
 {
    unsigned int nwrote;
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) ss, n);
 #endif
@@ -392,7 +391,7 @@ unsigned int JDMwrite_float32 (float32 *ss, unsigned int n, FILE *fp) /*{{{*/
 unsigned int JDMwrite_int32 (int32 *ss, unsigned int n, FILE *fp) /*{{{*/
 {
    unsigned int nwrote;
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) ss, n);
 #endif
@@ -408,7 +407,7 @@ unsigned int JDMwrite_int32 (int32 *ss, unsigned int n, FILE *fp) /*{{{*/
 unsigned int JDMwrite_int16 (int16 *ss, unsigned int n, FILE *fp) /*{{{*/
 {
    unsigned int nwrote;
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap16 ((unsigned char *) ss, n);
 #endif
@@ -424,7 +423,7 @@ unsigned int JDMwrite_int16 (int16 *ss, unsigned int n, FILE *fp) /*{{{*/
 unsigned int JDMwrite_float64 (float64 *ss, unsigned int n, FILE *fp) /*{{{*/
 {
    unsigned int nwrote;
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap64 ((unsigned char *) ss, n);
 #endif
@@ -444,8 +443,8 @@ unsigned int JDMwrite_f_float32 (float *f, unsigned int n, FILE *fp) /*{{{*/
 #else
    float32 f32;
    unsigned int i;
-   
-   for (i = 0; i < n; i++) 
+
+   for (i = 0; i < n; i++)
      {
 	f32 = (float32) f[i];
 	if (1 != JDMwrite_float32 (&f32, 1, fp))
@@ -464,8 +463,8 @@ unsigned int JDMwrite_d_float32 (double *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    float32 f32;
    unsigned int i;
-   
-   for (i = 0; i < n; i++) 
+
+   for (i = 0; i < n; i++)
      {
 	f32 = (float32) d[i];
 	if (1 != JDMwrite_float32 (&f32, 1, fp))
@@ -484,8 +483,8 @@ unsigned int JDMwrite_f_float64 (float *f, unsigned int n, FILE *fp) /*{{{*/
 #else
    float64 f64;
    unsigned int i;
-   
-   for (i = 0; i < n; i++) 
+
+   for (i = 0; i < n; i++)
      {
 	f64 = (float64) f[i];
 	if (1 != JDMwrite_float64 (&f64, 1, fp))
@@ -504,8 +503,8 @@ unsigned int JDMwrite_d_float64 (double *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    float64 f64;
    unsigned int i;
-   
-   for (i = 0; i < n; i++) 
+
+   for (i = 0; i < n; i++)
      {
 	f64 = (float64) d[i];
 	if (1 != JDMwrite_float64 (&f64, 1, fp))
@@ -524,7 +523,7 @@ unsigned int JDMwrite_s_int32 (short *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    unsigned int i;
 
-   for (i = 0; i < n; i++) 
+   for (i = 0; i < n; i++)
      {
 	int32 i32 = (int32) d[i];
 	if (1 != JDMwrite_int32 (&i32, 1, fp))
@@ -543,7 +542,7 @@ unsigned int JDMwrite_i_int32 (int *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    unsigned int i;
 
-   for (i = 0; i < n; i++) 
+   for (i = 0; i < n; i++)
      {
 	int32 i32 = (int32) d[i];
 	if (1 != JDMwrite_int32 (&i32, 1, fp))
@@ -562,7 +561,7 @@ unsigned int JDMwrite_l_int32 (long *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    unsigned int i;
 
-   for (i = 0; i < n; i++) 
+   for (i = 0; i < n; i++)
      {
 	int32 i32 = (int32) d[i];
 	if (1 != JDMwrite_int32 (&i32, 1, fp))
@@ -581,7 +580,7 @@ unsigned int JDMwrite_i_int16 (int *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    unsigned int i;
 
-   for (i = 0; i < n; i++) 
+   for (i = 0; i < n; i++)
      {
 	int16 i16 = (int16) d[i];
 	if (1 != JDMwrite_int16 (&i16, 1, fp))
@@ -600,7 +599,7 @@ unsigned int JDMwrite_s_int16 (short *d, unsigned int n, FILE *fp) /*{{{*/
 #else
    unsigned int i;
 
-   for (i = 0; i < n; i++) 
+   for (i = 0; i < n; i++)
      {
 	int16 i16 = (int16) d[i];
 	if (1 != JDMwrite_int16 (&i16, 1, fp))
@@ -619,7 +618,7 @@ unsigned char *JDMstr_read_int32 (int32 *ss, unsigned int n, unsigned char *s) /
 {
    unsigned int len = 4 * n;
    if (s != (unsigned char *) ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) ss, n);
 #endif
@@ -631,9 +630,9 @@ unsigned char *JDMstr_read_int32 (int32 *ss, unsigned int n, unsigned char *s) /
 unsigned char *JDMstr_read_int16 (int16 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 2 * n;
-   
+
    if (s != (unsigned char *)ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap16 ((unsigned char *) ss, n);
 #endif
@@ -645,9 +644,9 @@ unsigned char *JDMstr_read_int16 (int16 *ss, unsigned int n, unsigned char *s) /
 unsigned char *JDMstr_read_float64 (float64 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 8 * n;
-   
+
    if (s != (unsigned char *)ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap64 ((unsigned char *)ss, n);
 #endif
@@ -660,7 +659,7 @@ unsigned char *JDMstr_read_float32 (float32 *ss, unsigned int n, unsigned char *
 {
    unsigned int len = 4 * n;
    if (s != (unsigned char *)ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *)ss, n);
 #endif
@@ -668,8 +667,6 @@ unsigned char *JDMstr_read_float32 (float32 *ss, unsigned int n, unsigned char *
 }
 
 /*}}}*/
-
-
 
 unsigned char *JDMstr_read_f_float32 (float *f, unsigned int n, unsigned char *s) /*{{{*/
 {
@@ -871,7 +868,6 @@ unsigned char *JDMstr_read_l_int32 (long *f, unsigned int n, unsigned char *s) /
 
 /*}}}*/
 
-
 /*}}}*/
 
 /*{{{ Writing to a string Functions */
@@ -879,9 +875,9 @@ unsigned char *JDMstr_read_l_int32 (long *f, unsigned int n, unsigned char *s) /
 unsigned char *JDMstr_write_int32 (int32 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 4 * n;
-   
+
    memcpy ((char *) s, (char *) ss, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) s, n);
 #endif
@@ -893,9 +889,9 @@ unsigned char *JDMstr_write_int32 (int32 *ss, unsigned int n, unsigned char *s) 
 unsigned char *JDMstr_write_int16 (int16 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 2 * n;
-   
+
    memcpy ((char *) s, (char *) ss, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap16 ((unsigned char *) s, n);
 #endif
@@ -907,9 +903,9 @@ unsigned char *JDMstr_write_int16 (int16 *ss, unsigned int n, unsigned char *s) 
 unsigned char *JDMstr_write_float32 (float32 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 4 * n;
-   
+
    memcpy ((char *) s, (char *) ss, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) s, n);
 #endif
@@ -921,9 +917,9 @@ unsigned char *JDMstr_write_float32 (float32 *ss, unsigned int n, unsigned char 
 unsigned char *JDMstr_write_float64 (float64 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 8 * n;
-   
+
    memcpy ((char *) s, (char *) ss, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap64 ((unsigned char *) s, n);
 #endif

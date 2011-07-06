@@ -3449,7 +3449,6 @@ static int read_dither_value (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 
-
 static int compute_tdetxy (Data_Def_Type *ddt) /*{{{*/
 {
    unsigned int x, y;
@@ -3551,7 +3550,6 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
    (void) ddt;
 
    chip2mnc = Chip_To_Mncs[Data_Table.dtt_ccdid - First_Chip_Id];
-
 
    if (-1 == marx_init_chip_to_mnc (chip2mnc, Focal_Length,
 				    DetOffset_X,
@@ -3671,7 +3669,6 @@ static char Grade_Map [256] =
    7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,
    7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,  7,
 };
-
 
 static int compute_grade (Data_Def_Type *ddt) /*{{{*/
 {

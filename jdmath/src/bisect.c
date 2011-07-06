@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -81,7 +80,7 @@ int JDM_bisection (double (*func)(double, void *), double a, double b, void *cd,
 
 	fx = (*func)(x, cd);
 	count++;
-	
+
 	if (fx*fa < 0.0)
 	  {
 	     fb = fx;
@@ -93,7 +92,7 @@ int JDM_bisection (double (*func)(double, void *), double a, double b, void *cd,
 	     a = x;
 	  }
      }
-   
+
    *xp = x;
    return 0;
 }

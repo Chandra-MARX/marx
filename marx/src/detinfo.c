@@ -69,7 +69,7 @@ int main (int argc, char **argv)
 
    if (NULL == (det = marx_get_detector_info (name)))
      usage ();
-   
+
    fprintf (stdout, " Detector Name: %s\n", name);
    fprintf (stdout, " First Chip id: %d\n", det->first_facet_id);
    fprintf (stdout, "  Last Chip id: %d\n", det->last_facet_id);
@@ -86,7 +86,7 @@ int main (int argc, char **argv)
 }
 
 static void compute_ra_dec (Marx_Chip_To_MNC_Type *chip_mnc,
-			    unsigned int x, unsigned int y, 
+			    unsigned int x, unsigned int y,
 			    double *ra, double *dec,
 			    double *tx, double *ty)
 {
@@ -95,27 +95,26 @@ static void compute_ra_dec (Marx_Chip_To_MNC_Type *chip_mnc,
 
    (void) marx_chip_to_mnc (chip_mnc, x, y, &p);
    marx_mnc_to_ra_dec (&p, ra, dec);
-   
+
    /* Convert to arc-sec from radians */
    *ra = *ra * (60.0 * 180.0/PI);
    *dec = *dec * (60.0 * 180.0/PI);
 
    p0.x = 1.0;
    p0.y = p0.z = 0;
-   
+
    /* Flip sign of MNC */
    p.x = -p.x;
    p.y = -p.y;
    p.z = -p.z;
-   
+
    (void) marx_vector_to_tan_plane (&p, &p0, tx, ty);
    *tx = *tx * (60.0 * 180.0/PI);
    *ty = *ty * (60.0 * 180.0/PI);
 }
 
-
 static double Focal_Length = 10065.5;
-   
+
 static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
 {
    int i;
@@ -129,7 +128,7 @@ static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
    min_y_pixel = 0;
 
    g = det->facet_list;
-   
+
    while (g != NULL)
      {
 	Marx_Chip_To_MNC_Type *chip_mnc;
@@ -160,14 +159,12 @@ static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
 
 	compute_ra_dec (chip_mnc, min_x_pixel, max_y_pixel, &ra, &dec, &tx, &ty);
 	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e % 16.10e\t(UL)\n", ra, dec, tx, ty);
-	
+
 	marx_free_chip_to_mnc (chip_mnc);
 	g = g->next;
      }
 }
 
-
-   
 static void dump_physical_geometry (Marx_Detector_Type *det)
 {
    Marx_Detector_Geometry_Type *g;
@@ -194,10 +191,8 @@ static void dump_physical_geometry (Marx_Detector_Type *det)
 		 g->x_ur.x, g->x_ur.y, g->x_ur.z);
 	fprintf (stdout, "\t% 16.10e % 16.10e % 16.10e\t(UL)\n",
 		 g->x_ul.x, g->x_ul.y, g->x_ul.z);
-	
+
 	g = g->next;
      }
 }
 
-   
-     

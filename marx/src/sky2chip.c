@@ -55,7 +55,7 @@ int main (int argc, char **argv)
    if ((1 != sscanf (argv[2], "%lf", &ra))
        || (1 != sscanf (argv[3], "%lf", &dec)))
      usage ();
-   
+
    ra = PI/(180.0 * 60) * ra;
    dec = PI/(180.0 * 60) * dec;
 
@@ -70,7 +70,7 @@ int main (int argc, char **argv)
      {
 	Marx_Chip_To_MNC_Type *chip_mnc;
 	double x, y;
-	
+
 	fprintf (stdout, "%s Chip %d: ", name, i);
 
 	if (NULL == (chip_mnc = marx_allocate_chip_to_mnc (name, i)))
@@ -78,18 +78,18 @@ int main (int argc, char **argv)
 
 	if (-1 == marx_init_chip_to_mnc (chip_mnc, Focal_Length, 0, 0, 0, 0))
 	  exit (1);
-	
+
 	marx_mnc_to_chip (chip_mnc, &mnc, &x, &y);
-	
+
 	/* x and y are in pixels with (0,0) at corner of pixel.  SAO wants
 	 * pixels with (0.5,0.5) at corner.  So, adjust
 	 */
 	x += 0.5;
 	y += 0.5;
 	fprintf (stdout, "\t% 8.2f\t%8.2f\n", x, y);
-	
+
 	marx_free_chip_to_mnc (chip_mnc);
      }
-   
+
    return 0;
 }

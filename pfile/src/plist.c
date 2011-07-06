@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -44,15 +43,15 @@ int main (int argc, char **argv)
 {
    Param_Type *pf;
    Param_File_Type *p;
-   
+
    if (argc == 1)
      {
 	fprintf (stderr, "Usage: %s pfiles...\n", argv[0]);
 	return -1;
      }
-   
+
    argc--;
-   
+
    while (argc--)
      {
 	argv++;
@@ -61,9 +60,9 @@ int main (int argc, char **argv)
 	     fprintf (stderr, "plist: Unable to open %s.\n", *argv);
 	     continue;
 	  }
-	
+
 	fprintf (stdout, "\nParameters for %s\n\n", p->input_filename);
-	
+
 	/* Make two passes: once for non-hidden then do hidden. */
 	pf = p->pf;
 	while (pf != NULL)
@@ -80,30 +79,29 @@ int main (int argc, char **argv)
 	       output (pf);
 	     pf = pf->next;
 	  }
-	
+
 	pf_close_parameter_file (p);
      }
    return 0;
 }
-
 
 static int output (Param_Type *pf)
 {
    char buf[PF_MAX_LINE_LEN];
    char valbuf[PF_MAX_LINE_LEN];
    char *indirect_value = NULL;
-   
+
    if (pf->type == PF_COMMENT_TYPE)
      {
 	fprintf (stdout, "%s\n", pf->name);
 	return 0;
      }
-   
+
    if (pf->flags & PF_INDIRECT_VALUE)
      {
 	if (-1 == _pf_get_indirect_value (pf->pfile, pf->value, &indirect_value))
 	  {
-	     pf_error ("Error encountered getting indirect value %s.", 
+	     pf_error ("Error encountered getting indirect value %s.",
 		       pf->value);
 	     indirect_value = NULL;
 	  }
@@ -118,27 +116,24 @@ static int output (Param_Type *pf)
    strcat (buf, pf->name);
 
    *valbuf = 0;
-   
-   if (pf->value != NULL) 
+
+   if (pf->value != NULL)
      strcpy (valbuf, pf->value);
-   
+
    if (pf->flags & PF_INDIRECT_VALUE)
      {
 	strcat (valbuf, " -> ");
-	strcat (valbuf, 
+	strcat (valbuf,
 		((indirect_value == NULL) ? "INDEF" : indirect_value));
      }
-   
+
    if (pf->mode & PF_HIDDEN_MODE)
      strcat (valbuf, ")");
-	
+
    fprintf (stdout, "%14s = %-16s %s\n",
 	    buf, valbuf, ((pf->prompt == NULL) ? "" : pf->prompt));
-   
+
    if (indirect_value != NULL) SLFREE (indirect_value);
    return 0;
 }
 
-	    
-   
-   

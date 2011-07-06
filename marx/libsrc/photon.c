@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -44,7 +43,7 @@ void marx_prune_photons (Marx_Photon_Type *pt) /*{{{*/
    unsigned int *sorted_index;
    unsigned int i, num_sorted, new_num_sorted;
    Marx_Photon_Attr_Type *at, *attr;
-   
+
    num_sorted = pt->num_sorted;
    attr = pt->attributes;
    energies = pt->sorted_energies;
@@ -55,7 +54,7 @@ void marx_prune_photons (Marx_Photon_Type *pt) /*{{{*/
 	int indx = sorted_index[i];
 	at = attr + indx;
 	if (at->flags & BAD_PHOTON_MASK) continue;
-	
+
 	energies[new_num_sorted] = at->energy;
 	sorted_index[new_num_sorted] = indx;
 	new_num_sorted++;
@@ -68,25 +67,24 @@ void marx_prune_photons (Marx_Photon_Type *pt) /*{{{*/
 Marx_Photon_Type *marx_alloc_photon_type (unsigned int num) /*{{{*/
 {
    Marx_Photon_Type *pt;
-   
+
    if (NULL == (pt = (Marx_Photon_Type *) marx_malloc (sizeof (Marx_Photon_Type))))
      return NULL;
-   
+
    memset ((char *) pt, 0, sizeof (Marx_Photon_Type));
 
    if (NULL == (pt->attributes = (Marx_Photon_Attr_Type *) marx_calloc (num, sizeof (Marx_Photon_Attr_Type))))
      goto error_return;
-   
+
    if (NULL == (pt->sorted_energies = JDMdouble_vector (num)))
      goto error_return;
-   
+
    pt->max_n_photons = num;
    return pt;
 
-
-   error_return:   
+   error_return:
    marx_dealloc_photon_type (pt);
-   return NULL;   
+   return NULL;
 }
 
 /*}}}*/
@@ -94,15 +92,15 @@ Marx_Photon_Type *marx_alloc_photon_type (unsigned int num) /*{{{*/
 int marx_dealloc_photon_type (Marx_Photon_Type *pt) /*{{{*/
 {
    if (pt == NULL) return -1;
-   
+
    marx_free ((char *) pt->attributes);
-   
-   if (pt->sorted_index != NULL) 
+
+   if (pt->sorted_index != NULL)
      JDMfree_integer_vector ((int *) pt->sorted_index);
-   
-   if (pt->sorted_energies != NULL) 
+
+   if (pt->sorted_energies != NULL)
      JDMfree_double_vector (pt->sorted_energies);
-   
+
    marx_free ((char *)pt);
    return 0;
 }

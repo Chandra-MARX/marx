@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -47,16 +46,14 @@ static _Marx_HRC_QE_Type Filter_QEs [NUM_FILTER_REGIONS];
 /* The MCP ids for the HRC-S are numbered 1,2,3.  We want to map these two
  * 2,1,0 to correspond to the regions.  Using a lookup table is more general.
  */
-static int Mcp_Id_Mapping[4] = 
+static int Mcp_Id_Mapping[4] =
 {
    -1, 2, 1, 0
 };
 
-
 #if MARX_HAS_DRAKE_FLAT
 static int Use_Drake_Flat;
 #endif
-
 
 JDMVector_Type _Marx_HRC_Geometric_Center;
 
@@ -101,8 +98,6 @@ static Param_Table_Type HRC_Parm_Table [] = /*{{{*/
 
 /*}}}*/
 
-
-
 /* This routine is based on a memo dated March 14 1996 from Mike Juda with
  * title: New HRC UV/Ion Shields.   This memo shows the following figure:
  * @
@@ -118,20 +113,20 @@ static Param_Table_Type HRC_Parm_Table [] = /*{{{*/
  * @                             <-L-><-R->
  * @                       <---SL----><---SR-->
  * @                   --> <-- GapL         -->  <-- GapR
- * 
- * The labeling of the regions 0-4 is mine.  The values in parenthesis are 
+ *
+ * The labeling of the regions 0-4 is mine.  The values in parenthesis are
  * what are using on the HRC web pages (mine predate theirs by about 5 years).
  * The distances L, R, S, and T
- * correspond to distances from the geometric center of the middle 
+ * correspond to distances from the geometric center of the middle
  * facet.
- * 
+ *
  * Apparantly, this filter lies 10mm along the positive x axis from the center
  * MCP.  It lies in a flat plane. (Shield_OffsetX)
  */
-static int 
+static int
 get_filter_region (double y, double z, unsigned char *r) /*{{{*/
 {
-   /* y and z are specified in the Marx Coordinate system.  The filter is 
+   /* y and z are specified in the Marx Coordinate system.  The filter is
     * offset from this.
     */
    y -= Shield_Y_Center;
@@ -146,14 +141,14 @@ get_filter_region (double y, double z, unsigned char *r) /*{{{*/
 	  {
 	     if (z >= Shield_OffsetT)
 	       *r = 0;
-	     else 
+	     else
 	       *r = 1;
 	  }
 	else if (y >= Shield_OffsetSL_Gap)
 	  {
 	     if (z >= Shield_OffsetT)
 	       *r = 2;
-	     else 
+	     else
 	       *r = 3;
 	  }
 	else return -1;
@@ -166,26 +161,25 @@ get_filter_region (double y, double z, unsigned char *r) /*{{{*/
 	  {
 	     if (z >= Shield_OffsetT)
 	       *r = 0;
-	     else 
+	     else
 	       *r = 1;
 	  }
 	else if (y >= Shield_OffsetSR_Gap)
 	  {
 	     if (z >= Shield_OffsetT)
 	       *r = 2;
-	     else 
+	     else
 	       *r = 3;
 	  }
 	else return -1;
      }
-   
+
    return 0;
 }
 
 /*}}}*/
 
-
-static int 
+static int
 apply_hrc_qe (Marx_Photon_Attr_Type *at, unsigned int mcp_id)
 {
    _Marx_HRC_QE_Type *mcp;
@@ -202,24 +196,24 @@ apply_hrc_qe (Marx_Photon_Attr_Type *at, unsigned int mcp_id)
    mcp = MCP_QEs + Mcp_Id_Mapping[mcp_id];
    if (mcp->num_energies != 0)
      {
-	qe = JDMinterpolate_f ((float) energy, 
+	qe = JDMinterpolate_f ((float) energy,
 			       mcp->energies, mcp->eff, mcp->num_energies);
 	if (JDMrandom () >= qe)
 	  return -1;
      }
-   
+
    /* Now project it back to see where it hit the filter */
    t = (Shield_OffsetX - x->x) / p->x;
    y = x->y + t * p->y;
    z = x->z + t * p->z;
-   
+
    if (-1 == get_filter_region (y, z, &region))
      return -1;
-   
+
    mcp = Filter_QEs + (unsigned int) region;
    if (mcp->num_energies != 0)
      {
-	qe = JDMinterpolate_f ((float) energy, 
+	qe = JDMinterpolate_f ((float) energy,
 			       mcp->energies, mcp->eff, mcp->num_energies);
 	if (JDMrandom () >= qe)
 	  return -1;
@@ -229,7 +223,6 @@ apply_hrc_qe (Marx_Photon_Attr_Type *at, unsigned int mcp_id)
    return 0;
 }
 
-
 int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 {
    Marx_Photon_Attr_Type *at, *attrs;
@@ -238,8 +231,8 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 
    if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK 
+
+   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK
 		   | MARX_DET_PIXEL_OK | MARX_DET_NUM_OK);
 
    pt->history |= (MARX_DET_UV_PIXEL_OK);
@@ -253,14 +246,14 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
    attrs = pt->attributes;
    n_photons = pt->num_sorted;
    sorted_index = pt->sorted_index;
-   
+
    for (i = 0; i < n_photons; i++)
      {
 	Marx_Detector_Geometry_Type *d;
 	double dx, dy, u, v;
-	
+
 	at = attrs + sorted_index[i];
-	
+
 #if MARX_HAS_DITHER
 	_marx_dither_detector (&at->dither_state);
 #endif
@@ -296,7 +289,7 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->u_pixel = u;
 	     at->v_pixel = v;
 	  }
-	
+
 	/* Transform detected photon back to original system */
 	_marx_transform_ray_reverse (&at->x, &at->p,
 				     &_Marx_Det_XForm_Matrix);
@@ -304,7 +297,7 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	_marx_undither_detector (&at->dither_state);
 #endif
      }
-   
+
    return 0;
 }
 
@@ -325,14 +318,14 @@ int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
    if (dt->eff != NULL) JDMfree_float_vector (dt->eff);
    dt->eff = NULL;
    dt->num_energies = 0;
-	
+
    file = dt->file;
    if (_Marx_Det_Ideal_Flag || (*file == 0))
      return 0;     /* perfect effic */
-	
+
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
-	
+
    marx_message ("\t%s\n", file);
 
    if (-1 == marx_f_read_bdat (file, &dt->num_energies, 2, &dt->energies, &dt->eff))
@@ -344,7 +337,7 @@ int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
    /* The energies are in eV, so scale them to KeV */
    en = dt->energies;
    en_max = en + dt->num_energies;
-   while (en < en_max) 
+   while (en < en_max)
      {
 	*en = *en * 0.001;
 	en++;
@@ -367,7 +360,6 @@ static _Marx_Simple_Data_Type IonShield_Data_Table [] =
    {NULL, 0, NULL, 0.0, 0}
 };
 
-
 int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
 {
    unsigned int i;
@@ -387,7 +379,7 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
      return -1;
 
    marx_message ("\t%s\n", file);
-   
+
    if (-1 == _marx_read_simple_data_file (file, IonShield_Data_Table))
      {
 	marx_free (file);
@@ -421,20 +413,20 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
 	if (-1 == _marx_hrc_read_efficiencies (Filter_QEs + i))
 	  return -1;
      }
-   
+
    /* Now compute geometric center position */
 #if 0
    Shield_OffsetS = (middle_mcp->x_lr.y
 		     - middle_mcp->x_ll.y) / 2.0;
 #endif
 
-   _Marx_HRC_Geometric_Center 
+   _Marx_HRC_Geometric_Center
      = JDMv_sum (JDMv_vector (_Marx_Det_XForm_Matrix.dx,
 			      _Marx_Det_XForm_Matrix.dy,
 			      _Marx_Det_XForm_Matrix.dz),
 		 JDMv_ax1_bx2 (0.5, middle_mcp->x_ll,
 			       0.5, middle_mcp->x_ur));
-   
+
    Shield_Y_Center = _Marx_HRC_Geometric_Center.y;
    Shield_Z_Center = _Marx_HRC_Geometric_Center.z;
    Shield_OffsetSR_Gap = Shield_OffsetSR + Shield_GapR;

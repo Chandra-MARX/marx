@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "jdmath.h"
 
@@ -25,7 +25,7 @@
  */
 
 #define NUM_COEFFS 10		       /* make this even */
-static double Param = NUM_COEFFS + 0.840;   
+static double Param = NUM_COEFFS + 0.840;
 /* determined empirically using the driver in main at end of the file. */
 
 static double Coeffs[NUM_COEFFS+1];
@@ -44,7 +44,7 @@ static void init_coefficients (void)
      {
 	register double x = Param - i;
 
-	Coeffs[i+1] = Coeffs[i] 
+	Coeffs[i+1] = Coeffs[i]
 	  * ((x - 1)*pow (1-1/x,i-0.5)/(i*e));
      }
    Coeffs_Initialized = 1;
@@ -77,12 +77,12 @@ double JDMlog_gamma (double x)
 
 /* See A&S 6.5.4 for a definition.  Here, the series expansion given by
  * A&S 6.5.29 is used:
- * 
+ *
  *    gamma_star(a,x) = exp(-x) \sum_n x^n/Gamma(a+n+1)
- * 
+ *
  * Here, Gamma(a+1)=a*Gamma(a), Gamma(a+2)=(a+1)*a*Gamma(a), ....
  * Thus,
- * 
+ *
  *    gamma_star(a,x) = exp(-x)/Gamma(a) \sum_n x^n c_n
  *
  * where c_n = 1/(a(a+1)...(a+n)).  For a > 0, c_n --> 0, hence based upon
@@ -117,7 +117,7 @@ static double JDMlog_gamma_star (double a, double x)
 	xn *= x;		       /* may overflow */
 	sum += c_n * xn;
      }
-   
+
    return log (sum) - x - JDMlog_gamma (a);
 }
 
@@ -127,18 +127,18 @@ static double JDMlog_gamma_star (double a, double x)
  *    Gamma(a,x) = Gamma(a) - P(a,x) Gamma(a)
  * or
  *    P(a,x) = 1 - Gamma(a,x)/Gamma(a).
- * 
+ *
  * The continued fraction expansion (A&S 6.5.31) is given by:
- * 
+ *
  *    Gamma(a,x) = exp(-x)x^a (1/x+ (1-a)/1+ 1/x+ (2-a)/1+ 2/x+ ...)
  *
  * Use the recursion relations in theorem 2 of A&S 3.10.1 to evaluate this.
  * That is, let f_n be defined as
- * 
+ *
  *    f_n = b_0 + a_1/b_1+ a_2/b_2+...a_n/b_n := A_n/B_n
- * 
+ *
  * Then:
- * 
+ *
  *    A_n = b_n A_{n-1} + a_n A_{n-2}
  *    B_n = b_n B_{n-1} + a_n B_{n-2}
  *
@@ -168,8 +168,8 @@ static double JDMlog_CapGamma (double a, double x)
    if (renorm_factor != 0.0) while (n < 500)
      {
 	double f1, aa;
-	
-	/* Note that the renormalization factor is 1/b1.  
+
+	/* Note that the renormalization factor is 1/b1.
 	 * So, replace renorm_factor*b1 combinations by 1 */
 
 	aa = n - a;
@@ -187,10 +187,10 @@ static double JDMlog_CapGamma (double a, double x)
 
 	if (b1 == 0.0)
 	  continue;
-	
+
 	renorm_factor = 1.0 / b1;
 	f1 = a1 * renorm_factor;
-	
+
 	if (fabs (f - f1) < eps * fabs(f1))
 	  {
 	     f = f1;
@@ -198,7 +198,7 @@ static double JDMlog_CapGamma (double a, double x)
 	  }
 	f = f1;
      }
-   
+
    return a * log(x) - x + log (f);
 }
 
@@ -210,7 +210,7 @@ double JDMincomplete_gamma (double a, double x)
 
    if (x > a)
      return 1.0 - exp (JDMlog_CapGamma (a,x) - JDMlog_gamma (a));
-   
+
    return exp (a * log(x) + JDMlog_gamma_star (a, x));
 }
 
@@ -220,7 +220,7 @@ int main (int argc, char **argv)
 {
    double a = atof(argv[1]);
    double x = atof(argv[2]);
-   
+
    /* fprintf (stdout, "%e\n", JDMincomplete_gamma (a, x)); */
    fprintf (stdout, "%e\n", JDMincomplete_gamma (a/2, x/2));
    return 0;
@@ -247,7 +247,7 @@ int main (int argc, char **argv)
 {
    int i, j;
    double d;
-   
+
    for (j = 0; j < 1000; j++)
      {
 	double sum, max;
@@ -269,7 +269,7 @@ int main (int argc, char **argv)
 	fprintf (stdout, "%g\t%g\t%g\n", d, sum*0.01, max);
 	break;
      }
-   
+
    return 0;
 }
 

@@ -33,12 +33,11 @@ typedef struct
 }
 Henke_Type;
 
-
 extern void henke_free_henke_table (Henke_Type *);
 
-extern int henke_beta_delta (Henke_Type *, float, 
+extern int henke_beta_delta (Henke_Type *, float,
 			     float **, float **);
-			     
+
 extern Henke_Type *henke_read_henke_table (char *);
 
 extern int henke_set_data_dir (char *);

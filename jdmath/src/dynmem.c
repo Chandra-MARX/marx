@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -25,7 +25,6 @@
 
 #include "jdmath.h"
 #include "_jdmath.h"
-
 
 double *JDMdouble_vector (unsigned int n)
 {
@@ -58,10 +57,10 @@ void JDMfree_float_vector (float *v)
 }
 
 void JDMfree_double_matrix (double **matrix, unsigned int n)
-{  
+{
    unsigned int i;
    if (matrix == NULL) return;
-   
+
    for (i = 0; i < n; i++)
      {
 	_JDMfree ((char *) matrix[i]);
@@ -69,16 +68,15 @@ void JDMfree_double_matrix (double **matrix, unsigned int n)
    _JDMfree ((char *) matrix);
 }
 
-
 double **JDMdouble_matrix (unsigned int n, unsigned int m)
-{   
+{
    double **matrix;
    unsigned int i;
-   
+
    matrix = (double **) _JDMmalloc (n * sizeof (double **), "JDMdouble_matrix");
    if (matrix == NULL)
      return NULL;
-   
+
    /* initialize everything to NULL */
    for (i = 0; i < n; i++) matrix[i] = NULL;
 
@@ -86,22 +84,22 @@ double **JDMdouble_matrix (unsigned int n, unsigned int m)
      {
 	double *ptr;
 	ptr = (double *) _JDMmalloc (m * sizeof (double), "JDMdouble_matrix");
-	if (ptr == NULL) 
+	if (ptr == NULL)
 	  {
 	     JDMfree_double_matrix (matrix, n);
 	     return NULL;
 	  }
 	matrix[i] = ptr;
      }
-   
+
    return matrix;
 }
 
 void JDMfree_float_matrix (float **matrix, unsigned int n)
-{  
+{
    unsigned int i;
    if (matrix == NULL) return;
-   
+
    for (i = 0; i < n; i++)
      {
 	_JDMfree ((char *) matrix[i]);
@@ -110,14 +108,14 @@ void JDMfree_float_matrix (float **matrix, unsigned int n)
 }
 
 float **JDMfloat_matrix (unsigned int n, unsigned int m)
-{   
+{
    float **matrix;
    unsigned int i;
-   
+
    matrix = (float **) _JDMmalloc (n * sizeof (float **), "JDMfloat_matrix");
    if (matrix == NULL)
      return NULL;
-   
+
    /* initialize everything to NULL */
    for (i = 0; i < n; i++) matrix[i] = NULL;
 
@@ -125,18 +123,14 @@ float **JDMfloat_matrix (unsigned int n, unsigned int m)
      {
 	float *ptr;
 	ptr = (float *) _JDMmalloc (m * sizeof (float), "JDMfloat_matrix");
-	if (ptr == NULL) 
+	if (ptr == NULL)
 	  {
 	     JDMfree_float_matrix (matrix, n);
 	     return NULL;
 	  }
 	matrix[i] = ptr;
      }
-   
+
    return matrix;
 }
-
-   
-   
-   
 

@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -51,7 +50,7 @@ static int beta_open_source (Marx_Source_Type *st) /*{{{*/
 	fprintf (stdout, "%e %e\n", st->cum_radial_rvalues[i],
 		 st->cum_radial_dist[i]);
      }
-#endif		 
+#endif
    return 0;
 }
 
@@ -69,7 +68,7 @@ static int beta_close_source (Marx_Source_Type *st) /*{{{*/
 	JDMfree_double_vector (st->cum_radial_rvalues);
 	st->cum_radial_rvalues = NULL;
      }
-   
+
    return 0;
 }
 
@@ -88,29 +87,29 @@ static int beta_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{
    Marx_Photon_Attr_Type *at;
    int (*efun) (Marx_Spectrum_Type *, double *);
    double xpon;
-   
+
    efun = st->spectrum.energy_function;
    at = pt->attributes;
-   
+
    /* See comment in s-gauss.c regarding the procedure there.  Only the
     * details in step 3 differ.
     */
    normal = st->p_normal;
    p = &st->p;
-   
+
    xpon = 1.0 / (1.0 - Alpha);
-   
+
    for (i = 0; i < num; i++)
      {
 	if (-1 == (*efun) (&st->spectrum, &at->energy))
 	  return -1;
-	
+
 	/* Step 2.
 	 * Rotate normal about p.
 	 */
 	normal = JDMv_rotate_unit_vector (normal, *p, 2.0 * PI * JDMrandom ());
-	
-	/* step 3. Rotate p about this normal by an angle according to 
+
+	/* step 3. Rotate p about this normal by an angle according to
 	 * the beta distribution.  This is accomplished by getting a random
 	 * number between 0 and 1 and looking up the corresponding x value
 	 * in the cum_radial distribution.
@@ -120,20 +119,19 @@ static int beta_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{
 	     rnd = JDMrandom ();
 	  }
 	while (rnd == 0.0);
-	
+
 	rnd = Core_Radius * sqrt (pow (rnd, xpon) - 1.0);
-	
+
 	/* Step 3. */
 	at->p = JDMv_rotate_unit_vector (*p, normal, rnd);
 	at++;
      }
-   
+
    *num_created = num;
    return 0;
 }
 
 /*}}}*/
-
 
 int marx_select_beta_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 			     char *name, unsigned int source_id)
@@ -145,7 +143,7 @@ int marx_select_beta_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 
    if (-1 == pf_get_double (p, "S-BetaCoreRadius", &Core_Radius))
      return -1;
-   
+
    if (-1 == pf_get_double (p, "S-BetaBeta", &Beta))
      return -1;
 
@@ -156,14 +154,12 @@ int marx_select_beta_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 	marx_error ("Beta parameters out of range.  Must be greater than 1/2.");
 	return -1;
      }
-   
+
    /* Convert core radius from seconds to radians */
    Core_Radius = Core_Radius * (1.0 / 3600.0) * (PI / 180.0);
-   
+
    return _marx_get_simple_specrum_parms (p, st, name);
 }
 
 /*}}}*/
-
-
 

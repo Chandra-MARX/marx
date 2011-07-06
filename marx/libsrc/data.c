@@ -44,7 +44,6 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-
 /*}}}*/
 
 #include "marx.h"
@@ -59,13 +58,13 @@ char *marx_make_data_file_name (char *f) /*{{{*/
 {
    char *file;
    char *dir;
-   
+
    dir = Data_Directory;
    if (dir == NULL)
      {
 	dir = getenv ("MARX_DATA_DIR");
 #ifdef MARX_DATA_DIR
-	if (dir == NULL) 
+	if (dir == NULL)
 	  dir = MARX_DATA_DIR;
 #endif
      }
@@ -132,7 +131,7 @@ int marx_set_data_directory (char *dir) /*{{{*/
 
 /*}}}*/
 
-int marx_f_read_bdat (char *file, unsigned int *nrowsptr, 
+int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 		      unsigned int ncols, float **col0, ...) /*{{{*/
 {
    JDMBData_File_Type *bf;
@@ -151,24 +150,24 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 	marx_error ("Error reading binary file %s", file);
 	return -1;
      }
-   
+
    if (bf->data_type != 'E')
      {
 	marx_error ("%s has unsupported data type", file);
 	JDMbdata_close_file (bf);
 	return -1;
      }
-   
+
    num_rows = bf->nrows;
    num_cols = bf->ncols;
-   
+
    if (ncols > num_cols)
      {
 	marx_error ("%s does not have enough columns", file);
 	JDMbdata_close_file (bf);
 	return -1;
      }
-   
+
    columns = (float **) marx_malloc (ncols * sizeof (float *));
    if (columns == NULL)
      {
@@ -179,7 +178,7 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 
    if (NULL == (row_data = (float32 *) marx_malloc (num_cols * sizeof(float32))))
      goto return_error;
-	
+
    if (col0 != NULL)
      {
 	if (NULL == (columns[0] = JDMfloat_vector (num_rows)))
@@ -192,7 +191,7 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 	col = va_arg(ap, float **);
 	if (col == NULL)
 	  continue;
-	
+
 	if (NULL == (columns[i] = JDMfloat_vector (num_rows)))
 	  {
 	     va_end (ap);
@@ -200,7 +199,7 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 	  }
      }
    va_end (ap);
-   
+
    fp = bf->fp;
 
    for (i = 0; i < num_rows; i++)
@@ -210,16 +209,16 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 	     marx_error ("Read error while reading %s", file);
 	     goto return_error;
 	  }
-	
+
 	for (j = 0; j < ncols; j++)
 	  {
 	     if (columns[j] == NULL)
 	       continue;
-	     
+
 	     columns[j][i] = (float) row_data[j];
 	  }
      }
-   
+
    JDMbdata_close_file (bf);
 
    if (col0 != NULL) *col0 = columns[0];
@@ -230,18 +229,18 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 	col = va_arg(ap, float **);
 	if (col == NULL)
 	  continue;
-	
+
 	*col = columns[i];
      }
    va_end (ap);
    marx_free ((char *) columns);
    marx_free ((char *) row_data);
-   
+
    *nrowsptr = num_rows;
    return 0;
-   
+
    return_error:
-   
+
    if (row_data != NULL) marx_free ((char *) row_data);
    if (bf != NULL) JDMbdata_close_file (bf);
    for (i = 0; i < ncols; i++)
@@ -250,28 +249,26 @@ int marx_f_read_bdat (char *file, unsigned int *nrowsptr,
 	  JDMfree_float_vector (columns[i]);
      }
    marx_free ((char *) columns);
-   
+
    return -1;
 }
 
-   
 /*}}}*/
 
-	     
 /*{{{ Simple ASCII data file interface */
 
 static _Marx_Simple_Data_Type *
 find_data_item (_Marx_Simple_Data_Type *table, char *name)
 {
    char ch;
-   
+
    ch = *name;
    while (table->name != NULL)
      {
 	if ((*name == table->name[0])
 	    && (0 == strcmp (name, table->name)))
 	  return table;
-	
+
 	table++;
      }
    return NULL;
@@ -299,8 +296,6 @@ static char *skip_non_whitespace (char *p)
    return p;
 }
 
-   
-	
 static int process_data_item (_Marx_Simple_Data_Type *t, char *p0)
 {
    char *p1;
@@ -318,7 +313,7 @@ static int process_data_item (_Marx_Simple_Data_Type *t, char *p0)
 
 	p0 = skip_whitespace (p0);
 	p1 = skip_non_whitespace (p0);
-	
+
 	if (*p1 != 0)
 	  *p1++ = 0;
 
@@ -331,13 +326,11 @@ static int process_data_item (_Marx_Simple_Data_Type *t, char *p0)
 	data[i] = d * scale;
 	p0 = p1;
      }
-   
+
    t->processed = 1;
    return 0;
 }
 
-   
-   
 int _marx_read_simple_data_file (char *file, _Marx_Simple_Data_Type *table)
 {
    FILE *fp;
@@ -363,18 +356,18 @@ int _marx_read_simple_data_file (char *file, _Marx_Simple_Data_Type *table)
    while (NULL != (fgets (line, sizeof (line), fp)))
      {
 	char *p0, *p1;
-	
+
 	linenum++;
 	p0 = skip_whitespace (line);
 	if (*p0 == '#')
 	  continue;
-	
+
 	p1 = skip_non_whitespace (p0);
 	if (*p1 != 0) *p1++ = 0;
-	
+
 	if (NULL == (t = find_data_item (table, p0)))
 	  continue;
-	
+
 	if (-1 == process_data_item (t, p1))
 	  {
 	     marx_error ("Error processing line %u of %s", linenum, file);
@@ -382,9 +375,9 @@ int _marx_read_simple_data_file (char *file, _Marx_Simple_Data_Type *table)
 	     return -1;
 	  }
      }
-   
+
    fclose (fp);
-   
+
    ret = 0;
    t = table;
    while (t->name != NULL)
@@ -398,6 +391,5 @@ int _marx_read_simple_data_file (char *file, _Marx_Simple_Data_Type *table)
      }
    return ret;
 }
-
 
 /*}}}*/

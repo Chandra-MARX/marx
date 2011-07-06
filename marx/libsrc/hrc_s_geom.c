@@ -34,21 +34,21 @@
 #define USE_CALDB_FILES	0	       /* doesn't work yet */
 /* All these parameters get set from a file.  See below */
 
-static double V_Active [6] = 
+static double V_Active [6] =
 {
    1665.0, 16404.0, 17060.0, 32165.0, 32975.0, 47605.0
 };
-static double V_Physical [6] = 
+static double V_Physical [6] =
 {
    1196, 16444, 16900, 32250, 32930, 48117
 };
 
-static double U_Active [2] = 
+static double U_Active [2] =
 {
    560, 3536
 };
 
-static double U_Physical [2] = 
+static double U_Physical [2] =
 {
    0, 4096
 };
@@ -61,7 +61,6 @@ static double Aimpoint_Offset [3] =
 {
    0, 4, 0
 };
-
 
 static double Left_Theta = 1.4321 * PI/180.0;
 static double Right_Theta = 1.2202 * PI/180.0;
@@ -81,30 +80,30 @@ static double Detector_Theta;
 
 /* For future changes, allow the most general linear transformation between
  * (x,y,z) and (u, v) coordinates.  Basically, this involves:
- * 
+ *
  *     X_i = X0_i + (u - u0) alpha_i + (v - v0) beta_i
- * 
+ *
  * Here alpha_i and beta_i are scale factors.  Furthermore, we assume that
  * that the (u,v) system is orthogonal.  Then consider a small change in the
  * u coordinate holding v fixed:
- * 
+ *
  *    d(u)X_i = du alpha_i
  *
  * and
- * 
+ *
  *    d(v)X_i = dv beta_i
- * 
+ *
  * By orthogonal, we mean that the resulting vectors d(u)X_i and d(v)X_i are
- * orthogonal, i.e., 
- *  
+ * orthogonal, i.e.,
+ *
  *    0 = d(u)X_i d(v)X_i ==>  alpha_i beta_i = 0
- * 
+ *
  * where repeated indices are summed over.  Thus, alpha and beta are orthogonal.
  * From this result, it trivally follows that:
- * 
+ *
  *   u = u_0 + alpha_inv_i (X_i - X0_i)
  *   v = v_0 + beta_inv_i (X_i - X0_i)
- * 
+ *
  * where alpha_inv_i = alpha_i / |alpha|^2
  */
 
@@ -123,7 +122,7 @@ static void map_uv_to_xyz (double *uv, double *uv0,
 {
    unsigned int i;
    double du, dv;
-   
+
    du = uv[0] - uv0[0];
    dv = uv[1] - uv0[1];
 
@@ -131,13 +130,13 @@ static void map_uv_to_xyz (double *uv, double *uv0,
      xyz[i] = xyz0[i] + du * alpha[i] + dv * beta[i];
 }
 #if 0
-static void  map_xyz_to_uv (double *xyz, double *xyz0, 
-			    double *alpha_inv, double *beta_inv, 
+static void  map_xyz_to_uv (double *xyz, double *xyz0,
+			    double *alpha_inv, double *beta_inv,
 			    double *uv0, double *uv)
 {
    double u, v;
    unsigned int i;
-   
+
    u = uv0[0];
    v = uv0[1];
    for (i = 0; i < 3; i++)
@@ -151,9 +150,9 @@ static void  map_xyz_to_uv (double *xyz, double *xyz0,
 }
 #endif
 static void compute_inverse_vector (double *a, double *a_inv)
-{	
+{
    double x;
-   
+
    x = a[0]*a[0] + a[1]*a[1] + a[2]*a[2];
 
    a_inv[0] = a[0]/x;
@@ -185,7 +184,6 @@ static void setup_alphas_and_betas (void)
    Middle_Beta[2] = 0.0;
    compute_inverse_vector (Middle_Beta, Middle_Beta_Inv);
 
-
    /* On the right side, increasing v implies decrease in y and increase in x */
    /* HRC-S3 */
    Right_Alpha[0] = 0.0;
@@ -198,13 +196,13 @@ static void setup_alphas_and_betas (void)
    compute_inverse_vector (Right_Beta, Right_Beta_Inv);
 }
 
-static JDMVector_Type uv_to_xyz_vector (double u, double v, double *uv0, 
+static JDMVector_Type uv_to_xyz_vector (double u, double v, double *uv0,
 					double *alpha, double *beta, double *xyz0)
 {
    double xyz[3];
    double uv[2];
    JDMVector_Type xyz_vector;
-   
+
    uv[0] = u; uv[1] = v;
 
    map_uv_to_xyz (uv, uv0, alpha, beta, xyz0, xyz);
@@ -212,7 +210,7 @@ static JDMVector_Type uv_to_xyz_vector (double u, double v, double *uv0,
    xyz_vector.x = xyz[0];
    xyz_vector.y = xyz[1];
    xyz_vector.z = xyz[2];
-   
+
    return xyz_vector;
 }
 
@@ -235,7 +233,7 @@ static void rotate_mcp (Marx_Detector_Geometry_Type *g, double theta)
 {
    JDMVector_Type axis;
    double sin_theta, cos_theta;
-   
+
    axis = JDMv_vector (-1, 0, 0);      /* choose axis from origin along optical axis towards the HRMA */
    sin_theta = sin(theta);
    cos_theta = cos(theta);
@@ -260,15 +258,15 @@ static int patch_hrc_s_geom (Marx_Detector_Type *d)
    g = d->facet_list;
 
    /* The HRC-S corners are designated as follows:
-    * 
+    *
     *     UR   LR
     *     UL   LL
-    * 
+    *
     * whereas ACIS-S is more sensible:
-    * 
+    *
     *     UL  UR
     *     LL  LR
-    * 
+    *
     * Sigh.
     */
 
@@ -331,7 +329,7 @@ static int patch_hrc_s_geom (Marx_Detector_Type *d)
    for (i = 0; i < 3; i++)
      {
 	double u, v;
-	(void) _marx_hrc_s_compute_pixel (g[i].id, 0, 0, 
+	(void) _marx_hrc_s_compute_pixel (g[i].id, 0, 0,
 					  &g[i].xpixel_offset,
 					  &g[i].ypixel_offset,
 					  &u, &v);
@@ -340,7 +338,7 @@ static int patch_hrc_s_geom (Marx_Detector_Type *d)
    return 0;
 }
 
-/* dx, dy are measured from the LL corner, which by construction is the 
+/* dx, dy are measured from the LL corner, which by construction is the
  * active pixel for that corner.
  */
 int _marx_hrc_s_compute_pixel (int id, double dx, double dy,
@@ -382,7 +380,7 @@ int _marx_hrc_s_compute_pixel (int id, double dx, double dy,
       default:
 	return -1;
      }
-   
+
    u += dx / U_Pixel_Size;
    v += dy / V_Pixel_Size;
 
@@ -395,8 +393,7 @@ int _marx_hrc_s_compute_pixel (int id, double dx, double dy,
    return 0;
 }
 
-
-static _Marx_Simple_Data_Type Array_Data_Table [] = 
+static _Marx_Simple_Data_Type Array_Data_Table [] =
 {
    {"V_Pixel_Size",	1, &V_Pixel_Size,	1.0, 0},
    {"V_Physical",	6, V_Physical,		1.0, 0},
@@ -434,7 +431,7 @@ int _marx_hrc_s_geom_init (Param_File_Type *pf)
    static int initialized = 0;
 
    (void) pf;
-   
+
    if (initialized)
      return 0;
 
@@ -451,28 +448,27 @@ int _marx_hrc_s_geom_init (Param_File_Type *pf)
 	return -1;
      }
    marx_free (file);
-   
+
    /* The XYZ coordinates that have been read in are with respect to the
     * center position.
     */
-   
+
    for (i = 0; i < 3; i++)
      {
 	Left_XYZ[i] += Aimpoint_Offset[i];
 	Right_XYZ[i] += Aimpoint_Offset[i];
 	Middle_XYZ[i] += Aimpoint_Offset[i];
      }
-   
+
    setup_alphas_and_betas ();
    /* (void) _marx_set_detector_angle (Detector_Theta); */
-     
+
    initialized = 1;
    return 0;
 }
 
-
 static int
-hrc_s_to_tiled (Marx_Detector_Type *det, 
+hrc_s_to_tiled (Marx_Detector_Type *det,
 		Marx_Detector_Geometry_Type *g,
 		int chip, unsigned int x, unsigned int y,
 		unsigned int *xp, unsigned int *yp)
@@ -517,11 +513,11 @@ static Marx_Detector_Geometry_Type HRC_S_Geom[_MARX_NUM_HRC_S_CHIPS];
 
 static int print_info (Marx_Detector_Type *det, FILE *fp)
 {
-   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n",
 		   det->stt_lsi_offset.x,
 		   det->stt_lsi_offset.y,
 		   det->stt_lsi_offset.z);
-   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n",
 		   det->stf_stt_offset.x,
 		   det->stf_stt_offset.y,
 		   det->stf_stt_offset.z);
@@ -564,7 +560,7 @@ Marx_Detector_Type *_marx_get_hrc_s_detector (void)
 
    if (-1 == _marx_caldb_patch_aimpoint (d))
      return NULL;
-   
+
    if (-1 == _marx_compute_detector_basis (d))
      return NULL;
 

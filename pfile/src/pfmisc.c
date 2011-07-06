@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -47,7 +46,7 @@
 char *_pf_skip_whitespace (char *s)
 {
    unsigned char ch;
-   
+
    while (((ch = (unsigned char) *s) != 0)
 	  && (ch <= ' '))
      s++;
@@ -57,7 +56,7 @@ char *_pf_skip_whitespace (char *s)
 static char *malloc_internal (unsigned int len)
 {
    char *p;
-   
+
    p = (char *) SLMALLOC (len);
    if (p == NULL)
      {
@@ -67,27 +66,24 @@ static char *malloc_internal (unsigned int len)
    return p;
 }
 
-   
 char *_pf_malloc (unsigned int len)
 {
    char *p;
-   
+
    p = (char *) malloc_internal (len);
    if (p != NULL) memset (p, 0, len);
    return p;
 }
 
-   
-
 char *_pf_create_string (char *s)
 {
    char *p;
    unsigned int len;
-   
+
    if (s == NULL) return NULL;
-   
+
    len = strlen (s);
-   
+
    if (NULL != (p = malloc_internal (len + 1))) strcpy (p, s);
    return p;
 }
@@ -95,9 +91,9 @@ char *_pf_create_string (char *s)
 char *_pf_create_nstring (char *s, unsigned int len)
 {
    char *p;
-   
+
    if (s == NULL) return NULL;
-   
+
    if (NULL != (p = malloc_internal (len + 1)))
      {
 	strncpy (p, s, len);
@@ -123,7 +119,7 @@ char *_pf_strchr (char *str, int ch)
 char *_pf_rstrchr (char *str, int ch)
 {
    char *s;
-     
+
    s = str + strlen (str);
    while (1)
      {
@@ -134,47 +130,47 @@ char *_pf_rstrchr (char *str, int ch)
 }
 
 int _pf_parse_single_number (char *s, int *ival, double *dval)
-{	
+{
    char *save_s;
-   
-   if (s == NULL) 
+
+   if (s == NULL)
      return -1;
-   
+
    s = _pf_skip_whitespace (s);
    save_s = s;
-   
+
    if ((*s == '-') || (*s == '+')) s++;
-   
+
    if ((dval != NULL) && (*s == '.')) s++;
-   
+
    if (0 == (isdigit ((unsigned char)*s)))
      {
 	pf_error ("Error parsing field as %s.", ((dval != NULL) ? "real" : "int"));
 	PF_Errno = PF_NUMBER_FORMAT_BAD;
 	return -1;
      }
-   
+
    while (1)
      {
 	if (0 == isdigit ((unsigned char)*s)) break;
 	s++;
      }
-   
+
    if (NULL == dval)
      {
 	s = _pf_skip_whitespace (s);
-	
+
 	if (*s != 0)
 	  {
 	     pf_error ("Error parsing integer field.");
 	     PF_Errno = PF_NUMBER_FORMAT_BAD;
 	     return -1;
 	  }
-	
+
 	*ival = atoi (save_s);
 	return 0;
      }
-   
+
    if (*s == '.')
      {
 	s++;
@@ -184,7 +180,7 @@ int _pf_parse_single_number (char *s, int *ival, double *dval)
 	     s++;
 	  }
      }
-   
+
    if ((*s == 'e') || (*s == 'E'))
      {
 	s++;
@@ -195,7 +191,7 @@ int _pf_parse_single_number (char *s, int *ival, double *dval)
 	     s++;
 	  }
      }
-   
+
    s = _pf_skip_whitespace (s);
    if (*s != 0)
      {
@@ -203,27 +199,26 @@ int _pf_parse_single_number (char *s, int *ival, double *dval)
 	PF_Errno = PF_NUMBER_FORMAT_BAD;
 	return -1;
      }
-   
+
    *dval = atof (save_s);
    return 0;
 }
-
 
 int _pf_parse_boolean (char *str, int *ival)
 {
    unsigned char *b, ch;
    char buf[4];
-   
+
    *buf = 0;
-   
+
    if (strlen (str) < 4)
      {
 	strcpy (buf, str);
      }
-   
+
    b = (unsigned char *) buf;
    while ((ch = *b) != 0) *b++ = (ch | 0x20);   /* lowercase it */
-   
+
    if (!strcmp (buf, "yes"))
      {
 	*ival = 1;
@@ -241,15 +236,14 @@ int _pf_parse_boolean (char *str, int *ival)
    return 0;
 }
 
-
 char *_pf_unescape_string (char *str)
 {
    char *new_string, *s;
    char ch;
-   
+
    if (NULL == (new_string = _pf_create_string (str)))
      return NULL;
-   
+
    s = str = new_string;
    while ((ch = *str++) != 0)
      {
@@ -262,7 +256,7 @@ char *_pf_unescape_string (char *str)
 		  pf_error ("String has extra \\ character.");
 		  SLFREE (new_string);
 		  return NULL;
-		  
+
 		case 't': ch = '\t'; break;
 		case 'n': ch = '\n'; break;
 		case 'r': ch = '\r'; break;
@@ -282,7 +276,7 @@ char *_pf_escape_string (char *str)
    char *new_string, *s;
    char ch;
    unsigned int len;
-   
+
    /* Find out how long the result should be. */
    len = strlen (str);
    s = str;
@@ -301,10 +295,10 @@ char *_pf_escape_string (char *str)
 	  }
 	s++;
      }
-   
+
    if (NULL == (new_string = malloc_internal (len + 1)))
      return NULL;
-   
+
    s = new_string;
 
    while ((ch = *str++) != 0)
@@ -330,12 +324,11 @@ char *_pf_escape_string (char *str)
    return new_string;
 }
 
-   
 char *_pf_strcat (char *a, char *b)
 {
    char *c;
    unsigned int lena = strlen (a);
-   
+
    c = malloc_internal (lena + strlen (b) + 1);
    if (c != NULL)
      {
@@ -346,13 +339,13 @@ char *_pf_strcat (char *a, char *b)
 }
 
 /* Search for characters from list in string str.  If found, return a pointer
- * to the first occurrence.  If not found, return a pointer to the end of the 
+ * to the first occurrence.  If not found, return a pointer to the end of the
  * string (I find this more useful than returning NULL).
  */
 char *_pf_strbrk (char *str, char *list)
 {
    char ch, ch1, *p;
-   
+
    while ((ch = *str) != 0)
      {
 	p = list;
@@ -370,7 +363,7 @@ char *_pf_extract_string_element (char *list, char *delim, unsigned int *pos)
 {
    char *last_list;
    unsigned int i;
-   
+
    if ((list == NULL) || (pos == NULL))
      {
 	PF_Errno = PF_BAD_ARGUMENT;
@@ -389,11 +382,11 @@ char *_pf_extract_string_element (char *list, char *delim, unsigned int *pos)
 	list++;
 	i--;
      }
-   
+
    last_list = _pf_strbrk (list, delim);
-   
+
    *pos += 1;
-   
+
    return _pf_create_nstring (list, (unsigned int) (last_list - list));
 }
 
@@ -402,15 +395,15 @@ int _pf_strcasecmp (char *a, char *b)
    while (1)
      {
 	char cha, chb;
-	
+
 	cha = *a;
 	chb = *b;
 	if (toupper(cha) != toupper(chb))
 	  return (int)cha - (int)chb;
-	
+
 	if (cha == 0)
 	  return 0;
-	
+
 	a++;
 	b++;
      }

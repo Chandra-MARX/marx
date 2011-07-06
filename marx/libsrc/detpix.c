@@ -40,7 +40,7 @@
 
 double Marx_Focal_Length = 10065.5;    /* mm */
 
-static Marx_FP_Coord_Type Focal_Plane_Coord_Info [] = 
+static Marx_FP_Coord_Type Focal_Plane_Coord_Info [] =
 {
      {
 	"AXAF-FP-1.1",		       /* fp_system_name */
@@ -65,11 +65,10 @@ static Marx_FP_Coord_Type Focal_Plane_Coord_Info [] =
      }
 };
 
-
 Marx_FP_Coord_Type *marx_get_fp_system_info (char *name)
 {
    Marx_FP_Coord_Type *fp;
-   
+
    fp = Focal_Plane_Coord_Info;
    while (fp->fp_system_name != NULL)
      {
@@ -77,7 +76,7 @@ Marx_FP_Coord_Type *marx_get_fp_system_info (char *name)
 	  return fp;
 	fp++;
      }
-   
+
    marx_error ("Focal plane system %s not implemented", name);
    return NULL;
 }
@@ -89,7 +88,7 @@ typedef struct
 }
 Det_Name_Type;
 
-static Det_Name_Type Detectors [] = 
+static Det_Name_Type Detectors [] =
 {
    {"HRC-S", MARX_DETECTOR_HRC_S},
    {"HRC-I", MARX_DETECTOR_HRC_I},
@@ -139,7 +138,7 @@ marx_get_detector_info (char *detname) /*{{{*/
       case MARX_DETECTOR_ACIS_I:
 	d = _marx_get_acis_i_detector ();
 	break;
-	
+
       case MARX_DETECTOR_HRC_S:
 	d = _marx_get_hrc_s_detector ();
 	break;
@@ -165,14 +164,14 @@ marx_get_detector_info (char *detname) /*{{{*/
 
 /*}}}*/
 
-int 
+int
 marx_compute_tiled_pixel (Marx_Detector_Type *d, /*{{{*/
 			      int chip, unsigned int x, unsigned int y,
 			      unsigned int *xp, unsigned int *yp)
 {
    Marx_Detector_Geometry_Type *g;
-   
-   if (d == NULL) 
+
+   if (d == NULL)
      return -1;
 
    if (d->tiled_pixel_map_fun == NULL)
@@ -197,7 +196,7 @@ marx_compute_tiled_pixel (Marx_Detector_Type *d, /*{{{*/
 
 /*}}}*/
 
-int marx_mnc_to_fpc (Marx_FP_Coord_Type *fc, 
+int marx_mnc_to_fpc (Marx_FP_Coord_Type *fc,
 		     JDMVector_Type *mnc,
 		     double *xp, double *yp)
 {
@@ -206,23 +205,23 @@ int marx_mnc_to_fpc (Marx_FP_Coord_Type *fc,
 
    if (fc == NULL)
      return -1;
-   
+
    mnc_x = mnc->x;
    if (mnc_x == 0.0)
      {
 	marx_error ("marx_mnc_to_fpc: mnc.x is 0");
 	return -1;
      }
-   
+
    factor = 1.0 / (fc->fp_delta_s0 * mnc_x);
-   
+
    /* Consider a ray with a negative MNC->x coordinate, but positive y and
     * z coordinates.  We want this to map to a positive FP_X and a negative
     * FP_Y value.
     */
    *xp = fc->fp_x0 - factor * mnc->y;
    *yp = fc->fp_y0 + factor * mnc->z;
-   
+
    return 0;
 }
 

@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -48,7 +47,7 @@ int _marx_get_parameters (Param_File_Type *p, _Marx_Parameter_Table_Type *table)
    char *name;
    int status;
    char buf[PF_MAX_LINE_LEN];
-   
+
    while ((name = table->name) != NULL)
      {
 	switch (table->type)
@@ -60,22 +59,22 @@ int _marx_get_parameters (Param_File_Type *p, _Marx_Parameter_Table_Type *table)
 	   case PF_REAL_TYPE:
 	     status = pf_get_double (p, name, table->value);
 	     break;
-	     
+
 	   case PF_BOOLEAN_TYPE:
 	     status = pf_get_boolean (p, name, table->value);
 	     break;
-	     
+
 	   case PF_FILE_TYPE:
 	     /* drop */
 	   case PF_STRING_TYPE:
 	     if (table->type == PF_STRING_TYPE)
 	       status = pf_get_string (p, name, buf);
 	     else status = pf_get_file (p, name, buf);
-	     
+
 	     if (status != -1)
 	       {
 		  char *s = (char *) SLMALLOC (strlen (buf) + 1);
-		  if (s == NULL) 
+		  if (s == NULL)
 		    {
 		       marx_error ("Malloc error.");
 		       return -1;
@@ -84,19 +83,19 @@ int _marx_get_parameters (Param_File_Type *p, _Marx_Parameter_Table_Type *table)
 		  *((char **)table->value) = s;
 	       }
 	     break;
-	     
+
 	   default:
 	     marx_error ("Unknown type");
 	     return -1;
 	  }
-	
+
 	if (status == -1)
 	  {
 	     marx_error ("Requested parameter %s not found in parameter file.",
 			 name);
 	     return -1;
 	  }
-	
+
 	table++;
      }
    return 0;
@@ -114,13 +113,13 @@ int _marx_get_vector_parm (Param_File_Type *pf, char *parm, JDMVector_Type *v)
 	marx_error ("Error getting parameter value for %s", parm);
 	return -1;
      }
-   
+
    if (3 != sscanf (buf, "(%lf%*[ ,]%lf%*[ ,]%lf)", &vv.x, &vv.y, &vv.z))
      {
 	marx_error ("Parameter %s does not have the proper format", parm);
 	return -1;
      }
-   
+
    *v = vv;
    return 0;
 }

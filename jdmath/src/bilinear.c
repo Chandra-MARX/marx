@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -28,7 +27,6 @@
 
 #include "jdmath.h"
 #include "_jdmath.h"
-
 
 struct _JDM_Bilinear_Interp_Type
 {
@@ -54,13 +52,13 @@ JDM_Bilinear_Interp_Type *JDM_bilinear_open (double x, double y,
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return NULL;
      }
-   
+
    b = (JDM_Bilinear_Interp_Type *)_JDMmalloc (sizeof (JDM_Bilinear_Interp_Type), "JDM_bilinear_open");
    if (b == NULL)
      return b;
-   
+
    memset ((char *) b, 0, sizeof (JDM_Bilinear_Interp_Type));
-   
+
    if ((NULL == (b->f0 = JDMdouble_vector (num)))
        || (NULL == (b->f1 = JDMdouble_vector (num)))
        || (NULL == (b->f2 = JDMdouble_vector (num)))
@@ -74,11 +72,11 @@ JDM_Bilinear_Interp_Type *JDM_bilinear_open (double x, double y,
    b->y = y;
    b->inv_dx = 1.0 / dx;
    b->inv_dy = 1.0 / dy;
-   
+
    for (i = 0; i < num; i++)
      {
 	double lr, ll, ul, ur;
-	
+
 	lr = f_lr[i];
 	ll = f_ll[i];
 	ul = f_ul[i];
@@ -87,18 +85,17 @@ JDM_Bilinear_Interp_Type *JDM_bilinear_open (double x, double y,
 	lr -= ll;
 	ur -= ll;
 	ul -= ll;
-   
+
 	b->f0[i] = ll;
 	b->f1[i] = lr;
 	b->f2[i] = ul;
 	b->f3[i] = (ur - lr - ul);
      }
-   
+
    b->num_values = num;
 
    return b;
 }
-
 
 int JDM_bilinear_interp (JDM_Bilinear_Interp_Type *b, double x, double y,
 			 double *result)
@@ -121,12 +118,11 @@ int JDM_bilinear_interp (JDM_Bilinear_Interp_Type *b, double x, double y,
    return 0;
 }
 
-   
 void JDM_bilinear_close (JDM_Bilinear_Interp_Type *b)
 {
    if (b == NULL)
      return;
-   
+
    _JDMfree ((char *) b->f0);
    _JDMfree ((char *) b->f1);
    _JDMfree ((char *) b->f2);

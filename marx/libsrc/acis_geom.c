@@ -61,18 +61,18 @@ static void tweak_acis_pixel_size (Marx_Detector_Type *det)
      {
 	d->x_pixel_size = d->xlen / 1024.0;
 	d->y_pixel_size = d->ylen / 1024.0;
-	
+
 	d = d->next;
      }
 }
 
 static int print_info (Marx_Detector_Type *det, FILE *fp)
 {
-   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+   (void) fprintf (fp, "STT-LSI offset: (% 10.4e, % 10.4e, % 10.4e)\n",
 		   det->stt_lsi_offset.x,
 		   det->stt_lsi_offset.y,
 		   det->stt_lsi_offset.z);
-   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n", 
+   (void) fprintf (fp, "STF-STT offset: (% 10.4e, % 10.4e, % 10.4e)\n",
 		   det->stf_stt_offset.x,
 		   det->stf_stt_offset.y,
 		   det->stf_stt_offset.z);
@@ -86,7 +86,7 @@ static int post_init_acis_detector (Marx_Detector_Type *d)
 
    if (-1 == _marx_caldb_patch_aimpoint (d))
      return -1;
-   
+
    if (-1 == _marx_compute_detector_basis (d))
      return -1;
 
@@ -135,7 +135,7 @@ acis_i_to_tiled (Marx_Detector_Type *det,
 
    if (xf < 0.0) xf = 0.0;
    if (yf < 0.0) yf = 0.0;
-   
+
    *xp = (unsigned int) xf;
    *yp = (unsigned int) yf;
 
@@ -171,7 +171,7 @@ Marx_Detector_Type *_marx_get_acis_i_detector (void)
 	g->num_y_pixels = 1024;
 	g++;
      }
-   
+
    if (-1 == post_init_acis_detector (d))
      return NULL;
 
@@ -193,7 +193,7 @@ static int acis_s_to_tiled (Marx_Detector_Type *det,
      xf = 0.0;
 
    yf = y + g->tdet_yoff;
-   if (yf < 0.0) 
+   if (yf < 0.0)
      yf = 0.0;
 
    *xp = (unsigned int) xf;
@@ -233,7 +233,7 @@ Marx_Detector_Type *_marx_get_acis_s_detector (void)
 
    if (-1 == post_init_acis_detector (d))
      return NULL;
-   
+
    return d;
 }
 

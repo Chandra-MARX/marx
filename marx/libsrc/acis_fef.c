@@ -40,14 +40,14 @@
 #include "marx.h"
 #include "_marx.h"
 
-/* 
+/*
  * A single FEF extension contains a function written here as
  * R(h,E,i,j,ccdid) where h is the pha, E is the energy, (i,j)
  * specifies a pixel on the CCD, and ccdid specifies the CCD.  This
  * function is encoded as sum of gaussians:
- * 
+ *
  *    G(h,a(E,i,j,ccdid))
- * 
+ *
  * where a represents the gaussian parameters (width, amplitude, and
  * center), and depends upon the region (ccdid,i,j) and energy E. The
  * FEF itself contains the functional form (sum of gaussians) in the
@@ -61,7 +61,7 @@
  * are used for the energy grid, nor are there any constraints on the
  * ordering of the rows.  For example, are they sorted on energy?  There
  * have been cases of programs that broke when the order of the rows was
- * changed. 
+ * changed.
  *
  * Hence, this implementation makes 2 passes through the table, with the
  * first determining the number of energies per region and to make sure
@@ -73,7 +73,7 @@
  * uniform in size.  However, the values are _supposed_ to be multiples
  * of 32 and this is what will be assumed in this code.  Hence, at most
  * there will be 32x32=1024 regions per CCD.
- * 
+ *
  * Within a region, the energy column is assumed to be in ascending order.
  */
 #define MIN_REGION_SIZE	32
@@ -92,7 +92,7 @@ typedef struct
 }
 Gauss_Parm_Type;
 
-typedef struct 
+typedef struct
 {
    unsigned int num_gaussians;
    unsigned int num_energies;
@@ -112,12 +112,11 @@ Fef_Map_Type;
 
 static Fef_Map_Type *Fef_Maps[NUM_ACIS_CCDS];
 
-
 static void free_fef_type (Fef_Type *f)
 {
    if (f == NULL)
      return;
-   
+
    if (f->num_refs > 1)
      {
 	f->num_refs--;
@@ -136,10 +135,10 @@ static void free_fef_type (Fef_Type *f)
 static void free_fef_map (Fef_Map_Type *map)
 {
    unsigned int i, j;
-   
+
    if (map == NULL)
      return;
-   
+
    for (i = 0; i < NUM_REGIONS; i++)
      {
 	for (j = 0; j < NUM_REGIONS; j++)
@@ -153,14 +152,13 @@ static void free_fef_map (Fef_Map_Type *map)
 static void free_fef_maps (void)
 {
    unsigned int i;
-   
+
    for (i = 0; i < NUM_ACIS_CCDS; i++)
      {
 	free_fef_map (Fef_Maps[i]);
 	Fef_Maps[i] = NULL;
      }
 }
-
 
 static int allocate_fef_maps (unsigned int min_ccdid, unsigned max_ccdid)
 {
@@ -177,7 +175,7 @@ static int allocate_fef_maps (unsigned int min_ccdid, unsigned max_ccdid)
    for (i = min_ccdid; i <= max_ccdid; i++)
      {
 	Fef_Map_Type *f;
-	
+
 	f = (Fef_Map_Type *) marx_malloc (sizeof (Fef_Map_Type));
 	if (f == NULL)
 	  {
@@ -187,7 +185,7 @@ static int allocate_fef_maps (unsigned int min_ccdid, unsigned max_ccdid)
 	memset ((char *) f, 0, sizeof (Fef_Map_Type));
 	Fef_Maps [i] = f;
      }
-   
+
    return 0;
 }
 
@@ -198,7 +196,7 @@ static int check_region_values (int ccdid, int xmin, int ymin, int xmax, int yma
 	marx_error ("Invalid CCD_ID value in gain file: %d", ccdid);
 	return -1;
      }
- 
+
    if ((xmin < 1) || (ymin < 1) || (xmax > 1024) || (ymax > 1024))
      {
 	marx_error ("CHIPX/Y_LO/HI value out of range");
@@ -217,12 +215,11 @@ static int check_region_values (int ccdid, int xmin, int ymin, int xmax, int yma
 		    MIN_REGION_SIZE);
 	return -1;
      }
-   
+
    return 0;
 }
 
-
-static int map_fef_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax, 
+static int map_fef_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax,
 			      Fef_Type *f)
 {
    Fef_Map_Type *m;
@@ -233,7 +230,7 @@ static int map_fef_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax,
 
    xmin--;			       /* 1->0 based */
    ymin--;
-   
+
    m = Fef_Maps[ccdid];
    if (m == NULL)
      {
@@ -245,7 +242,7 @@ static int map_fef_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax,
    xmax /= MIN_REGION_SIZE;
    ymin /= MIN_REGION_SIZE;
    ymax /= MIN_REGION_SIZE;
-   
+
    for (i = xmin; i < xmax; i++)
      {
 	int j;
@@ -267,7 +264,7 @@ static int map_fef_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax,
 static int check_fef_map_for_holes (int min_ccdid, int max_ccdid)
 {
    int ccdid;
-   
+
    for (ccdid = min_ccdid; ccdid <= max_ccdid; ccdid++)
      {
 	Fef_Map_Type *f = Fef_Maps [ccdid];
@@ -278,7 +275,7 @@ static int check_fef_map_for_holes (int min_ccdid, int max_ccdid)
 	     marx_error ("Internal Error: Fef_Maps[%d] is NULL", ccdid);
 	     return -1;
 	  }
-	
+
 	for (i = 0; i < NUM_REGIONS; i++)
 	  {
 	     for (j = 0; j < NUM_REGIONS; j++)
@@ -293,13 +290,12 @@ static int check_fef_map_for_holes (int min_ccdid, int max_ccdid)
 	       }
 	  }
      }
-   
+
    return 0;
 }
 
-
 static int check_fef_validity (Fef_Type *f)
-{  
+{
    if (-1 == _marx_check_monotonicity_f (f->energies, f->num_energies))
      {
 	marx_error ("Fef Map does not have monotonically increasing energies");
@@ -340,17 +336,17 @@ static int check_repeat (JDFits_Col_Data_Type *c, unsigned int n)
 #define MAX_GAUSSIANS	((MAX_FEF_COLUMNS - FWHM1_COLUMN)/3)
 static char *Fef_Columns [MAX_FEF_COLUMNS] =
 {
-   "i:CCD_ID", "i:CHIPX_LO", "i:CHIPX_HI", "i:CHIPY_LO", "i:CHIPY_HI", 
+   "i:CCD_ID", "i:CHIPX_LO", "i:CHIPX_HI", "i:CHIPY_LO", "i:CHIPY_HI",
      "i:REGNUM", "f:ENERGY", "f:CHANNEL"	       /* rest are gauss parms */
 };
 
 static JDFits_Type *open_fef_file (char *file)
 {
    JDFits_Type *f;
-   
+
    if (NULL == (f = jdfits_open_binary_table (file, FEF_EXTNAME)))
      marx_error ("Unable to open ACIS FEF file %s", file);
-   
+
    return f;
 }
 
@@ -368,7 +364,7 @@ static JDFits_Row_Type *open_rows (JDFits_Type *f, unsigned int num_columns)
 	jdfits_bintable_close_rows (r);
 	return NULL;
      }
-   
+
    return r;
 }
 
@@ -415,7 +411,7 @@ static int compute_pha_with_pos_amps (Gauss_Parm_Type *gaussians, unsigned int n
 	double r = JDMrandom ();
 	Gauss_Parm_Type *g = gaussians;
 	Gauss_Parm_Type *gmax = g + num_gaussians;
-	
+
 	while (g < gmax)
 	  {
 	     double pha;
@@ -426,14 +422,14 @@ static int compute_pha_with_pos_amps (Gauss_Parm_Type *gaussians, unsigned int n
 		  g++;
 		  continue;
 	       }
-	     
+
 	     if (g->use_tail_dist == 0)
 	       {
 		  count = 0;
 		  do
 		    {
 		       pha = g->center + g->sigma * JDMgaussian_random ();
-		       count++; 
+		       count++;
 		    }
 		  while ((pha < 0) && (count < 100));
 	       }
@@ -456,7 +452,7 @@ static int compute_pha_with_pos_amps (Gauss_Parm_Type *gaussians, unsigned int n
 		  while (x * u > s);
 		  pha = g->center + x * g->sigma;
 	       }
-	     
+
 	     if (pha < 0)
 	       {
 		  fprintf (stderr, "Failed to find a pha value\n");
@@ -468,7 +464,6 @@ static int compute_pha_with_pos_amps (Gauss_Parm_Type *gaussians, unsigned int n
 	  }
      }
 }
-
 
 /* This function is a variation of the rejection technique. */
 static int compute_pha_with_neg_amps (Gauss_Parm_Type *gaussians, unsigned int num_gaussians,
@@ -483,7 +478,7 @@ static int compute_pha_with_neg_amps (Gauss_Parm_Type *gaussians, unsigned int n
 
 	if (-1 == compute_pha_with_pos_amps (gaussians, num_gaussians, &pha))
 	  return -1;
-	
+
 	pos_sum = sum = 0.0;
 	g = gaussians;
 	gmax = g + num_gaussians;
@@ -505,12 +500,11 @@ static int compute_pha_with_neg_amps (Gauss_Parm_Type *gaussians, unsigned int n
    return -1;
 }
 
-
 #define HAS_NEG_AMP_GAUSSIANS	1
 #define HAS_NEG_POS_GAUSSIANS	2
 #define HAS_TOTAL_NEG_AREA	4
 #define MY_INFINITY 1e37
-static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num, 
+static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
 				int *flagsp, float *first_momentp)
 {
    Gauss_Parm_Type *g, *gmax;
@@ -556,14 +550,14 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
 	flags |= HAS_TOTAL_NEG_AREA;
 	/* return 0; */
      }
-	
+
    if (total_neg_area != 0.0)
      flags |= HAS_NEG_AMP_GAUSSIANS;
 
    g = gaussians;
    if (total_pos_area > 0) while (g < gmax)
      {
-	/* Since we interpolate over pairs of gaussians, do not normalize 
+	/* Since we interpolate over pairs of gaussians, do not normalize
 	 * each member of the pair separately.
 	 */
 	/* g->amp /= total_pos_area; */
@@ -605,7 +599,7 @@ static int analyse_fef (Fef_Type *f, int *flagsp)
 	/* f->channels[i] = mean; */
 	g += num_gaussians;
      }
-   
+
    return 0;
 }
 
@@ -619,7 +613,7 @@ typedef struct _Row_Type
 Row_Type;
 
 #define FWHM_TO_SIGMA 0.4246609001440095
-static int process_region_rows (Row_Type *r, unsigned int num_energies, 
+static int process_region_rows (Row_Type *r, unsigned int num_energies,
 				unsigned int num_gaussians,
 				int ccdid, int xmin, int ymin,
 				int xmax, int ymax, int region_num)
@@ -635,7 +629,7 @@ static int process_region_rows (Row_Type *r, unsigned int num_energies,
      return -1;
 
    memset ((char *) f, 0, sizeof (Fef_Type));
-   
+
    if ((NULL == (f->energies = (float *) marx_malloc (num_energies * sizeof (float))))
        || (NULL == (f->channels = (float *) marx_malloc (num_energies * sizeof (float))))
        || (NULL == (f->gaussians = (Gauss_Parm_Type *) marx_malloc (num_gaussians * num_energies * sizeof (Gauss_Parm_Type)))))
@@ -664,10 +658,10 @@ static int process_region_rows (Row_Type *r, unsigned int num_energies,
 	     g++;
 	     g1++;
 	  }
-	
+
 	r = r->next;
      }
-   
+
    if (-1 == check_fef_validity (f))
      {
 	free_fef_type (f);
@@ -679,7 +673,7 @@ static int process_region_rows (Row_Type *r, unsigned int num_energies,
 	free_fef_type (f);
 	return -1;
      }
-   
+
    if (-1 == analyse_fef (f, &flags))
      {
 	free_fef_type (f);
@@ -697,7 +691,7 @@ static void free_row_chain (Row_Type *r)
    while (r != NULL)
      {
 	Row_Type *n;
-	
+
 	n = r->next;
 	if (r->gaussians != NULL)
 	  marx_free ((char *) r->gaussians);
@@ -706,8 +700,8 @@ static void free_row_chain (Row_Type *r)
      }
 }
 
-static int process_rows (JDFits_Type *f, unsigned int num_columns, 
-			 unsigned int num_gaussians, 
+static int process_rows (JDFits_Type *f, unsigned int num_columns,
+			 unsigned int num_gaussians,
 			 int min_ccdid, int max_ccdid)
 {
    JDFits_Row_Type *r;
@@ -742,7 +736,7 @@ static int process_rows (JDFits_Type *f, unsigned int num_columns,
 	     marx_error ("Unexpected end of file.");
 	     goto return_error_bad_row;
 	  }
-	
+
 	ccdid = c[CCDID_COLUMN].data.i[0];
 	if ((ccdid < min_ccdid) || (ccdid > max_ccdid))
 	  continue;
@@ -777,16 +771,16 @@ static int process_rows (JDFits_Type *f, unsigned int num_columns,
 	     num_energies++;
 	     continue;
 	  }
-	
+
 	if ((root != NULL)
 	    && (-1 == process_region_rows (root, num_energies, num_gaussians,
-					   last_ccdid, last_xmin, last_ymin, 
+					   last_ccdid, last_xmin, last_ymin,
 					   last_xmax, last_ymax, last_region_num)))
 	  {
 	     free_row_chain (rt);
 	     goto return_error_bad_row;
 	  }
-	
+
 	free_row_chain (root);
 	root = last = rt;
 	num_energies = 1;
@@ -801,24 +795,23 @@ static int process_rows (JDFits_Type *f, unsigned int num_columns,
 
    if (root != NULL)
      {
-	int status =  process_region_rows (root, num_energies, num_gaussians, 
-					   last_ccdid, last_xmin, last_ymin, 
+	int status =  process_region_rows (root, num_energies, num_gaussians,
+					   last_ccdid, last_xmin, last_ymin,
 					   last_xmax, last_ymax, last_region_num);
 	free_row_chain (root);
 	if (status == -1)
 	  goto return_error_bad_row;
      }
-   
+
    jdfits_bintable_close_rows (r);
-   
+
    return check_fef_map_for_holes (min_ccdid, max_ccdid);
-   
+
    return_error_bad_row:
    marx_error ("Error detected processing rows %u-%u\n", last_i+1, i+1);
    jdfits_bintable_close_rows (r);
    return -1;
 }
-
 
 static int read_fef_file (char *file, int min_ccdid, int max_ccdid)
 {
@@ -840,7 +833,7 @@ static int read_fef_file (char *file, int min_ccdid, int max_ccdid)
    for (i = 0; i < MAX_FEF_COLUMNS - FWHM1_COLUMN; i++)
      {
 	unsigned int j, ii, i3, i1;
-	static char *fmts[3] = 
+	static char *fmts[3] =
 	  {
 	     "f:G%d_FWHM", "f:G%d_POS", "f:G%d_AMPL"
 	  };
@@ -968,13 +961,13 @@ static Fef_Type *find_fef (int ccd_id, float x, float y)
 	marx_error ("find_fef: No fef for region\n");
 	return NULL;
      }
-   
+
    return f;
 }
 
 int marx_apply_acis_rmf (int ccd_id, float x, float y,
 			 double energy, float *pip, short *phap)
-{   
+{
    unsigned int i, j;
    Fef_Type *f;
    double pha;
@@ -1011,7 +1004,7 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
    t = (energy - f->energies[i])/(f->energies[j] - f->energies[i]);
    g0 = f->gaussians + i * num_gaussians;
    g1 = g0 + num_gaussians;
-   
+
    for (i = 0; i < num_gaussians; i++)
      {
 	double v;
@@ -1034,7 +1027,7 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
 	g0++;
 	g1++;
      }
-   
+
    if (-1 == normalize_gaussians (Gaussians, num_gaussians, &flags, &mean))
      return -1;
 
@@ -1050,27 +1043,27 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
      status = compute_pha_with_pos_amps (Gaussians, num_gaussians, &pha);
    else
      status = compute_pha_with_neg_amps (Gaussians, num_gaussians, &pha);
-   
+
    if (status == -1)
      return -1;
 
    /* At this point, pha is real-valued.  Now convert it to an integer.
     * The first pha bin has a PHA of 1.  The convention (which I do not favor)
     * is to regard the center of the bin as having a value of 1.0, with the
-    * left edge at 0.5.  Hence, if the pha is written as an integer (ipha) 
+    * left edge at 0.5.  Hence, if the pha is written as an integer (ipha)
     * plus a fraction f, then pha=ipha+f.  If 0 < 0.5 < f, then the desired
     * integer is ipha.  However, if (0.5<=f<1), then the desired value is
-    * ipha+1.  
+    * ipha+1.
     *
     * So, it would seem that we want *phap = (short)(pha+0.5).  However this
-    * leads to a bin-shift when comparing to mkrmf.  Better agreement is 
+    * leads to a bin-shift when comparing to mkrmf.  Better agreement is
     * obtained using a bin defined by ipha <= pha < ipha+1.
     */
    *phap = (short) pha;
 
-   /* The convention is that the first PHA bin is at ipha=1.  We want to 
-    * randomize within the bin to compute energy value.  I feel that this 
-    * calculation should go into marx2fits, but we do it here so that the 
+   /* The convention is that the first PHA bin is at ipha=1.  We want to
+    * randomize within the bin to compute energy value.  I feel that this
+    * calculation should go into marx2fits, but we do it here so that the
     * marx output files can be used.
     */
    pha = *phap - JDMrandom();
@@ -1078,7 +1071,7 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
    *pip = JDMinterpolate_f (pha, f->channels, f->energies, f->num_energies);
    if (*pip < 0)
      return -1;
-   
+
    return 0;
 }
 
@@ -1094,7 +1087,7 @@ int marx_map_energy_to_acis_pha (int ccd_id, int x, int y, double energy, short 
 
    if (NULL == (f = find_fef (ccd_id, x, y)))
      return -1;
-   
+
    *phap = JDMinterpolate_f (energy, f->energies, f->channels, f->num_energies);
    return 0;
 }

@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 /* Gaussian elimination */
 #include "config.h"
@@ -31,9 +31,9 @@
 /* The Gaussian elminiation algorithm involves solving the system of equations
  * @
  * @ A_ij x_j = b_i   (i,j = 1..N)
- * @ 
+ * @
  * by converting this system into an equivalent one where the matrix A_ij
- * is upper triangular.  Then all one needs to do is back substitution.  
+ * is upper triangular.  Then all one needs to do is back substitution.
  * Converting this system to a triangular system is rather straightforward.
  * One can easily show that the transformations may be done in place with:
  * @
@@ -41,24 +41,24 @@
  * @     b_i -> b_i - b_k * A_ik/A_kk
  * @
  * where k = 1..N and (i,j) = k+1 .. N.
- * 
+ *
  * During this iteration A_kk could be small and give rise to errors.  For this
  * reason, the algorithm is more complicated and the order of the equations
  * gets changed such that A_kk will be the largest of A_jk for (j>=k).  This
  * is known as partial pivoting.
- * 
+ *
  * Finally, we allow b_i to be a vector, e.g., b_i = (B_l)_i; l = 1...M
- * 
+ *
  * OF course, this algorithm will be formaulated in terms of 0 offset arrays.
- * 
+ *
  * Profiling indicates that there is a slight performance increase by
  * unrolling the loops.  To this end, small functions like combine_vectors
  * are used.
  */
 
 #define TOLERANCE 1e-23
-   
-int JDMgauss_elimin (double **a, double *b, unsigned int n, 
+
+int JDMgauss_elimin (double **a, double *b, unsigned int n,
 		     double epsilon, int *parityp)
 {
    unsigned int k, nm1;
@@ -129,7 +129,7 @@ int JDMgauss_elimin (double **a, double *b, unsigned int n,
 	     b[i] -= bk * factor;
 	  }
      }
-   
+
    if (fabs(a[nm1][nm1]) <= epsilon)
      {
 	JDMmsg_error ("JDMgauss_elimin: singular matrix");
@@ -142,7 +142,7 @@ int JDMgauss_elimin (double **a, double *b, unsigned int n,
    return 0;
 }
 
-int JDMgauss_elimin_n (double **a, unsigned int n, 
+int JDMgauss_elimin_n (double **a, unsigned int n,
 		       double **b, unsigned int m,   /* b[n][m] */
 		       double epsilon, int *parityp)
 {
@@ -241,7 +241,7 @@ int JDMback_subst (double **a, double *b, unsigned int n)
      {
 	double *ak;
 	unsigned int k1;
-	
+
 	k1 = k;
 	k--;
 	ak = a[k];
@@ -255,7 +255,7 @@ int JDMback_subst (double **a, double *b, unsigned int n)
 int JDMback_subst_n (double **a, unsigned int n,
 			    double **b, unsigned int m)
 {
-   unsigned int k;   
+   unsigned int k;
    if ((n == 0) || (a == NULL) || (b == NULL))
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
@@ -268,7 +268,7 @@ int JDMback_subst_n (double **a, unsigned int n,
 	unsigned int l, k1;
 	double *ak;
 	double akk;
-	
+
         k1 = k;
 	k--;
 	ak = a[k];
@@ -304,17 +304,17 @@ int JDMmatrix_inverse (double **a, unsigned int n)
 	memset ((char *) inv[i], 0, nbytes);
 	inv[i][i] = 1;
      }
-   
+
    if ((-1 == JDMgauss_elimin_n (a, n, inv, n, TOLERANCE, NULL))
        || (-1 == JDMback_subst_n (a, n, inv, n)))
      {
 	JDMfree_double_matrix (inv, n);
 	return -1;
      }
-   
+
    for (i = 0; i < n; i++)
      memcpy ((char *)a[i], (char *)inv[i], nbytes);
-   
+
    JDMfree_double_matrix (inv, n);
    return 0;
 }
@@ -333,13 +333,13 @@ static int solve (double **a, double *b, unsigned int n, int method)
 
 	return JDMback_subst (a, b, n);
      }
-   
+
    if (-1 == JDMmatrix_inverse (a, n))
      return -1;
-   
+
    bb = JDMdouble_vector (n);
    memcpy ((char *) bb, (char *)b, n * sizeof (double));
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int j;
@@ -359,17 +359,17 @@ int main (int argc, char **argv)
    double **a, *b, **a1, *b1;
 
    n = 50;
-   
+
    a = JDMdouble_matrix (n, n);
    a1 = JDMdouble_matrix (n, n);
    b = JDMdouble_vector (n);
    b1 = JDMdouble_vector (n);
-   
+
    for (i = 0; i < n; i++)
      {
 	for (j = 0; j < n; j++)
 	  a[i][j] = a1[i][j] = JDMrandom ();
-	
+
 	b[i] = b1[i] = JDMrandom ();
      }
 
@@ -380,11 +380,11 @@ int main (int argc, char **argv)
 	     double sum = 0;
 	     for (j = 0; j < n; j++)
 	       sum += a1[i][j] * b[j];
-	     
+
 	     fprintf (stdout, "%e\n", sum - b1[i]);
 	  }
      }
-   
+
    return 0;
 }
 #endif

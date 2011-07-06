@@ -73,7 +73,7 @@ static int init_caldb (void)
 
    if (Caldb_Inited)
      return 0;
-   
+
    if (NULL == (file = marx_make_data_file_name (Caldb_Index_File)))
      return -1;
 
@@ -92,11 +92,10 @@ static int init_caldb (void)
 
 	return -1;
      }
-   marx_free (file);   
+   marx_free (file);
    Caldb_Inited = 1;
    return 0;
 }
-
 
 char *_marx_caldb_get_file (char *object)
 {
@@ -104,7 +103,7 @@ char *_marx_caldb_get_file (char *object)
 
    if (-1 == init_caldb ())
      return NULL;
-   
+
    t = Caldb_Parm_Table;
    while (t->name != NULL)
      {
@@ -115,14 +114,14 @@ char *_marx_caldb_get_file (char *object)
 	     t++;
 	     continue;
 	  }
-	
+
 	file = *(char **) t->value;
 	if (NULL == (file = marx_make_data_file_name (file)))
 	  return NULL;
-	
+
 	return file;
      }
-   
+
    marx_error ("Unable to find %s caldb file", object);
    return NULL;
 }
@@ -134,7 +133,7 @@ static int is_keyword_str (JDFits_Type *ft, char *key, char *val)
 
    if (-1 == jdfits_read_keyword_string (ft, key, &s))
      return 0;
-   
+
    status = (0 == jdfits_strcasecmp (s, val));
    marx_free (s);
    return status;
@@ -146,7 +145,7 @@ static int is_keyword_int (JDFits_Type *ft, char *key, int val)
 
    if (-1 == jdfits_read_keyword_int (ft, key, &val1))
      return 0;
-   
+
    return (val == val1);
 }
 
@@ -169,10 +168,10 @@ static void tweak_chip (Marx_Detector_Geometry_Type *g)
    JDMVector_Type v;
    double theta = -3 * PI/180.0;
    double cos_theta, sin_theta;
-   
+
    if (g->id < 4)
      return;
-   
+
    cos_theta = cos(theta);
    sin_theta = sin(theta);
 
@@ -192,14 +191,13 @@ static void set_vector (JDMVector_Type *v, double *xyz)
    v->z = xyz[2];
 }
 
-
 static int set_corner_data (Marx_Detector_Geometry_Type *g,
 			    JDFits_Col_Data_Type *c)
 {
    int chip_id;
 
    chip_id = c[0].data.i[0];
-   
+
    while (g != NULL)
      {
 	if (g->id == chip_id)
@@ -228,7 +226,7 @@ static int patch_detector_geom (Marx_Detector_Type *d,
 
    if (NULL == (file = _marx_caldb_get_file ("GEOM")))
      return -1;
-   
+
    ft = jdfits_find_binary_table (file, ext_fun, NULL);
    if (ft == NULL)
      {
@@ -239,7 +237,7 @@ static int patch_detector_geom (Marx_Detector_Type *d,
    r = jdfits_bintable_open_rows (ft, 5, "i:CHIP_ID", "d:LL", "d:LR", "d:UL", "d:UR");
    if (r == NULL)
      goto return_error;
-   
+
    c = r->col_data;
    if ((-1 == check_repeat (c, 1, 0))
        || (-1 == check_repeat (c, 3, 1))
@@ -274,7 +272,7 @@ static int ext_instgeom_acis_fun (void *unused, JDFits_Type *ft)
    if (is_keyword_str(ft, "EXTNAME", "INSTGEOM")
        && is_keyword_str (ft, "INSTRUME", "ACIS"))
      return 1;
-   
+
    return 0;
 }
 int _marx_caldb_patch_acis_geom (Marx_Detector_Type *d)
@@ -288,7 +286,7 @@ static int ext_instgeom_hrc_s_fun (void *unused, JDFits_Type *ft)
    if (is_keyword_str(ft, "EXTNAME", "INSTGEOM")
        && is_keyword_str (ft, "INSTRUME", "HRC-S"))
      return 1;
-   
+
    return 0;
 }
 
@@ -303,7 +301,7 @@ int _marx_caldb_patch_hrc_s_geom (Marx_Detector_Type *d)
 static void remove_trailing_whitespace (char *s)
 {
    char *e;
-   
+
    e = s + strlen (s);
    while (e > s)
      {
@@ -321,7 +319,7 @@ static int read_3d_from_named_row (char *object, char *extnam, char *columns[2],
    JDFits_Col_Data_Type *c;
    JDFits_Row_Type *r;
    char *file;
-   
+
    file = _marx_caldb_get_file (object);
 
    if (file == NULL)
@@ -333,7 +331,7 @@ static int read_3d_from_named_row (char *object, char *extnam, char *columns[2],
 	marx_free (file);
 	return -1;
      }
-   
+
    if (NULL == (r = jdfits_bintable_aopen_rows (ft, 2, columns)))
      goto return_error;
 
@@ -366,13 +364,13 @@ static int read_3d_from_named_row (char *object, char *extnam, char *columns[2],
 }
 
 static int patch_aimpoint (Marx_Detector_Type *d)
-{  
+{
    char *aimpt;
-   static char *columns[2] = 
+   static char *columns[2] =
      {
 	"a:AIMPOINT_NAME", "d:AIMPOINT"
      };
-   
+
    switch (d->detector_type)
      {
       case MARX_DETECTOR_HRC_S:
@@ -390,7 +388,7 @@ static int patch_aimpoint (Marx_Detector_Type *d)
       case MARX_DETECTOR_ACIS_I:
 	aimpt = "AI2";
 	break;
-	
+
       default:
 	return 0;
      }
@@ -399,9 +397,9 @@ static int patch_aimpoint (Marx_Detector_Type *d)
 }
 
 static int patch_origin (Marx_Detector_Type *d)
-{       
+{
    char *inst;
-   static char *columns[2] = 
+   static char *columns[2] =
      {
 	"a:INSTRUMENT", "d:ORIGIN"
      };
@@ -420,15 +418,14 @@ static int patch_origin (Marx_Detector_Type *d)
       case MARX_DETECTOR_ACIS_S:
 	inst = "ACIS";
 	break;
-	
+
       default:
 	return 0;
      }
-   
-   return read_3d_from_named_row ("GEOM", "INSTRUMENTS", columns, inst, 
+
+   return read_3d_from_named_row ("GEOM", "INSTRUMENTS", columns, inst,
 				  &d->stt_lsi_offset);
 }
-
 
 int _marx_caldb_patch_aimpoint (Marx_Detector_Type *d)
 {
@@ -462,7 +459,7 @@ static int ext_acis_qe_fun (void *vccdid, JDFits_Type *ft)
    if (is_keyword_str(ft, "EXTNAME", "AXAF_QE")
        && is_keyword_int (ft, "CCD_ID", ccdid))
      return 1;
-   
+
    return 0;
 }
 
@@ -480,7 +477,7 @@ int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np)
 
    if (NULL == (file = _marx_caldb_get_file ("ACISQE")))
      return -1;
-   
+
    marx_message ("\t%s for [CCDID = %d]\n", file, ccdid);
    ft = jdfits_find_binary_table (file, ext_acis_qe_fun, (void *)&ccdid);
    if (ft == NULL)
@@ -492,12 +489,12 @@ int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np)
    r = jdfits_bintable_open_rows (ft, 2, "f:ENERGY", "f:QE");
    if (r == NULL)
      goto return_error;
-   
+
    c = r->col_data;
    if (-1 == check_repeat (c, 1, 0)
        || (-1 == check_repeat (c, 1, 1)))
      goto return_error;
-   
+
    num_rows = r->num_rows;
    if (num_rows < 2)
      {
@@ -511,7 +508,7 @@ int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np)
 
    if (en == NULL)
      goto return_error;
-   
+
    for (i = 0; i < num_rows; i++)
      {
 	if (1 != jdfits_read_next_row (ft, r))
@@ -529,7 +526,7 @@ int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np)
    jdfits_bintable_close_rows (r);
    (void) jdfits_close_file (ft);
    return 0;
-   
+
    return_error:
    marx_free ((char *) qe);
    marx_free ((char *) en);
@@ -545,14 +542,14 @@ static int ext_hduname_fun (void *vhdunam, JDFits_Type *f)
    char *hduname = (char *) vhdunam;
    if (is_keyword_str (f, "HDUNAME", hduname))
      return 1;
-   
+
    return 0;
 }
 
 JDFits_Type *_marx_open_binary_hdu (char *file, char *hduname)
 {
    JDFits_Type *f;
-   
+
    f = jdfits_find_binary_table (file, ext_hduname_fun, (void *) hduname);
    if (f == NULL)
      marx_error ("Unable to find an extension with HDUNAME=%s in %s", hduname, file);

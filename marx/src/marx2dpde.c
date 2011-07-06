@@ -48,17 +48,17 @@
  * Date: Mon, 01 Apr 1996 16:48:17 -0500
  * From: "Richard J. Edgar" <edgar@head-cfa.harvard.edu>
  * Status: RO
- * 
- * 
+ *
+ *
  * Mike & Jiahong,
- * 
+ *
  * Here's the include file we use with all these "phot" photons,
  * which gives the C structures in question.  The one we want is
  * PhotonDPDE.  This file is in /proj/axaf/Simul/include/photon.h
  * on the CfA HEAD computer system.  The <fullray.h> file it
  * needs is in the same directory.  The energies are in keV, and
  * the coordinates are in mm, with our coordinate system;
- * z increases along the optical axis from the HRMA towards 
+ * z increases along the optical axis from the HRMA towards
  * the focus, with zero at a point of your choice (we typically
  * use 1000 mm in front of the front of the CAP); y is "up" in
  * the XRCF configuration, and x completes a right-handed coordinate
@@ -88,7 +88,6 @@ typedef struct /*{{{*/
 
 /*}}}*/
 DPDE_Type;
-   
 
 static void usage (void) /*{{{*/
 {
@@ -99,14 +98,13 @@ static void usage (void) /*{{{*/
 
 /*}}}*/
 
-
 static FILE *open_input_file (char *dir, char *file, int32 *num_elements) /*{{{*/
 {
    Marx_Dump_File_Type *dft;
-   
+
    if (NULL == (file = marx_dircat (dir, file)))
      return NULL;
-   
+
    if (NULL == (dft = marx_open_read_dump_file (file)))
      {
 	free (file);
@@ -120,7 +118,7 @@ static FILE *open_input_file (char *dir, char *file, int32 *num_elements) /*{{{*
 	*num_elements = dft->num_rows;
 	return dft->fp;
      }
-   
+
    marx_error ("File %s does not contain floating point data.", file);
    free (file);
    fclose (dft->fp);
@@ -128,7 +126,6 @@ static FILE *open_input_file (char *dir, char *file, int32 *num_elements) /*{{{*
 }
 
 /*}}}*/
-
 
 static int dpde_create (char *dir, char *output_file) /*{{{*/
 {
@@ -144,7 +141,7 @@ static int dpde_create (char *dir, char *output_file) /*{{{*/
    fp_e = fp_x = fp_y = fp_z = fp_dx = fp_dy = fp_dz = fpout = NULL;
 
    ret = 1;
-   
+
    if ((NULL == (fp_e = open_input_file (dir, "energy.dat", &num_elements)))
        || (NULL == (fp_x = open_input_file (dir, "xpos.dat", &num_elements)))
        || (NULL == (fp_y = open_input_file (dir, "ypos.dat", &num_elements)))
@@ -155,18 +152,18 @@ static int dpde_create (char *dir, char *output_file) /*{{{*/
      {
 	goto return_error;
      }
-   
+
    if (NULL == (fpout = fopen (output_file, "wb")))
      {
 	fprintf (stderr, "Unable to open output file %s\n", output_file);
 	goto return_error;
      }
-   
+
    /* No we are set.  First write out the dpde header */
    header.exposure = 0.0;
    header.n = num_elements;
    header.ftype = 12;
-   
+
    if ((1 != JDMwrite_float32 (&header.exposure, 1, fpout))
        || (1 != JDMwrite_int32 (&header.n, 1, fpout))
        || (1 != JDMwrite_int32 (&header.ftype, 1, fpout)))
@@ -174,7 +171,7 @@ static int dpde_create (char *dir, char *output_file) /*{{{*/
 	marx_error ("Write error.");
 	goto return_error;
      }
-   
+
    while (num_elements > 0)
      {
 	if ((1 != JDMread_float32 (&x, 1, fp_x))
@@ -188,7 +185,7 @@ static int dpde_create (char *dir, char *output_file) /*{{{*/
 	     marx_error ("Read error.");
 	     goto return_error;
 	  }
-	
+
 	output_array[0] = -y;
 	output_array[1] = z;
 	output_array[2] = x_offset + x;
@@ -197,7 +194,7 @@ static int dpde_create (char *dir, char *output_file) /*{{{*/
 	output_array[5] = dx;
 	output_array[6] = 1.0;
 	output_array[7] = en;
-	
+
 	if (8 != JDMwrite_float64 (output_array, 8, fpout))
 	  {
 	     marx_error ("Write error.");
@@ -210,7 +207,7 @@ static int dpde_create (char *dir, char *output_file) /*{{{*/
    ret = 0;
    /* drop */
    return_error:
-   
+
    if (fp_e != NULL) fclose (fp_e);
    if (fp_x != NULL) fclose (fp_x);
    if (fp_y != NULL) fclose (fp_y);
@@ -230,15 +227,15 @@ static int dpde_dump (char *file) /*{{{*/
    DPDE_Type dpde;
    float32 exposure;
    int32 n, ftype, ncounted;
-   
+
    fp = fopen (file, "rb");
-   
+
    if (fp == NULL)
      {
 	marx_error ("Unable to open %s\n", file);
 	return -1;
      }
-   
+
    if ((1 != JDMread_float32 (&exposure, 1, fp))
        || (1 != JDMread_int32 (&n, 1, fp))
        || (1 != JDMread_int32 (&ftype, 1, fp)))
@@ -247,19 +244,19 @@ static int dpde_dump (char *file) /*{{{*/
 	fclose (fp);
 	return -1;
      }
-   
-   fprintf (stdout, "#Exposure: %f\n#number: %d\n#type: %d\n", 
+
+   fprintf (stdout, "#Exposure: %f\n#number: %d\n#type: %d\n",
 	    exposure, n, ftype);
 
    if (12 != ftype)
-     {    
+     {
 	marx_error ("DPDE file mismatch.  Type %d expected.", ftype);
 	fclose (fp);
 	return -1;
      }
-   
+
    ncounted = 0;
-   
+
    while (8 == JDMread_float64 (&dpde.x, 8, fp))
      {
 	fprintf (stdout, "%16e\t%16e\t%16e\t%16e\t%16e\t%16e\t%16e\t%16e\n",
@@ -267,19 +264,18 @@ static int dpde_dump (char *file) /*{{{*/
 		 dpde.wt, dpde.energy);
 	ncounted++;
      }
-   
+
    if ((n != 0)
        && (n != ncounted))
      {
 	marx_error ("Warning: %d records read, %d expected.\n", ncounted, n);
      }
-   
+
    fclose (fp);
    return 0;
 }
 
 /*}}}*/
-
 
 int main (int argc, char **argv) /*{{{*/
 {
@@ -292,11 +288,9 @@ int main (int argc, char **argv) /*{{{*/
      {
 	return dpde_dump (argv[2]);
      }
-   
+
    return dpde_create (argv[1], argv[2]);
 }
 
 /*}}}*/
 
-
-   

@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -43,14 +42,14 @@
 
 /* The ACIS gain table is a single fits extension that consists of columns:
  * CHIPX_MIN/MAX, CHIPY_MIN/MAX, PHA[], ENERGY[], SIGMA[], NPOINTS
- * where NPOINTS specifies the length of the PHA, ENERGY, and SIGMA 
- * vectors.  
- * 
+ * where NPOINTS specifies the length of the PHA, ENERGY, and SIGMA
+ * vectors.
+ *
  * Unfortunately, the regions defined by the CHIPX/Y_MIN/MAX values are not
  * uniform in size.  However, the values are _supposed_ to be multiples
  * of 32 and this is what will be assumed in this code.  Hence, at most
  * there will be 32x32=1024 regions per CCD.
- * 
+ *
  * This file is ugly because with FITS, you never know what you are going to
  * get.  So you have got to be ready for anything.
  */
@@ -59,7 +58,7 @@
 #define GAIN_MAP_EXTNAME "AXAF_DETGAIN"
 
 #define NUM_GAIN_COLUMNS	9
-static char *Gain_Columns [NUM_GAIN_COLUMNS] = 
+static char *Gain_Columns [NUM_GAIN_COLUMNS] =
 {
    "i:CCD_ID", "i:NPOINTS", "f:ENERGY", "f:PHA", "f:SIGMA",
    "i:CHIPX_MIN", "i:CHIPX_MAX", "i:CHIPY_MIN", "i:CHIPY_MAX"
@@ -74,7 +73,7 @@ static char *Gain_Columns [NUM_GAIN_COLUMNS] =
 #define CHIPYMIN_COLUMN	7
 #define CHIPYMAX_COLUMN	8
 
-typedef struct 
+typedef struct
 {
    unsigned int num_points;
    float *energies;		       /* malloced */
@@ -98,18 +97,16 @@ static Gain_Map_Type *Gain_Map_Tables[NUM_ACIS_CCDS];
 static void free_gain_lookup_tables (unsigned int min_ccdid, unsigned int max_ccdid)
 {
    unsigned int i;
-   
+
    for (i = min_ccdid; i <= max_ccdid; i++)
      {
 	if (Gain_Map_Tables[i] == NULL)
 	  continue;
-	
+
 	marx_free ((char *) Gain_Map_Tables[i]);
 	Gain_Map_Tables[i] = NULL;
      }
 }
-
-	  
 
 static int allocate_gain_lookup_tables (unsigned int min_ccdid, unsigned max_ccdid)
 {
@@ -120,13 +117,13 @@ static int allocate_gain_lookup_tables (unsigned int min_ccdid, unsigned max_ccd
 	marx_error ("Internal Error: min/max_ccdid > NUM_ACIS_CCDS");
 	return -1;
      }
-   
+
    free_gain_lookup_tables (min_ccdid, max_ccdid);
 
    for (i = min_ccdid; i <= max_ccdid; i++)
      {
 	Gain_Map_Type *g;
-	
+
 	g = (Gain_Map_Type *) marx_malloc (sizeof (Gain_Map_Type));
 	if (g == NULL)
 	  {
@@ -136,7 +133,7 @@ static int allocate_gain_lookup_tables (unsigned int min_ccdid, unsigned max_ccd
 	memset ((char *) g, 0, sizeof (Gain_Map_Type));
 	Gain_Map_Tables[i] = g;
      }
-   
+
    return 0;
 }
 
@@ -148,7 +145,7 @@ static int allocate_gain_type (Gain_Type *g, unsigned int npoints)
    g->phas = g->energies + npoints;
    g->sigmas = g->phas + npoints;
    g->num_points = npoints;
-   
+
    return 0;
 }
 
@@ -172,8 +169,7 @@ static void free_gain_maps (void)
    Num_Gain_Maps = 0;
 }
 
-
-static int map_gain_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax, 
+static int map_gain_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax,
 			       Gain_Type *g)
 {
    Gain_Map_Type *m;
@@ -184,15 +180,15 @@ static int map_gain_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax
 	marx_error ("Invalid CCD_ID value in gain file: %d", ccdid);
 	return -1;
      }
-   
+
    if (xmin < 1) xmin = 1;
    if (ymin < 1) ymin = 1;
    if (xmax > 1024) xmax = 1024;
    if (ymax > 1024) ymax = 1024;
-   
+
    xmin--;			       /* 1->0 based */
    ymin--;
-   
+
    if ((xmax % MIN_REGION_SIZE)
        || (ymax % MIN_REGION_SIZE)
        || (xmin % MIN_REGION_SIZE)
@@ -202,7 +198,7 @@ static int map_gain_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax
 		    MIN_REGION_SIZE);
 	return -1;
      }
-   
+
    m = Gain_Map_Tables[ccdid];
    if (m == NULL)
      {
@@ -214,7 +210,7 @@ static int map_gain_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax
    xmax /= MIN_REGION_SIZE;
    ymin /= MIN_REGION_SIZE;
    ymax /= MIN_REGION_SIZE;
-   
+
    for (i = xmin; i < xmax; i++)
      {
 	int j;
@@ -228,14 +224,14 @@ static int map_gain_to_region (int ccdid, int xmin, int ymin, int xmax, int ymax
 	     m->map[i][j] = g;
 	  }
      }
-   
+
    return 0;
 }
 
 static int check_gain_map_for_holes (int min_ccdid, int max_ccdid)
 {
    int ccdid;
-   
+
    for (ccdid = min_ccdid; ccdid <= max_ccdid; ccdid++)
      {
 	Gain_Map_Type *m = Gain_Map_Tables[ccdid];
@@ -246,14 +242,14 @@ static int check_gain_map_for_holes (int min_ccdid, int max_ccdid)
 	     marx_error ("Internal Error: Gain_Map_Tables[%d] is NULL", ccdid);
 	     return -1;
 	  }
-	
+
 	for (i = 0; i < NUM_REGIONS; i++)
 	  {
 	     for (j = 0; j < NUM_REGIONS; j++)
 	       {
 		  if (m->map[i][j] != NULL)
 		    continue;
-		  
+
 		  marx_message ("***Warning: Gain Map for CCDID=%d contains holes\n",
 				ccdid);
 		  i = NUM_REGIONS;
@@ -261,10 +257,9 @@ static int check_gain_map_for_holes (int min_ccdid, int max_ccdid)
 	       }
 	  }
      }
-   
+
    return 0;
 }
-
 
 static int check_monotonicity (float *p, unsigned int n)
 {
@@ -281,9 +276,8 @@ static int check_monotonicity (float *p, unsigned int n)
    return 0;
 }
 
-
 static int check_gain_validity (Gain_Type *g)
-{  
+{
    float *p, *pmax;
 
    if (-1 == check_monotonicity (g->energies, g->num_points))
@@ -296,7 +290,7 @@ static int check_gain_validity (Gain_Type *g)
 	marx_error ("Gain Map does not have monotonically increasing PHAs");
 	return -1;
      }
-   
+
    p = g->energies;
    pmax = p + g->num_points;
    while (p < pmax)
@@ -304,7 +298,7 @@ static int check_gain_validity (Gain_Type *g)
 	*p *= 1e-3;		       /* convert to keV */
 	p++;
      }
-   
+
    return 0;
 }
 
@@ -343,7 +337,7 @@ static int read_gain_map (char *file, int min_ccdid, int max_ccdid)
 	jdfits_close_file (f);
 	return -1;
      }
-   
+
    if (0 == (num_rows = r->num_rows))
      {
 	marx_error ("ACIS gain table %s contains NO data.", file);
@@ -382,16 +376,16 @@ static int read_gain_map (char *file, int min_ccdid, int max_ccdid)
 	     goto return_error_bad_row;
 	  }
 	c = r->col_data;
-	
+
 	ccdid = c[CCDID_COLUMN].data.i[0];
 	if ((ccdid < min_ccdid)
 	    || (ccdid > max_ccdid))
 	  continue;
-	
+
 	npoints = c[NPOINTS_COLUMN].data.i[0];
 	if (npoints <= 0)
 	  continue;
-	
+
 	if (npoints == 1)
 	  {
 	     marx_error ("Expecting Number of points (NPOINTS) to be greater than 1");
@@ -408,7 +402,7 @@ static int read_gain_map (char *file, int min_ccdid, int max_ccdid)
 
 	if (-1 == allocate_gain_type (g, npoints))
 	  goto return_error_bad_row;
-	
+
 	xmin = c[CHIPXMIN_COLUMN].data.i[0];
 	ymin = c[CHIPYMIN_COLUMN].data.i[0];
 	xmax = c[CHIPXMAX_COLUMN].data.i[0];
@@ -416,7 +410,7 @@ static int read_gain_map (char *file, int min_ccdid, int max_ccdid)
 	memcpy (g->energies, (char *)c[ENERGY_COLUMN].data.f, npoints * sizeof (float));
 	memcpy (g->phas, (char *)c[PHA_COLUMN].data.f, npoints * sizeof (float));
 	memcpy (g->sigmas, (char *)c[SIGMA_COLUMN].data.f, npoints * sizeof (float));
-	
+
 	if (-1 == check_gain_validity (g))
 	  goto return_error_bad_row;
 
@@ -484,29 +478,29 @@ short _marx_apply_acis_gain_map (_Marx_Acis_Chip_Type *c, float x, float y, doub
 
    i = (unsigned int) (x / MIN_REGION_SIZE);
    j = (unsigned int) (y / MIN_REGION_SIZE);
-   
+
    if ((i >= NUM_REGIONS) || (j >= NUM_REGIONS))
      return -1;
-   
+
    if ((c->ccd_id < 0) || (c->ccd_id >= NUM_ACIS_CCDS))
      {
 	marx_message ("_marx_apply_acis_gain_map: ccdid is out of range\n");
 	return -1;
      }
-   
+
    m = Gain_Map_Tables[c->ccd_id];
    if (m == NULL)
      return -1;
-   
+
    g = m->map[i][j];
    if (g == NULL)
      return -1;
-   
+
    pha = JDMinterpolate_f (energy, g->energies, g->phas, g->num_points);
    sigma = JDMinterpolate_f (energy, g->energies, g->sigmas, g->num_points);
-   
+
    pha += sigma * JDMgaussian_random ();
-   
+
    if (pha < 0.0)
      return -1;
 

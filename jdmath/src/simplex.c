@@ -13,11 +13,11 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 /* This routine implements the simplex algorithm for the minimization of
  * functions.  It is based on my understanding of the simplex concept as
- * described in Numerical Recipes; however, it is not derived from the code 
+ * described in Numerical Recipes; however, it is not derived from the code
  * there.
  */
 #include "config.h"
@@ -44,7 +44,7 @@ void JDMset_simplex_parameters (JDMSimplex_Type *p, int set)
    if (set == 0)
      {
 	if (p == NULL) return;
-	
+
 	p->reflect = Simplex_Reflect;
 	p->contract = Simplex_Contract;
 	p->stretch = Simplex_Stretch;
@@ -55,7 +55,7 @@ void JDMset_simplex_parameters (JDMSimplex_Type *p, int set)
 	p->check_validity_fun = Validity_Function;
 	return;
      }
-   
+
    if (p != NULL)
      {
 	if (p->reflect > 1.0)
@@ -64,7 +64,7 @@ void JDMset_simplex_parameters (JDMSimplex_Type *p, int set)
 	  Simplex_Contract = p->contract;
 	if (p->stretch > 1.0)
 	  Simplex_Stretch = p->stretch;
-	
+
 	Max_Iterations = p->max_iterations;
 	Simplex_Precision = p->precision;
 	Progress_Function = p->report_fun;
@@ -85,7 +85,7 @@ void JDMset_simplex_parameters (JDMSimplex_Type *p, int set)
 }
 
 static void find_highest_point (double *y_vector, unsigned int npts,
-				unsigned int *ihi, double *hi, 
+				unsigned int *ihi, double *hi,
 				unsigned int *ilo, double *lo,
 				unsigned int *inext_hi, double *next_hi)
 {
@@ -93,7 +93,7 @@ static void find_highest_point (double *y_vector, unsigned int npts,
    double highest, lowest, next_highest;
    unsigned int i_highest, i_lowest, i_next_highest;
    double y;
-   
+
    highest = y_vector[0];
    lowest  = y_vector[1];
    if (highest < lowest)
@@ -110,9 +110,9 @@ static void find_highest_point (double *y_vector, unsigned int npts,
 	i_lowest = 1;
 	next_highest = highest;
      }
-   
+
    i_next_highest = i_highest;
-   
+
    for (i = 1; i < npts; i++)
      {
 	y = y_vector[i];
@@ -140,10 +140,10 @@ static void find_highest_point (double *y_vector, unsigned int npts,
 }
 
 /* We do not want to call this routine two much since it does not work well
- * with the CPU cache.  If possible, the COM is adjusted inline.  It ignores 
+ * with the CPU cache.  If possible, the COM is adjusted inline.  It ignores
  * the contribution from the point specified by 'hi'.
  */
-static void compute_com (double **pnts, 
+static void compute_com (double **pnts,
 			 unsigned int npts,
 			 unsigned int ndim, double *com, unsigned int hi,
 			 unsigned int lo,
@@ -152,11 +152,11 @@ static void compute_com (double **pnts,
    unsigned int i, j;
    double sum;
    double dnpts;
-   
+
    (void) lo; (void) y;
-   
+
    dnpts = npts - 1.0;
-   
+
    for (i = 0; i < ndim; i++)
      {
 	sum = 0.0;
@@ -169,22 +169,19 @@ static void compute_com (double **pnts,
      }
 }
 
-
-	     
-
 /* stretch nth point about the COM by lambda. */
-static void stretch (double **pnts, unsigned int npts, unsigned int ndim, 
-		     unsigned int nth, 
+static void stretch (double **pnts, unsigned int npts, unsigned int ndim,
+		     unsigned int nth,
 		     double lambda, double *com)
 {
    double *xn, *xnmax, oldx, c;
 
    (void) npts;
-   
+
    xn = pnts[nth];
    xnmax = xn + ndim;
-   
-   while (xn < xnmax) 
+
+   while (xn < xnmax)
      {
 	oldx = *xn;
 	c = *com++;
@@ -195,29 +192,29 @@ static void stretch (double **pnts, unsigned int npts, unsigned int ndim,
 /* contract all points toward the nth one by a factor of lambda.
  * It does NOT compute the COM.
  */
-static void contract (double **pnts, unsigned int npts, unsigned int ndim, 
+static void contract (double **pnts, unsigned int npts, unsigned int ndim,
 		      unsigned int nth,
 		      double lambda)
 {
    double *xn, *xnmax, oldx;
    double *xnth_ptr, *xnth_save_ptr, xnth;
    unsigned int n;
-   
+
    xnth_save_ptr = pnts[nth];
-   
+
    for (n = 0; n < npts; n++)
      {
 	if (n == nth) continue;
-	
+
 	xn = pnts[n];
 	xnmax = xn + ndim;
 	xnth_ptr = xnth_save_ptr;
-	
-	while (xn < xnmax) 
+
+	while (xn < xnmax)
 	  {
 	     oldx = *xn;
 	     xnth = *xnth_ptr++;
-	     
+
 	     *xn++ = xnth + lambda * (oldx - xnth);
 	  }
      }
@@ -232,14 +229,14 @@ static int simplex (double **pnts, unsigned int npts, unsigned int ndim,
    int max_iter;
    double *com, *y_vector;
    double y;
-   
+
    /* allocate space for the COM array */
    com = JDMdouble_vector (ndim);
    if (com == NULL)
      {
 	return -1;
      }
-   
+
    /* Now the array for function evaluations */
    y_vector = JDMdouble_vector (npts);
    if (y_vector == NULL)
@@ -254,32 +251,31 @@ static int simplex (double **pnts, unsigned int npts, unsigned int ndim,
    while (max_iter++ < Max_Iterations)
      {
 	double hi_lo_diff;
-	
+
 	find_highest_point (y_vector, npts,
 			    &i_hi, &hi, &i_lo, &lo, &i_next_hi, &next_hi);
 
-	if ((Progress_Function != NULL) 
+	if ((Progress_Function != NULL)
 	    && ((max_iter % Simplex_Report_Freq) == 0))
 	  {
 	     (*Progress_Function) (max_iter, lo, hi, i_lo, i_hi);
 	  }
 
 	if (JDMUser_Break) break;
-	
+
 	hi_lo_diff = hi - lo;
-	
+
 	if (hi_lo_diff <= (fabs(hi) + fabs(lo)) * Simplex_Precision)
 	  break;
-	
+
 	compute_com (pnts, npts, ndim, com, i_hi, i_lo, y_vector);
-	
-	
+
 	/* Try to reflect highest about COM */
 	stretch (pnts, npts, ndim, i_hi, -Simplex_Reflect, com);
-	
+
 	y = (*f)(pnts[i_hi], ndim, user);
-	
-	if (y <= lo) 
+
+	if (y <= lo)
 	  {
 	     hi = y_vector[i_hi] = y;
 	     stretch (pnts, npts, ndim, i_hi, Simplex_Stretch, com);
@@ -296,42 +292,41 @@ static int simplex (double **pnts, unsigned int npts, unsigned int ndim,
 	  {
 	     stretch (pnts, npts, ndim, i_hi, Simplex_Contract, com);
 	     y = (*f)(pnts[i_hi], ndim, user);
-	     
+
              if (y < next_hi)	       /* was: y < next_hi */
 	       {
 		  y_vector[i_hi] = y;
 		  continue;
 	       }
-	     
+
 	     stretch (pnts, npts, ndim, i_hi, -1.0 / Simplex_Reflect, com);
-	     
+
 	     y = (*f)(pnts[i_hi], ndim, user);
-	     
+
 	     if (y < hi)
 	       {
 		  y_vector[i_hi] = y;
 		  continue;
 	       }
-	     
-	     
+
 	     stretch (pnts, npts, ndim, i_hi, 1.0 / Simplex_Contract, com);
 	     contract (pnts, npts, ndim, i_lo, Simplex_Contract);
-	       
-#if 0	  
+
+#if 0
 	     if (y < hi)
 	       {
 		  y_vector[i_hi] = y;
 		  continue;
 	       }
-	     
+
 	     /* put it back and simply contract */
-	     stretch (pnts, npts, ndim, i_hi, 
+	     stretch (pnts, npts, ndim, i_hi,
 		      -1.0 / (Simplex_Contract * Simplex_Reflect), com);
 
 	     contract (pnts, npts, ndim, i_lo, Simplex_Contract, com);
-#endif	     
+#endif
 	     /* Now adjust y_vector */
-	     for (i = 0; i < npts; i++) 
+	     for (i = 0; i < npts; i++)
 	       {
 		  if (i != i_lo)
 		    y_vector[i] = (*f)(pnts[i], ndim, user);
@@ -339,12 +334,12 @@ static int simplex (double **pnts, unsigned int npts, unsigned int ndim,
 	  }
 	else y_vector[i_hi] = y;
      }
-   
+
    /* Re-evaluate in-case last operation screwed up lo */
    for (i = 0; i < npts; i++) y_vector[i] = (*f)(pnts[i], ndim, user);
    find_highest_point (y_vector, npts,
 		       &i_hi, &hi, &i_lo, &lo, &i_next_hi, &next_hi);
-   
+
    JDMfree_double_vector (com);
    JDMfree_double_vector (y_vector);
    *lowest = lo;
@@ -363,7 +358,6 @@ typedef struct
    JDM_User_Type *luser;
 }
 Simplex_Chi_Square_Type;
-
 
 double (*JDMSimplex_Chisqr)
 (
@@ -387,7 +381,7 @@ static double compute_chisqr (double *parms, unsigned int nparms, JDM_User_Type 
    double ans, chisqr;
 
    (void) nparms;
-   
+
    user = (Simplex_Chi_Square_Type *) luser;
    f = user->f;
    imax = user->ndata_points;
@@ -397,7 +391,7 @@ static double compute_chisqr (double *parms, unsigned int nparms, JDM_User_Type 
    luser = user->luser;
    parm_list = user->parm_list;
    num_parms = user->num_parms;
-   
+
    /* Now, fixup the parm list to the order that the function expects. */
 
    v = user->vary_list;
@@ -409,16 +403,16 @@ static double compute_chisqr (double *parms, unsigned int nparms, JDM_User_Type 
 	if (*v++) *u = *p++;
 	u++;
      }
-   
+
    if (Validity_Function != NULL)
      {
 	if (0 == (*Validity_Function) (parm_list, num_parms))
 	  return MAX_CHISQR;
      }
-   
+
    if (JDMSimplex_Chisqr != NULL)
      return (*JDMSimplex_Chisqr) (xp, yp, dyp, imax, parm_list, num_parms, luser, f);
-   
+
    chisqr = 0.0;
 #if 1
    for (i = 0; i < imax; i++)
@@ -448,17 +442,16 @@ static double compute_chisqr (double *parms, unsigned int nparms, JDM_User_Type 
    return chisqr;
 }
 
-
 static void init_simplex_point (double *vector, double *parms,
-				unsigned int *vary_list, 
-				unsigned int nparms, double scale, 
+				unsigned int *vary_list,
+				unsigned int nparms, double scale,
 				unsigned int vparm)
 {
    unsigned int i;
    unsigned int n;
    unsigned int i_to_vary = 0;
    double p;
-   
+
    n = 0;
    /* Make a copy of the parameter list but mark one we want to vary */
    for (i = 0; i < nparms; i++)
@@ -470,7 +463,7 @@ static void init_simplex_point (double *vector, double *parms,
 	     n++;
 	  }
      }
-   
+
    p = parms[i_to_vary];
    do
      {
@@ -480,8 +473,7 @@ static void init_simplex_point (double *vector, double *parms,
    while ((scale != 0.0)
 	  && (Validity_Function != NULL)
 	  && (0 == (*Validity_Function)(vector, nparms)));
-   
-   
+
    n = 0;
    for (i = 0; i < nparms; i++)
      {
@@ -493,7 +485,6 @@ static void init_simplex_point (double *vector, double *parms,
      }
 }
 
-   
 int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
 			 double *parm_list, unsigned int n_parms,
 			 unsigned int *vary_list, double scale,
@@ -507,7 +498,7 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
    int return_value;
    unsigned int best_i, i;
    unsigned int matrix_dim0, matrix_dim1;
-   
+
    v = vary_list;
    vmax = v + n_parms;
    vparms = 0;
@@ -522,7 +513,7 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
    scst.vary_list = vary_list;
    scst.num_parms = n_parms;
    scst.luser = user;
-   
+
    matrix_dim0 = vparms + 1;
    matrix_dim1 = n_parms;	       /* Use n_parms instead of vparms because
 					* init_simplex_point will use the extra
@@ -530,8 +521,8 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
 					*/
    simplex_pnt_matrix = JDMdouble_matrix (matrix_dim0, matrix_dim1);
    if (simplex_pnt_matrix == NULL) return -1;
-   
-   /* Now initialize the simplex.  The vary_list together with the scale 
+
+   /* Now initialize the simplex.  The vary_list together with the scale
     * parameter determines the simplex.
     */
    v = vary_list;
@@ -539,7 +530,7 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
    vparms = 0;
    init_simplex_point (simplex_pnt_matrix[0],
 		       parm_list, vary_list, n_parms, 0.0, 0);
-   while (v < vmax) 
+   while (v < vmax)
      {
 	if (*v++)
 	  {
@@ -550,18 +541,17 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
 	  }
      }
 
-   
    return_value =  simplex (simplex_pnt_matrix, matrix_dim0, matrix_dim1,
 			    compute_chisqr,
 			    chisqr, &best_i,
 			    (JDM_User_Type *) (void *)&scst);
-   
+
    /* The next call is to simply make sure that the caller gets
     * the best value.
     */
    *chisqr = compute_chisqr (simplex_pnt_matrix[best_i],
 			     vparms, (JDM_User_Type *) (void *)&scst);
-   
+
    vparms = 0;
    for (i = 0; i < n_parms; i++)
      {
@@ -576,4 +566,3 @@ int JDMsimplex_best_fit (double *xp, double *yp, double *dyp, unsigned int npts,
    return return_value;
 }
 
-   

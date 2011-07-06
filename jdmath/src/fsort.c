@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -30,7 +30,7 @@ static int float_cmp (unsigned int *a, unsigned *b)
 {
    float x, y;
    float *xp, *yp;
-   
+
    x = *(xp = Sort_Array + *a);
    y = *(yp = Sort_Array + *b);
    if (x > y) return 1; else if (x < y) return -1;
@@ -47,12 +47,12 @@ unsigned int *JDMsort_floats (float *x, unsigned int n)
    void (*qsort_fun) (char *, unsigned int, int, int (*)(unsigned int *, unsigned int *));
    unsigned int *index_array;
    unsigned int i;
-   
+
    if (NULL == (index_array = (unsigned int *) JDMinteger_vector (n)))
      return NULL;
-   
-   qsort_fun = (void (*)(char *, unsigned int, int, int (*)(unsigned int *, 
-							    unsigned int *))) 
+
+   qsort_fun = (void (*)(char *, unsigned int, int, int (*)(unsigned int *,
+							    unsigned int *)))
      qsort;
    for (i = 0; i < n; i++) index_array[i] = i;
    Sort_Array = x;

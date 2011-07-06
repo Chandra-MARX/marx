@@ -59,7 +59,6 @@
 # endif
 #endif
 
-
 #include "marx.h"
 
 /*}}}*/
@@ -72,7 +71,6 @@ static char *Parameter_File;
 static int Mirror_Module;
 static int Grating_Module;
 static int Detector_Module;
-
 
 /* These are initialized from the marx.par file */
 static double Exposure_Time = -0.0;
@@ -103,7 +101,7 @@ static double TStart_MJDref;
 
 /*{{{ Forward Function Declarations */
 
-static Param_File_Type *setup_parms (int argc, char **argv);	       
+static Param_File_Type *setup_parms (int argc, char **argv);
 static unsigned long compute_write_mask (void);
 /* static int cp_par_file (char *, char *); */
 static void version (void);
@@ -115,20 +113,17 @@ static int write_photons_to_pipe (FILE *, unsigned int, Marx_Photon_Type *, doub
 static FILE *open_pipe (char *);
 static int close_pipe (FILE *);
 
-
 /*}}}*/
-
 
 static void message_copyright (FILE *fp)
 {
    if (Marx_Verbose == 0)
      return;
-   
+
    fprintf (fp, "MARX version %s, Copyright (C) 2002-2010 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 
-     
 static void usage (void) /*{{{*/
 {
    message_copyright (stderr);
@@ -146,7 +141,6 @@ marx usage forms:\n\
 #ifdef MARX_PFILE_DIR
    fprintf (stderr, "\nmarx parameter files may be found in:\n %s/\n", MARX_PFILE_DIR);
 #endif
-   
 
    exit (1);
 }
@@ -157,7 +151,7 @@ static int Needs_Cp_Par_File = 0;
 static int open_output_dir (Param_File_Type *pf)
 {
    (void) pf;
-   
+
    Needs_Cp_Par_File = 1;
    return 0;
 }
@@ -182,7 +176,6 @@ static int close_output_dir (double total_time)
 {
    return write_fits_info (total_time);
 }
-
 
 static int open_rayfile (Param_File_Type *p)
 {
@@ -210,14 +203,13 @@ static int close_rayfile (double total_time)
    return close_output_dir (total_time);
 }
 
-
 static FILE *Pipe_Fp;
 static int open_output_pipe (Param_File_Type *p)
 {
    (void) p;
    if (NULL == (Pipe_Fp = open_pipe (Output_Dir)))
      return -1;
-   
+
    return 0;
 }
 
@@ -257,7 +249,7 @@ static int process_photons (Marx_Photon_Type *pt)
 	marx_error ("Error during reflection from mirror");
 	return -1;
      }
-   
+
 #if PRINT_STATS_ARRAY
    marx_prune_photons (pt); Stats[1] += pt->num_sorted;
 #endif
@@ -269,7 +261,7 @@ static int process_photons (Marx_Photon_Type *pt)
 
 #if PRINT_STATS_ARRAY
    marx_prune_photons (pt); Stats[2] += pt->num_sorted;
-#endif   
+#endif
    if (-1 == marx_detect (pt, 1))
      {
 	marx_error ("Error during detection.");
@@ -302,13 +294,13 @@ static int setup_tstart (Param_File_Type *pf)
 
    if (-1 == pf_get_double (pf, "TStart", &tstart))
      return -1;
-   
+
    if (tstart < 1999)
      {
 	marx_error ("A tstart value less than 1999 is not permitted");
 	return -1;
      }
-   
+
    memset ((char *) &tm, 0, sizeof (tm));
    tm.tm_sec = 0;
    tm.tm_min = 0;
@@ -318,7 +310,7 @@ static int setup_tstart (Param_File_Type *pf)
    tm.tm_year = 98;
    tm.tm_yday = 0;
    tm.tm_isdst = 0;
-   
+
    time_t_mjdref = marx_timegm (&tm);
    if (tstart < 2020)
      {
@@ -332,18 +324,17 @@ static int setup_tstart (Param_File_Type *pf)
 	yrs_tstart = MJDref_Years + tstart/secs_per_year;
      }
    time_t_tstart = (time_t) (time_t_mjdref + tstart);
-   
+
    MJDref_Unix = time_t_mjdref;
    TStart_Years = yrs_tstart;
    TStart_Unix = time_t_tstart;
    TStart_MJDref = TStart_Unix - MJDref_Unix;
-   
+
    if (-1 == marx_set_time (TStart_Years, tstart))
      return -1;
 
    return 0;
 }
-   
 
 int main (int argc, char **argv) /*{{{*/
 {
@@ -361,7 +352,7 @@ int main (int argc, char **argv) /*{{{*/
    int status = -1;
 
    JDMATH_INIT;
-   
+
 #ifdef __linux__
 # if 0
      {
@@ -370,9 +361,9 @@ int main (int argc, char **argv) /*{{{*/
      }
 # endif
 #endif
-   
+
    if ((argc > 1) && (argv[1][0] == '-'))
-     {   
+     {
 	if (!strcmp (argv[1], "--dump"))
 	  {
 	     return marx_dump (argc, argv);
@@ -382,41 +373,41 @@ int main (int argc, char **argv) /*{{{*/
 	  {
 	     return marx_dump_rayfile (argv[2]);
 	  }
-#endif	
+#endif
 	if (!strcmp (argv[1], "--version"))
 	  version ();
-	
+
 	usage ();
      }
-   
+
    p = setup_parms (argc, argv);
-   
+
    message_copyright (stdout);
-   
+
    if (-1 == setup_tstart (p))
      return 1;
 
    write_mask = compute_write_mask ();
-   
+
    if (-1 == module_init (p))
      {
 	return 1;
      }
-   
+
    if ((NULL == (st = marx_create_source (p)))
        || (-1 == marx_open_source (st)))
      {
 	marx_error ("marx: Error creating source.");
 	return 1;
      }
-   
+
    pt = marx_alloc_photon_type (Num_Rays_Per_Iteration);
    if (pt == NULL)
      {
 	marx_error ("marx: Error allocating photon array.");
 	return 1;
      }
-   
+
    if (Dump_To_Rayfile)
      {
 	open_function = open_rayfile;
@@ -446,7 +437,7 @@ int main (int argc, char **argv) /*{{{*/
    if (Needs_Cp_Par_File)
      {
 	char *marx_par;
-	
+
 	if (NULL == (marx_par = marx_dircat (Output_Dir, "marx.par")))
 	  {
 	     pf_close_parameter_file (p);
@@ -474,11 +465,11 @@ int main (int argc, char **argv) /*{{{*/
      }
 #endif
    marx_message ("System initialized.\n\n");
-   
-   /* 
+
+   /*
     * Main loop
     */
-   
+
    total_num_collected = 0;
    total_num_detected = 0;
    open_mode = 1;
@@ -516,7 +507,7 @@ int main (int argc, char **argv) /*{{{*/
 	unsigned int num_collected;
 	double *exposure_time_ptr = NULL;
 	double exposure_time_left;
-	
+
 	if (Exposure_Time > 0.0)
 	  {
 	     exposure_time_left = (Exposure_Time - total_time);
@@ -534,18 +525,18 @@ int main (int argc, char **argv) /*{{{*/
 	  break;
 
 	marx_message ("Collecting %d photons...\n", Num_Rays_Per_Iteration);
-	
-	if (-1 == marx_create_photons (st, pt, Num_Rays_Per_Iteration, 
+
+	if (-1 == marx_create_photons (st, pt, Num_Rays_Per_Iteration,
 				       &num_collected, exposure_time_ptr))
 	  {
 	     marx_error ("Error collecting photons.");
 	     return 1;
 	  }
-	
+
 	marx_message ("\t%d collected.\n", num_collected);
 	if (num_collected == 0)
 	  break;
-	
+
 	total_num_collected += num_collected;
 
 	if (-1 == process_photons (pt))
@@ -556,29 +547,29 @@ int main (int argc, char **argv) /*{{{*/
 
 	open_mode = 0;
 	marx_message ("\n");
-	
+
 	marx_prune_photons (pt);
 	total_num_detected += pt->num_sorted;
 	total_time += pt->total_time;
-	
+
  	marx_message ("Total photons: %lu, Total Photons detected: %lu, (efficiency: %f)\n",
 		      total_num_collected, total_num_detected, (double)total_num_detected / total_num_collected);
-	
+
  	marx_message ("  (efficiency this iteration  %f)  Total time: %f\n",
 		      (double)pt->num_sorted / num_collected,
 		      total_time);
-	
+
 	marx_message ("\n");
 
 	if ((unsigned long)Num_Rays_Per_Iteration != num_collected)
-	  break;	
+	  break;
      }
-   
+
    /* drop */
    status = 0;
 
    return_error:
-   
+
    if ((-1 == marx_dealloc_photon_type (pt))
        && (status == 0))
      status = -1;
@@ -586,11 +577,11 @@ int main (int argc, char **argv) /*{{{*/
    if ((-1 == marx_close_source (st))
        && (status == 0))
      status = -1;
-   
+
    if ((-1 == (*close_function)(total_time))
        && (status == 0))
      status = -1;
-  
+
    if (status == -1)
      return 1;
 
@@ -610,21 +601,20 @@ static int module_init (Param_File_Type *p) /*{{{*/
    Mirror_Module = marx_mirror_init (p);
    if (Mirror_Module == -1)
      return -1;
-   
+
    Grating_Module = marx_grating_init (p);
    if (Grating_Module == -1)
      return -1;
-   
+
    Detector_Module = marx_detector_init (p);
    if (Detector_Module == -1)
      return -1;
-   
+
    return 0;
 }
 
 /*}}}*/
 
-   
 /*}}}*/
 
 /*{{{ Version/Feature information */
@@ -635,7 +625,7 @@ static void print_feature (char *name, int has)
 }
 
 static void version (void) /*{{{*/
-{     
+{
    message_copyright (stderr);
 #if 0
    fprintf (stderr, "MARX version: %s\n", MARX_VERSION_STRING);
@@ -651,9 +641,9 @@ static void version (void) /*{{{*/
 
    fprintf (stderr, "Supported Sources: %s\n", Marx_Supported_Sources);
    fprintf (stderr, "Supported Detectors: %s\n", Marx_Supported_Detectors);
-   
+
    fprintf (stderr, "\nOther Features:\n");
-   
+
    print_feature ("HRMA Pitch/Yaw", MARX_HAS_HRMA_PITCH_YAW);
    print_feature ("Wfold Scattering", MARX_HAS_WFOLD);
    print_feature ("Drake Flat", MARX_HAS_DRAKE_FLAT);
@@ -677,7 +667,7 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
    char *name;
    struct stat in_stat, out_stat;
 
-#if 1	
+#if 1
    /* use marx.par no matter what original file is */
    name = "marx.par";
 #else
@@ -691,7 +681,7 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
      {
 	return -1;
      }
-   
+
    if ((0 == strcmp (file, ofile))
        || ((0 == stat (file, &in_stat))
 	   && (0 == stat (ofile, &out_stat))
@@ -702,7 +692,7 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
 	marx_error ("Don't shoot yourself in the foot, choose a different OutputDir name");
 	goto return_error;
      }
-   
+
    if (NULL == (fpin = fopen (file, "rb")))
      {
 	pf_error ("Unable to open file %s for reading.", file);
@@ -714,10 +704,10 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
 	marx_error ("Unable to open %s for writing.", ofile);
 	goto return_error;
      }
-   
+
    if (EOF == fprintf (fpout, "#@#MARX VERSION: %s\n", marx_make_version_string ()))
      goto write_error;
-       
+
    do
      {
 	readlen = fread (buf, 1, sizeof(buf), fpin);
@@ -728,7 +718,7 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
 	  }
      }
    while (readlen == sizeof (buf));
-   
+
    if (EOF == fclose (fpout))
      {
 	fpout = NULL;
@@ -737,10 +727,10 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
    marx_free (ofile);
    fclose (fpin);
    return 0;
-   
+
    /* Get here only if error occurs. */
    write_error:
-   
+
    marx_error ("Write to %s failed.", ofile);
 
    return_error:
@@ -770,7 +760,6 @@ static Param_Table_Type Control_Parm_Table [] = /*{{{*/
      {"DetOffsetY",	PF_DOUBLE_TYPE,		&DetOffset_Y},
      {"DetOffsetZ",	PF_DOUBLE_TYPE,		&DetOffset_Z},
 
-   
      {NULL, 0, NULL}
 };
 
@@ -779,7 +768,7 @@ static Param_Table_Type Control_Parm_Table [] = /*{{{*/
 static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 {
    Param_File_Type *p;
-   
+
    if (NULL == (p = marx_pf_parse_cmd_line ("marx.par", "rwL", argc, argv)))
      {
 	fprintf (stderr, "marx: Error opening parameter file.\n");
@@ -792,13 +781,13 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 	pf_close_parameter_file (p);
 	return NULL;
      }
-   
+
    if (-1 == pf_get_parameters (p, Control_Parm_Table))
      {
 	pf_error ("marx: error getting parameters.");
 	exit (1);
      }
-   
+
    if (Exposure_Time <= 0.0)
      {
 	if (Num_Rays_Per_Iteration <= 0)
@@ -812,7 +801,7 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 	     exit (1);
 	  }
      }
-   
+
    if (Random_Seed == -1)
      JDMsrandom((unsigned long) time (NULL));
    else
@@ -820,11 +809,11 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 
    if (-1 == marx_set_data_directory (Data_Directory))
      exit (1);
-   
+
    if ((Output_Dir != NULL)
        && (Output_Dir[0] == '$')
        && (Output_Dir[1] != 0))
-       
+
      {
 	char *od = getenv (Output_Dir + 1);
 	if (od == NULL)
@@ -834,20 +823,20 @@ static Param_File_Type *setup_parms (int argc, char **argv) /*{{{*/
 	     exit (1);
 	  }
 	marx_free (Output_Dir);
-	
+
 	/* Note: if Output_Dir if freed elsewhere, then we will need to
 	 * malloc this.
 	 */
 	Output_Dir = od;
      }
-   
+
    if ((Output_Dir == NULL)
        || (*Output_Dir == 0))
      {
 	fprintf (stderr, "OutputDir not specified.\n");
 	exit (1);
      }
-   
+
    if (Output_Dir[0] == '|')
      {
 	Output_Dir++;
@@ -870,10 +859,10 @@ static unsigned long compute_write_mask (void) /*{{{*/
 {
    char *v, ch;
    unsigned long mask;
-   
+
    v = Data_To_Write;
    mask = 0;
-   
+
    mask |= MARX_DET_UV_PIXEL_OK;
    while ((ch = *v++) != 0)
      {
@@ -944,12 +933,11 @@ static unsigned long compute_write_mask (void) /*{{{*/
 	     exit (1);
 	  }
      }
-   
+
    return mask;
 }
 
 /*}}}*/
-
 
 static double normalize_angle (double theta)
 {
@@ -984,7 +972,6 @@ static int write_obs_par (double total_time)
    if (observer == NULL)
      observer = "DR AXAF";
 
-
    switch (Grating_Module)
      {
       case MARX_GRATING_LETG:
@@ -1002,8 +989,7 @@ static int write_obs_par (double total_time)
 	with_grating = 0;
 	break;
      }
-   
-   
+
    switch (Detector_Module)
      {
       case MARX_DETECTOR_HRC_I:
@@ -1013,7 +999,7 @@ static int write_obs_par (double total_time)
 	if (with_grating) datamode = "SPECTROSCOPIC";
 	d = marx_get_detector_info (detector);
 	break;
-	
+
       case MARX_DETECTOR_HRC_S:
 	obsdir_file = "obs/hrc_s_obs.par";
 	detector = "HRC-S";
@@ -1035,7 +1021,7 @@ static int write_obs_par (double total_time)
 	datamode = "GRADED";
 	d = marx_get_detector_info (detector);
 	break;
-	
+
       default:
 	obsdir_file = "obs/generic_obs.par";
 	detector = "NONE";
@@ -1059,13 +1045,13 @@ static int write_obs_par (double total_time)
 
    if (NULL == (obs_file = marx_dircat (Output_Dir, "obs.par")))
      return -1;
-   
+
    if (NULL == (file = marx_make_data_file_name (obsdir_file)))
      {
 	marx_free (obs_file);
 	return -1;
      }
-   
+
    if (NULL == (pf = pf_open_parameter_file (file, "r")))
      {
 	marx_free (obs_file);
@@ -1073,7 +1059,7 @@ static int write_obs_par (double total_time)
 	return -1;
      }
    marx_free (file);
-   
+
    if (-1 == pf_set_output_filename (pf, obs_file))
      {
 	marx_free (obs_file);
@@ -1106,8 +1092,8 @@ static int write_obs_par (double total_time)
    tms = gmtime (&tstop);
    sprintf (date_end, "%4d-%02d-%02dT%02d:%02d:%02d",
 	    1900 + tms->tm_year, tms->tm_mon + 1, tms->tm_mday,
-	    tms->tm_hour, tms->tm_min, tms->tm_sec);   
-   
+	    tms->tm_hour, tms->tm_min, tms->tm_sec);
+
    if ((-1 == pf_learn_double (pf, "ra_nom", ra_nom))
        || (-1 == pf_learn_double (pf, "roll_nom", roll_nom))
        || (-1 == pf_learn_double (pf, "dec_nom", dec_nom))
@@ -1142,10 +1128,10 @@ static int write_obs_par (double total_time)
 	  pf_close_parameter_file (pf);
 	  return -1;
        }
-   
+
    if (-1 == pf_close_parameter_file (pf))
      return -1;
-   
+
    return 0;
 }
 
@@ -1157,14 +1143,12 @@ static int write_fits_info (double total_time)
    return 0;
 }
 
-   
 /* Pipe routines */
-
 
 static FILE *open_pipe (char *cmd)
 {
    FILE *fp;
-   
+
    /* fp = popen (cmd, "wb"); */
    fp = popen (cmd, "w");
    if (fp == NULL)
@@ -1194,7 +1178,7 @@ static int write_photons_to_pipe (FILE *fp, unsigned int num_input,
 
    marx_prune_photons (pt);
    num_sorted = pt->num_sorted;
-   /* 
+   /*
     * Do not try this optimization since num_input and total_time may
     * be used even when num_sorted is 0
     * if (num_sorted == 0)
@@ -1202,7 +1186,7 @@ static int write_photons_to_pipe (FILE *fp, unsigned int num_input,
     */
    if (0 == fwrite ((char *) &num_sorted, sizeof (unsigned int), 1, fp))
      goto write_error;
-   
+
    if (0 == fwrite ((char *) &num_input, sizeof (unsigned int), 1, fp))
      goto write_error;
 
@@ -1213,7 +1197,7 @@ static int write_photons_to_pipe (FILE *fp, unsigned int num_input,
      goto write_error;
 
    at = pt->attributes;
-   
+
    while (num_sorted)
      {
 	if (0 == (at->flags & BAD_PHOTON_MASK))
@@ -1225,12 +1209,12 @@ static int write_photons_to_pipe (FILE *fp, unsigned int num_input,
 
 	at++;
      }
-   
+
    if (EOF == fflush (fp))
      goto write_error;
 
    return 0;
-   
+
    write_error:
    marx_error ("Error writing to pipe");
    return -1;

@@ -48,9 +48,9 @@ int main (int argc, char **argv) /*{{{*/
    float *energies, *betas, *deltas;
    unsigned int nread;
    int angle_mode = 0;
-   
+
    if (argc != 3) usage (argv[0]);
-   
+
    file = argv[1];
    if (*argv[2] == '-')
      {
@@ -61,7 +61,7 @@ int main (int argc, char **argv) /*{{{*/
      }
    else if (1 != sscanf (argv[2], "%lf", &energy))
      usage (argv[0]);
-   
+
    /* The optical constant file consists of:
     *   energy (KeV), beta, delta
     */
@@ -75,7 +75,7 @@ int main (int argc, char **argv) /*{{{*/
      {
 	unsigned int i;
 	double t, dt;
-	
+
 	dt = theta / 10.0;
 	for (i = 0; i < nread; i++)
 	  {
@@ -83,25 +83,25 @@ int main (int argc, char **argv) /*{{{*/
 	     for (t = dt; t <= theta; t += dt)
 	       {
 		  double cos_theta = cos (PI/2 - PI*t/180.0);
-	  
-		  fprintf (stdout, "\t%e", 
+
+		  fprintf (stdout, "\t%e",
 			   marx_reflectivity (cos_theta, betas[i], deltas[i]));
 	       }
 	     putc ('\n', stdout);
 	  }
 	return 0;
      }
-   
+
    fprintf (stdout, "# Energy = %f KeV\n#Arc-Min Probability\n", energy);
 
    for (theta = 0.0; theta < 600.0; theta += 0.1)
      {
 	double t = PI/2.0 - theta * (PI/ 180.0/60.0);
-	fprintf (stdout, "%f\t%e\n", theta, 
+	fprintf (stdout, "%f\t%e\n", theta,
 		 marx_interp_reflectivity (energy, cos (t), energies, betas, deltas,
 					   nread));
      }
-   
+
    return 0;
 }
 

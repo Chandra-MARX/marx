@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
@@ -32,21 +31,21 @@ int JDMlog_grid (double *x, unsigned int num, double a, double b)
 {
    double ratio, factor;
    unsigned int i;
-   
+
    if ((a <= 0.0) || (a > b) || (num < 2))
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return -1;
      }
-   
+
    ratio = b / a;
    factor = 1.0 / (num - 1);
-   
+
    for (i = 0; i < num; i++)
      {
 	x[i] = a * pow (ratio, i * factor);
      }
-   
+
    return 0;
 }
 
@@ -54,20 +53,20 @@ int JDMlog_grid_f (float *x, unsigned int num, float a, float b)
 {
    double ratio, factor;
    unsigned int i;
-   
+
    if ((a <= 0.0) || (a > b) || (num < 2))
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return -1;
      }
-   
+
    ratio = b / a;
    factor = 1.0 / (num - 1);
-   
+
    for (i = 0; i < num; i++)
      {
 	x[i] = (float) (a * pow (ratio, i * factor));
      }
-   
+
    return 0;
 }

@@ -22,7 +22,7 @@
 */
 #ifndef _MARX_PARM_H_LOADED_
 #define _MARX_PARM_H_LOADED_
-typedef struct 
+typedef struct
 {
    char *name;
    unsigned int type;

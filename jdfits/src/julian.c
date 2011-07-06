@@ -27,33 +27,33 @@ double jdfits_time_t_to_mjd (time_t t)
    double day;
    int year, month;
    int a, b;
-   
+
    tms = gmtime (&t);
-   
+
    day = (double) tms->tm_mday +
      (tms->tm_hour + (tms->tm_min + tms->tm_sec/60.0)/60.0)/24.0;
-   
+
    if (1582 == (year = tms->tm_year + 1900))
      {
 	jdfits_error ("jdfits_time_t_to_mjd: year 1582 not covered.");
 	return 0.0;
      }
-	
+
    month = tms->tm_mon + 1;
    if (month <= 2)
      {
 	month += 12;
 	year -= 1;
      }
-   
+
    a = year / 100;
-   
+
    if (year < 1582)
      b = 0;
    else
      b = 2 - a + a/4;
 
-   return (int)(year * 0.25) + 365.0 * (year - 1860) 
+   return (int)(year * 0.25) + 365.0 * (year - 1860)
      + (int) (30.6001 * (month + 1)) + b + day - 105.5;
 }
 

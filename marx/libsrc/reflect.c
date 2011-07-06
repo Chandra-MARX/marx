@@ -44,34 +44,34 @@ double marx_reflectivity (double cos_theta, double beta, double delta) /*{{{*/
     * We assume that n = 1 and mu = 1.  Below. Jackson's n' is represented by
     * just n.
     */
-   
+
    /* Note:  If delta == 0, and beta == 0, the reflectivity will be zero.
     * However, if delta == 1, and beta == 0, the reflectivity will be unity
     */
 
    n.r = (1.0 - delta);
    n.i = beta;
-   
+
    sin_theta = sqrt (1.0 - cos_theta * cos_theta);
-   
+
    nsqr = JDMc_mul (n, n);
-   
+
    root = JDMc_sqrt (JDMc_a_bz (-sin_theta*sin_theta, 1.0, nsqr));
 
    /* eq 7.39 */
    num = JDMc_a_bz (cos_theta, -1.0, root);
    den = JDMc_a_bz (cos_theta,  1.0, root);
-   
+
    e_perp = JDMc_div (num, den);
-   
+
    /* eq 7.41 */
    num = JDMc_az1_bz2 (cos_theta, nsqr, -1.0, root);
    den = JDMc_az1_bz2 (cos_theta, nsqr,  1.0, root);
-   
+
    e_par = JDMc_div (num, den);
-   
+
    /* Now average over polarizations */
-   
+
    return 0.5 * (e_par.r * e_par.r + e_par.i * e_par.i
 		 + e_perp.r * e_perp.r + e_perp.i * e_perp.i);
 }

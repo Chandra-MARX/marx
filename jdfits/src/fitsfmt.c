@@ -43,13 +43,13 @@ int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
 	jdfits_error ("jdfits_ffmt_to_cfmt: Format is not specified.");
 	return -1;
      }
-    
+
     p = ffmt;
-    
+
     /* Skip by repeat count */
     while (isdigit (*p)) p++;
     if (ffmt != p) jdfits_warning ("jdfits_ffmt_to_cfmt: Repeat count ignored. (%s)", ffmt);
-    
+
     fmt_type = *p++ | 0x20;
 
     *wstr = *pstr = 0;
@@ -88,7 +88,7 @@ int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
        case 'f':
        case 'i':
 	  if (fmt_type == 'i') fmt_type = 'd';
-	  
+
 	  s = wstr;
 	  while ((ch = *s++) != 0) *cfmt++ = ch;
 	  s = pstr;
@@ -99,13 +99,13 @@ int jdfits_ffmt_to_cfmt (char *ffmt, char *cfmt)
 	    }
 	  *cfmt++ = fmt_type;
 	  break;
-	  
+
        case 'a':
 	  s = wstr;
 	  while ((ch = *s++) != 0) *cfmt++ = ch;
 	  *cfmt++ = 's';
 	  break;
-	  
+
        case 'z':		       /* hex */
 	 cfmt--;
 	 *cfmt++ = '0';

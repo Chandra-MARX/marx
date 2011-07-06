@@ -53,7 +53,7 @@
 #  define INT16_BASIC_TYPE int
 # else
 #  if SIZEOF_INT == 4
-#   undef INT32_BASIC_TYPE 
+#   undef INT32_BASIC_TYPE
 #   define INT32_BASIC_TYPE int
 #  endif
 # endif
@@ -65,7 +65,7 @@
 #  define INT16_BASIC_TYPE short
 # else
 #  if SIZEOF_SHORT == 4
-#   undef INT32_BASIC_TYPE 
+#   undef INT32_BASIC_TYPE
 #   define INT32_BASIC_TYPE short
 #  endif
 # endif
@@ -120,7 +120,6 @@
 #define JDFITS_FMT_16 "% 8hd"
 #define JDFITS_FMT_32 "% 11ld"
 
-
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 #endif
@@ -132,7 +131,7 @@ extern int JDFits_Error_Num;
 /* Important note: ALL char * types in this structure point to NON-MALLOCED
  * data in JDFits_Header_Type.
  */
-typedef struct 
+typedef struct
 {
    char *name;
    unsigned int type;
@@ -150,12 +149,12 @@ typedef struct
 #define JDFITS_STRING_TYPE		0x0400U
 #define JDFITS_BYTE_TYPE		0x0800U
 #define JDFITS_BIT_TYPE			0x1000U
-   
+
    /* If this bit is set, the value is a 4 byte integer that represents
     * a pointer into the heap.
     */
 #define JDFITS_POINTER_FLAG		0x4000U
-   
+
 #define JDFITS_ALL_TYPES		0x7FFFU
 #define JDFITS_UNPARSED_TYPE		0x8000U
    union
@@ -168,7 +167,7 @@ typedef struct
 	int ival;
      }
    v;
-   /* This is a pointer to the comment field for the record. 
+   /* This is a pointer to the comment field for the record.
     * For an unparsed card, it is a pointer to the END of the card such that
     * comment - v.sval == length of the unparsed NON-null terminated string.
     * This is NOT null terminated.
@@ -178,7 +177,7 @@ typedef struct
 }
 JDFits_Keyword_Type;
 
-typedef struct 
+typedef struct
 {
    unsigned int type;
    unsigned int nelements;	       /* this is the repeat count * naxis2 */
@@ -226,13 +225,11 @@ typedef struct
 }
 JDFits_Bintable_Type;
 
-
-
 typedef struct JDFits_Header_Type
 {
    unsigned int num_keywords;
-   JDFits_Keyword_Type *keys;	       /* these contain char * which 
-					* point to header_data 
+   JDFits_Keyword_Type *keys;	       /* these contain char * which
+					* point to header_data
 					*/
 #ifdef JDFITS_SOURCE
    unsigned char *header_data_buf;	       /* This is malloced. */
@@ -244,7 +241,7 @@ typedef struct JDFits_Header_Type
    int bitpix, naxis;
    int gcount, pcount;
    JDFits_Keyword_Type *kw_naxis1;       /* pointer to the first axis */
-   
+
    unsigned int type;		       /* type of header */
 #define JDFITS_EXTENSION_HEADER 1	       /* unknown extension type */
 #define JDFITS_SIMPLE_HEADER 2	       /* basic fits header */
@@ -261,7 +258,6 @@ typedef struct JDFits_Header_Type
 }
 JDFits_Header_Type;
 
- 
 typedef struct
 {
    FILE *fp;
@@ -271,17 +267,15 @@ typedef struct
    JDFits_Header_Type *header;
 
 #ifdef JDFITS_SOURCE
-   /* private members. */   
+   /* private members. */
    off_t bytes_left_to_read;
    off_t bytes_padded;
-   
+
    unsigned char *write_buffer;	       /* JDFITS_RECORD_SIZE long */
    unsigned int write_buffer_len;
 #endif
 }
 JDFits_Type;
-
-
 
 extern unsigned int JDFits_Message_Type;
 #define JDFITS_ERRORS   1
@@ -298,7 +292,6 @@ int jdfits_keyword_exists (JDFits_Type *ft, char *key);
 extern int jdfits_read_keyword_string (JDFits_Type *ft, char *key, char **value);
 extern int jdfits_read_keyword_dbl (JDFits_Type *ft, char *key, double *);
 extern int jdfits_read_keyword_int (JDFits_Type *ft, char *key, int *);
-   
 
 extern int jdfits_bintable_parse_headers (JDFits_Type *);
 extern int jdfits_bintable_dump_data (JDFits_Type *, int, FILE *, char *);
@@ -335,7 +328,7 @@ extern unsigned char *jdfits_read_int16_double (double *, unsigned int, unsigned
 extern unsigned char *jdfits_read_int32_double (double *, unsigned int, unsigned char *);
 extern unsigned char *jdfits_read_float32_double (double *, unsigned int, unsigned char *);
 extern unsigned char *jdfits_read_float64_double (double *, unsigned int, unsigned char *);
-   
+
 extern int jdfits_parse_header (JDFits_Type *);
 extern int jdfits_read_header (JDFits_Type *);
 extern int jdfits_read_open_data (JDFits_Type *);
@@ -344,11 +337,11 @@ extern int jdfits_read_close_data (JDFits_Type *);
 extern char *jdfits_malloc (unsigned int);
 extern void jdfits_free (char *);
 extern char *jdfits_make_string (char *);
-   
+
 extern int jdfits_flush_output (JDFits_Type *, char);
 extern int jdfits_check_mode (JDFits_Type *, unsigned int);
 extern int jdfits_strcasecmp (char *, char *);
-     
+
 extern int jdfits_write_header_logical (JDFits_Type *, char *, int, char *);
 extern int jdfits_write_header_integer (JDFits_Type *, char *, int, char *);
 extern int jdfits_write_header_string (JDFits_Type *, char *, char *, char *);
@@ -389,13 +382,12 @@ extern int jdfits_extract_integer (JDFits_Keyword_Type *, int *);
 extern int jdfits_copy_data (JDFits_Type *, JDFits_Type *);
 extern int jdfits_copy_header (JDFits_Type *, JDFits_Type *);
 
-
    typedef struct
      {
 	char *ttype, *ttype_comment;
 	char *tform, *tform_comment;
 	char *tunit, *tunit_comment;
-	
+
 	/* If the min_max_type is non-zero, the TLMIN/TLMAX fields will be
 	 * written out.  Valid non-zero values are: 'A', 'J', 'I', 'E', 'D'.
 	 * These should be consistent with tform.
@@ -415,21 +407,20 @@ extern int jdfits_copy_header (JDFits_Type *, JDFits_Type *);
 	  }
 	max_value;
 	char *max_comment;
-	
+
 	/* WCS --- if ctype is non-NULL */
 	char *ctype;
 	double cdelt, crpix, crval;
      }
    JDFits_BTable_Keyword_Type;
-   
+
    extern int jdfits_create_btable_extension (JDFits_Type *,
 					      JDFits_BTable_Keyword_Type *,
 					      int,/* naxis2 */
 					      int,/* pcount */
 					      int,/* gcount */
 					      char *);   /* extname */
-   
-   
+
 extern int jdfits_init_null_primary_header (JDFits_Type *);
 
 extern int jdfits_add_headers_from_file (JDFits_Type *, char *);
@@ -439,7 +430,7 @@ extern int jdfits_add_comments_from_file (JDFits_Type *, char *, char *,
    extern double jdfits_time_t_to_mjd (time_t);
 
    /* Routines in fitsuser.c */
-   typedef struct 
+   typedef struct
      {
 	unsigned int type;
 #define JDFITS_USER_KW_INT 1
@@ -448,7 +439,7 @@ extern int jdfits_add_comments_from_file (JDFits_Type *, char *, char *,
 #define JDFITS_USER_KW_FLOAT 4
 #define JDFITS_USER_KW_COMMENT 5
 	char *keyword;
-	union 
+	union
 	  {
 	     double d;
 	     char *str;
@@ -460,7 +451,7 @@ extern int jdfits_add_comments_from_file (JDFits_Type *, char *, char *,
    JDFits_User_KW_Type;
 
    typedef struct _JDFits_User_KW_Table_Type JDFits_User_KW_Table_Type;
-   
+
    /* This function reads a keyword table and returns a pointer to it.  If the
     * second parameter is not NULL, the new keyword table will be appended to
     * the table defined by second parameter and it will be returned.
@@ -471,14 +462,13 @@ extern int jdfits_add_comments_from_file (JDFits_Type *, char *, char *,
 extern JDFits_User_KW_Type *jdfits_find_user_kw (JDFits_User_KW_Table_Type *, char *);
 extern int jdfits_write_user_ky (JDFits_Type *, JDFits_User_KW_Type *);
 
-
-/* These are very crude interface designed to facilitate reading of 
+/* These are very crude interface designed to facilitate reading of
  * binary tables.  Yuk!
  */
 extern JDFits_Type *jdfits_open_binary_table (char *file, char *extnam);
 extern int jdfits_bintable_column_exists (JDFits_Type *f, char *column);
-   
-extern JDFits_Type *jdfits_find_binary_table (char *file, 
+
+extern JDFits_Type *jdfits_find_binary_table (char *file,
 					      int (*fun)(void *, JDFits_Type *),
 					      void *clientdata);
 
@@ -488,7 +478,7 @@ typedef struct
    unsigned int row_data_len;	       /* same as NAXIS1 parameter */
    unsigned int num_rows;
    unsigned int num_rows_to_read;
-   
+
    /* The following are constructed from what the user wants to read */
    unsigned int *data_types;
    unsigned int *data_offsets;
@@ -497,7 +487,7 @@ typedef struct
    JDFits_Type *ft;
 }
 JDFits_BTable_Read_Type;
-   
+
 extern JDFits_BTable_Read_Type *jdfits_simple_aopen_btable (char *,
 							    char *,
 							    unsigned int,
@@ -509,7 +499,6 @@ extern JDFits_BTable_Read_Type *jdfits_simple_open_btable (char *,
 
 extern int jdfits_simple_d_read_btable (JDFits_BTable_Read_Type *, double *);
 extern void jdfits_simple_close_btable (JDFits_BTable_Read_Type *);
-
 
 typedef struct
 {
@@ -523,7 +512,7 @@ typedef struct
 	long *l;
 	float *f;
 	double *d;
-     } 
+     }
    data;
    unsigned int data_offset;
    unsigned char * (*read_fun)(void *, unsigned int, unsigned char *);
@@ -535,7 +524,7 @@ typedef struct
    unsigned int num_columns;
    unsigned int num_rows;
    JDFits_Col_Data_Type *col_data;
-   
+
 #ifdef JDFITS_SOURCE
    /* private */
    unsigned char *row_bytes;
@@ -544,7 +533,7 @@ typedef struct
 #endif
 }
 JDFits_Row_Type;
-   
+
 extern JDFits_Row_Type *jdfits_bintable_aopen_rows (JDFits_Type *f,
 						    unsigned int ncols,
 						    char **column_names);
@@ -554,7 +543,6 @@ extern JDFits_Row_Type *
 extern void jdfits_bintable_close_rows (JDFits_Row_Type *rt);
 extern int jdfits_read_next_row (JDFits_Type *f, JDFits_Row_Type *r);
 
-     
 #define JDFITS_RECORD_SIZE 2880U
 #define JDFITS_CARD_SIZE 80U
 
@@ -562,5 +550,4 @@ extern int jdfits_read_next_row (JDFits_Type *f, JDFits_Row_Type *r);
 }
 #endif
 
-   
 #endif /* JDFITS_H_INCLUDED */

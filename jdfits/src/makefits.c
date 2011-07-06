@@ -29,31 +29,30 @@ static int add_additional_headers (JDFits_Type *);
 int main (int argc, char **argv)
 {
    JDFits_Type *ft;
-   
+
    ft = jdfits_open_file ("test.fits", JDFITS_WRITE_MODE);
    if (ft == NULL)
      {
 	jdfits_error ("Unable to create test.fits.");
 	return -1;
      }
-   
+
    /* Write out the primary header */
    if (-1 == jdfits_init_null_primary_header (ft))
      return 1;
-   
+
    if (-1 == add_additional_headers (ft))
      return 1;
-       
+
    if (-1 == jdfits_end_header (ft))
      return 1;
 
    if (-1 == add_btable_extension (ft))
      return 1;
-   
+
    jdfits_close_file (ft);
    return 0;
 }
-
 
 static int add_additional_headers (JDFits_Type *ft)
 {
@@ -65,13 +64,11 @@ static int add_additional_headers (JDFits_Type *ft)
        || (-1 == jdfits_write_header_string (ft, "OBJECT", "pointsource", NULL))
        || (-1 == jdfits_write_header_comment (ft, "", "This is my comment")))
      return -1;
-   
+
    return 0;
 }
 
-     
-
-JDFits_BTable_Keyword_Type Binary_Table_Keywords [] = 
+JDFits_BTable_Keyword_Type Binary_Table_Keywords [] =
 {
    {"X",	NULL,	"D",	NULL,	"None", NULL},
    {"SIN(X)",	NULL,	"D",	NULL,	"None",	NULL},
@@ -83,24 +80,23 @@ static int add_btable_extension (JDFits_Type *ft)
 {
    double x, y;
    int i, imax;
-   
+
    imax = 100;
 
-   if (-1 == jdfits_create_btable_extension (ft, 
+   if (-1 == jdfits_create_btable_extension (ft,
 					     Binary_Table_Keywords,
 					     imax,
-					     0, 
+					     0,
 					     1,
 					     "RAYTRACE"))
      return -1;
-					     
-		     
+
    if (-1 == (add_additional_headers (ft)))
      return -1;
-   
+
    if (-1 == jdfits_end_header (ft))
      return -1;
-   
+
    /* And the data */
    for (i = 0; i < imax; i++)
      {
@@ -108,13 +104,13 @@ static int add_btable_extension (JDFits_Type *ft)
 	x = (double)i / 10.0;
 	y = sin (x);
 	if (y >= 0.0) s = 1; else s = -1;
-	
+
 	if ((-1 == jdfits_write_float64 (ft, &x, 1))
 	    || (-1 == jdfits_write_float64 (ft, &y, 1))
 	    || (-1 == jdfits_write_int32 (ft, &s, 1)))
 	  break;
      }
-   
+
    if (-1 == jdfits_end_data (ft))
      return -1;
 

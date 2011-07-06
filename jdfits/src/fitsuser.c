@@ -34,16 +34,15 @@ struct _JDFits_User_KW_Table_Type
    struct _JDFits_User_KW_Table_Type *next;
 };
 
-
 static FILE *open_file_for_read (char *file)
 {
    FILE *fp;
-   
+
    fp = fopen (file, "r");
 
    if (fp == NULL)
      jdfits_error ("Unable to open file %s.", file);
-   
+
    return fp;
 }
 
@@ -54,39 +53,39 @@ int jdfits_add_comments_from_file (JDFits_Type *ft, char *file,
    FILE *fp;
    char buf [4096];
    unsigned int len;
-   
+
    if ((ft == NULL) || (file == NULL))
      return -1;
-   
+
    if (com_prefix == NULL) com_prefix = "";
    len = strlen (com_prefix);
 
    if (comment_name == NULL) comment_name = "";
-   
+
    if ((len == 0) && not_flag)
      return 0;
-   
+
    if (NULL == (fp = open_file_for_read (file)))
      return -1;
 
    while (NULL != fgets (buf, sizeof (buf), fp))
      {
 	int matches;
-	
+
 	matches = ((len == 0)
-		   || ((*buf == *com_prefix) 
+		   || ((*buf == *com_prefix)
 		       && (0 == strncmp (buf, com_prefix, len))));
 	if (not_flag) matches = !matches;
-	
+
 	if (matches == 0) continue;
-	
+
 	if (-1 == jdfits_write_header_comment (ft, comment_name, buf + len))
 	  {
 	     fclose (fp);
 	     return -1;
 	  }
      }
-   
+
    fclose (fp);
    return 0;
 }
@@ -104,11 +103,10 @@ static char *skip_word (char *b)
      }
 }
 
-
 void jdfits_free_user_kw_table (JDFits_User_KW_Table_Type *t)
 {
    JDFits_User_KW_Table_Type *next;
-   
+
    while (t != NULL)
      {
 	if (t->kw.comment != NULL)
@@ -119,7 +117,7 @@ void jdfits_free_user_kw_table (JDFits_User_KW_Table_Type *t)
 	  free (t->kw.value.str);
 
 	next = t->next;
-	
+
 	memset ((char *) t, 0, sizeof (JDFits_User_KW_Table_Type));
 	free ((char *) t);
 
@@ -132,11 +130,11 @@ static char *dup_str (char *str)
    char *s;
    if (str == NULL)
      return NULL;
-   
+
    s = (char *) jdfits_malloc (1 + strlen (str));
    if (s != NULL)
      strcpy (s, str);
-   
+
    return s;
 }
 
@@ -149,14 +147,14 @@ static int set_keyword_comment (JDFits_User_KW_Table_Type *ht, char *keyword, ch
 	    && (NULL == (comment = dup_str (comment))))
 	  return -1;
      }
-   
+
    keyword = dup_str (keyword);
    if (keyword == NULL)
      {
 	if (comment != NULL) free (comment);
 	return -1;
      }
-     
+
    ht->kw.keyword = keyword;
    ht->kw.comment = comment;
    ht->kw.type = JDFITS_USER_KW_COMMENT;
@@ -164,48 +162,47 @@ static int set_keyword_comment (JDFits_User_KW_Table_Type *ht, char *keyword, ch
    return 0;
 }
 
-   
-static int set_keyword_string (JDFits_User_KW_Table_Type *ht, char *keyword, 
+static int set_keyword_string (JDFits_User_KW_Table_Type *ht, char *keyword,
 				char *str, char *comment)
 {
    if (-1 == set_keyword_comment (ht, keyword, comment))
      return -1;
-   
+
    if (NULL == (ht->kw.value.str = dup_str (str)))
      return -1;
-   
+
    ht->kw.type = JDFITS_USER_KW_STR;
    return 0;
 }
 
-static int set_keyword_integer (JDFits_User_KW_Table_Type *ht, char *keyword, 
+static int set_keyword_integer (JDFits_User_KW_Table_Type *ht, char *keyword,
 				int i, char *comment)
 {
    if (-1 == set_keyword_comment (ht, keyword, comment))
      return -1;
-   
+
    ht->kw.value.i = i;
    ht->kw.type = JDFITS_USER_KW_INT;
    return 0;
 }
 
-static int set_keyword_float (JDFits_User_KW_Table_Type *ht, char *keyword, 
+static int set_keyword_float (JDFits_User_KW_Table_Type *ht, char *keyword,
 			      double d, char *comment)
 {
    if (-1 == set_keyword_comment (ht, keyword, comment))
      return -1;
-   
+
    ht->kw.value.d = d;
    ht->kw.type = JDFITS_USER_KW_FLOAT;
    return 0;
 }
 
-static int set_keyword_logical (JDFits_User_KW_Table_Type *ht, char *keyword, 
+static int set_keyword_logical (JDFits_User_KW_Table_Type *ht, char *keyword,
 				int i, char *comment)
 {
    if (-1 == set_keyword_comment (ht, keyword, comment))
      return -1;
-   
+
    ht->kw.value.i = i;
    ht->kw.type = JDFITS_USER_KW_BOOL;
    return 0;
@@ -218,13 +215,13 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
    char buf[512];
    unsigned int linenum;
    JDFits_User_KW_Table_Type *ht, *ht_root;
-   
+
    fp = open_file_for_read (file);
    if (fp == NULL)
      return NULL;
-   
+
    ht = ht_root = NULL;
-   
+
    linenum = 0;
    while (NULL != fgets (buf, sizeof (buf), fp))
      {
@@ -235,28 +232,28 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 	char *comment;
 	int i;
 	JDFits_User_KW_Table_Type *new_ht;
-	
+
 	linenum++;
-	
+
 	b = _jdfits_skip_whitespace (buf);
 	ch = *b;
-	
+
 	if ((ch == 0) || (ch == '#') || (ch == ';') || (ch == '@')
 	    || (ch == '%'))
 	  continue;
-	
+
 	new_ht = (JDFits_User_KW_Table_Type *) jdfits_malloc (sizeof (JDFits_User_KW_Table_Type));
 	if (new_ht == NULL)
 	  goto return_error;
 
 	memset ((char *) new_ht, 0, sizeof (JDFits_User_KW_Table_Type));
-	
-	if (ht_root == NULL) 
+
+	if (ht_root == NULL)
 	  ht_root = new_ht;
-	else 
+	else
 	  ht->next = new_ht;
 	ht = new_ht;
-       
+
 	keyword = b;
 	b = skip_word (b);
 	if ((*b != 0) && (*b != '='))
@@ -264,8 +261,8 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 	     *b++ = 0;
 	     b = _jdfits_skip_whitespace (b);
 	  }
-	
-	if (*b != '=') 
+
+	if (*b != '=')
 	  {
 	     /* Assume comment. */
 	     if (-1 == set_keyword_comment (ht, keyword, b))
@@ -283,7 +280,7 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 	     b++;
 	     str = b;
 	     if (*b) b++;
-	     
+
 	     comment = strchr (b, ch);
 	     if (comment == NULL)
 	       {
@@ -295,29 +292,28 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 		    }
 	       }
 	     else *comment++ = 0;
-	     
+
 	     comment = _jdfits_skip_whitespace (comment);
-	     
+
 	     if (-1 == set_keyword_string (ht, keyword, str, comment))
 	       goto return_error;
-	     
+
 	     continue;
 	  }
-	
-	
+
 	/* Now we have either boolean, integer, or float */
 	if ((ch == 'T') || (ch == 'F'))
 	  {
 	     comment = _jdfits_skip_whitespace (b + 1);
-	  
+
 	     if (-1 == set_keyword_logical (ht, keyword, (ch == 'T'), comment))
 	       goto return_error;
 
 	     continue;
 	  }
-	
+
 	str = b;
-	
+
 	if ((ch == '+') || (ch == '-'))
 	  b++;
 	while (isdigit (*b)) b++;
@@ -330,28 +326,28 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 		  goto return_error;
 	       }
 	     comment = _jdfits_skip_whitespace (skip_word (b));
-	     
+
 	     if (-1 == set_keyword_float (ht, keyword, d, comment))
 	       goto return_error;
-	     
+
 	     continue;
 	  }
-	
+
 	if (1 != sscanf (str, "%d", &i))
 	  {
 	     jdfits_error ("Error parsing value as integer.");
 	     goto return_error;
 	  }
-	
+
 	comment = _jdfits_skip_whitespace (skip_word (b));
-	
+
 	if (-1 == set_keyword_integer (ht, keyword, i, comment))
 	  goto return_error;
-	
+
      }
-   
+
    fclose (fp);
-   
+
    if (old_root != NULL)
      {
 	ht = old_root;
@@ -360,9 +356,9 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 	ht_root = old_root;
      }
    return ht_root;
-   
+
    return_error:
-   
+
    jdfits_error ("This error occured on line %u of %s.", linenum, file);
    fclose (fp);
    jdfits_free_user_kw_table (ht_root);
@@ -373,12 +369,12 @@ JDFits_User_KW_Table_Type *jdfits_read_user_kw_table (char *file,
 JDFits_User_KW_Type *jdfits_find_user_kw (JDFits_User_KW_Table_Type *t, char *kw)
 {
    if (kw == NULL) return NULL;
-   
+
    while (t != NULL)
      {
 	if (0 == strcmp (kw, t->kw.keyword))
 	  return &t->kw;
-	
+
 	t = t->next;
      }
    return NULL;
@@ -387,7 +383,7 @@ JDFits_User_KW_Type *jdfits_find_user_kw (JDFits_User_KW_Table_Type *t, char *kw
 int jdfits_write_user_ky (JDFits_Type *ft, JDFits_User_KW_Type *kw)
 {
    if (kw == NULL) return -1;
-   
+
    switch (kw->type)
      {
       case JDFITS_USER_KW_INT:
@@ -406,15 +402,3 @@ int jdfits_write_user_ky (JDFits_Type *ft, JDFits_User_KW_Type *kw)
    return -1;
 }
 
-	
-       
-	  
-
-
-
-		  
-	     
-	
-	
-       
-	

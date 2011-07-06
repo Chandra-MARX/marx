@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -38,7 +37,6 @@
 
 #include "marx.h"
 #include "_marx.h"
-
 
 #define NUM_FILTER_REGIONS	1
 
@@ -56,24 +54,21 @@ static Param_Table_Type Parm_Table [] =
    {NULL, 0, NULL}
 };
 
-
 void _marx_hrc_blur_position (double *dx, double *dy, double blur)
 {
    double r, theta;
-	     
+
    if (_Marx_Det_Ideal_Flag)
      return;
 
    theta = (2.0 * PI) * JDMrandom ();
    r = blur * JDMgaussian_random ();
-	     
+
    *dx += r * cos(theta);
    *dy += r * sin (theta);
    if (*dx < 0.0) *dx = 0.0;
    if (*dy < 0.0) *dy = 0.0;
 }
-
-
 
 short _marx_hrc_compute_pha (double energy)
 {
@@ -81,14 +76,14 @@ short _marx_hrc_compute_pha (double energy)
    double factor_2 = 107.299;
    double factor_3 = 115.0;
    double width_factor = 0.424661;     /* 1/sqrt(2log(2)) */
-   
+
    if (energy <= 0.5)
      energy = factor_1 * sqrt(energy);
    else if (energy < 2.0)
      energy = factor_2 * pow (energy, 0.1);
    else
      energy = factor_3;
-   
+
    /* We know that delta_E/E = 1 for this detector, where delta_E is FWHM */
    energy = energy * (1.0 + width_factor * JDMgaussian_random ());
    if (energy < 0.0) energy = 0.0;
@@ -96,7 +91,7 @@ short _marx_hrc_compute_pha (double energy)
    return (short) energy;
 }
 
-static int 
+static int
 apply_hrc_qe (Marx_Photon_Attr_Type *at, unsigned int mcp_id)
 {
    _Marx_HRC_QE_Type *mcp;
@@ -107,7 +102,7 @@ apply_hrc_qe (Marx_Photon_Attr_Type *at, unsigned int mcp_id)
    mcp = MCP_QEs + mcp_id;
    if (mcp->num_energies != 0)
      {
-	qe = JDMinterpolate_f ((float) energy, 
+	qe = JDMinterpolate_f ((float) energy,
 			       mcp->energies, mcp->eff, mcp->num_energies);
 	if (JDMrandom () >= qe)
 	  return -1;
@@ -116,18 +111,18 @@ apply_hrc_qe (Marx_Photon_Attr_Type *at, unsigned int mcp_id)
    mcp = Filter_QEs + mcp_id;
    if (mcp->num_energies != 0)
      {
-	qe = JDMinterpolate_f ((float) energy, 
+	qe = JDMinterpolate_f ((float) energy,
 			       mcp->energies, mcp->eff, mcp->num_energies);
 	if (JDMrandom () >= qe)
 	  return -1;
      }
-   
+
    at->pulse_height = _marx_hrc_compute_pha (energy);
 
    return 0;
 }
 
-int 
+int
 _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 {
    Marx_Photon_Attr_Type *at, *attrs;
@@ -136,8 +131,8 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 
    if (pt->history & MARX_DET_NUM_OK)
      return 0;
-   
-   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK 
+
+   pt->history |= (MARX_DET_REGION_OK | MARX_PULSEHEIGHT_OK
 		   | MARX_DET_PIXEL_OK | MARX_DET_NUM_OK);
 
    marx_prune_photons (pt);
@@ -145,14 +140,14 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
    attrs = pt->attributes;
    n_photons = pt->num_sorted;
    sorted_index = pt->sorted_index;
-   
+
    for (i = 0; i < n_photons; i++)
      {
 	Marx_Detector_Geometry_Type *d;
 	double dx, dy;
-	
+
 	at = attrs + sorted_index[i];
-	
+
 #if MARX_HAS_DITHER
 	_marx_dither_detector (&at->dither_state);
 #endif
@@ -184,7 +179,7 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->y_pixel = dx;
 	     at->z_pixel = dy;
 	  }
-	
+
 	/* Transform detected photon back to original system */
 	_marx_transform_ray_reverse (&at->x, &at->p,
 				     &_Marx_Det_XForm_Matrix);
@@ -192,25 +187,24 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	_marx_undither_detector (&at->dither_state);
 #endif
      }
-   
+
    return 0;
 }
 
 /*}}}*/
 
-
-int 
+int
 _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
 {
    unsigned int i;
    Marx_Detector_Type *hrc;
-   
+
    if (-1 == pf_get_parameters (p, Parm_Table))
      return -1;
-   
+
    if (-1 == _marx_hrc_i_geom_init (p))
      return -1;
-   
+
    if (NULL == (hrc = marx_get_detector_info ("HRC-I")))
      return -1;
 
@@ -223,7 +217,7 @@ _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
 	if (-1 == _marx_hrc_read_efficiencies (MCP_QEs + i))
 	  return -1;
      }
-   
+
    for (i = 0; i < NUM_FILTER_REGIONS; i++)
      {
 	if (-1 == _marx_hrc_read_efficiencies (Filter_QEs + i))

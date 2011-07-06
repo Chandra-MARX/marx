@@ -50,16 +50,16 @@ void marx_error (char *fmt, ...)
 {
    char buf[1024];
    va_list ap;
-   
+
    va_start(ap, fmt);
-   
+
    if (JDMath_Error)
      {
 	vsprintf(buf, fmt, ap);
 	JDMmsg_error (buf);
 	JDMath_Error = 0;
      }
-   else 
+   else
      {
 	vfprintf (stderr, fmt, ap);
 	fputc ('\n', stderr);
@@ -68,7 +68,7 @@ void marx_error (char *fmt, ...)
    va_end(ap);
 
 #ifdef USE_SLANG
-   if (SLang_Error == 0) 
+   if (SLang_Error == 0)
      SLang_Error = INTRINSIC_ERROR;
 #endif
 
@@ -83,17 +83,17 @@ void marx_message (char *fmt, ...)
    if (Marx_Verbose == 0)
      return;
 
-   va_start(ap, fmt);   
+   va_start(ap, fmt);
    vfprintf (stdout, fmt, ap);
    va_end(ap);
-   
+
    fflush (stdout);
 }
 
 char *marx_make_version_string (void) /*{{{*/
 {
    static char buf[512];
-   
+
    sprintf (buf, "%s#", MARX_VERSION_STRING);
 
 #if defined(__DATE__) && defined(__TIME__)
@@ -103,7 +103,7 @@ char *marx_make_version_string (void) /*{{{*/
 #ifdef MARX_HOSTNAME
    sprintf (buf + strlen (buf), " %s", MARX_HOSTNAME);
 #endif
-   
+
    return buf;
 }
 /*}}}*/

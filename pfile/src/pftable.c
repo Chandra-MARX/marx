@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -38,13 +37,12 @@
 #include "pfile.h"
 #include "_pfile.h"
 
-
 int pf_get_parameters (Param_File_Type *p, Param_Table_Type *table)
 {
    char *name;
    int status;
    char buf[PF_MAX_LINE_LEN];
-   
+
    while ((name = table->name) != NULL)
      {
 	switch (table->type)
@@ -61,23 +59,23 @@ int pf_get_parameters (Param_File_Type *p, Param_Table_Type *table)
 	   case PF_DOUBLE_TYPE:
 	     status = pf_get_double (p, name, (double *)table->value);
 	     break;
-	     
+
 	   case PF_BOOLEAN_TYPE:
 	     status = pf_get_boolean (p, name, (int *)table->value);
 	     break;
-	     
+
 	   case PF_FILE_TYPE:
 	   case PF_STRING_TYPE:
 	   case PF_STRING0_TYPE:
 	     if (table->type == PF_FILE_TYPE)
 	       status = pf_get_file (p, name, buf, sizeof (buf));
-	     else 
+	     else
 	       status = pf_get_string (p, name, buf, sizeof (buf));
-	     
+
 	     if (status != -1)
 	       {
 		  char *s;
-		  
+
 		  if ((table->type != PF_STRING_TYPE)
 		      && (*buf == 0))
 		    {
@@ -86,27 +84,27 @@ int pf_get_parameters (Param_File_Type *p, Param_Table_Type *table)
 		    }
 
 		  s = _pf_create_string (buf);
-		  
-		  if (s == NULL) 
+
+		  if (s == NULL)
 		    {
 		       return -1;
 		    }
 		  *((char **)table->value) = s;
 	       }
 	     break;
-	     
+
 	   default:
 	     pf_error ("pf_get_parameters: unspported type for %s.", name);
 	     return -1;
 	  }
-	
+
 	if (status == -1)
 	  {
 	    pf_error ("Requested parameter %s not found in parameter file.",
 		      name);
 	     return -1;
 	  }
-	
+
 	table++;
      }
    return 0;

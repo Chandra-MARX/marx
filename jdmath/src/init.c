@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -29,9 +29,9 @@ static void half_add_one (double *x, double *y)
    *y = 1.0 + 0.5 * *x;
 }
 
-int JDMcheck_types (unsigned long i16, 
-		    unsigned long i32, 
-		    unsigned long f32, 
+int JDMcheck_types (unsigned long i16,
+		    unsigned long i32,
+		    unsigned long f32,
 		    unsigned long f64)
 {
    if ((2 != i16)

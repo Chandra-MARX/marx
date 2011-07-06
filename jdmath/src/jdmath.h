@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #ifndef JDMATH_H_INCLUDED
 #define JDMATH_H_INCLUDED
@@ -52,7 +52,7 @@
 #  define INT16_BASIC_TYPE int
 # else
 #  if SIZEOF_INT == 4
-#   undef INT32_BASIC_TYPE 
+#   undef INT32_BASIC_TYPE
 #   define INT32_BASIC_TYPE int
 #  endif
 # endif
@@ -64,7 +64,7 @@
 #  define INT16_BASIC_TYPE short
 # else
 #  if SIZEOF_SHORT == 4
-#   undef INT32_BASIC_TYPE 
+#   undef INT32_BASIC_TYPE
 #   define INT32_BASIC_TYPE short
 #  endif
 # endif
@@ -208,7 +208,6 @@ extern int JDMback_subst_n (double **, unsigned int,
 			    double **, unsigned int);
 extern int JDMmatrix_inverse (double **, unsigned int);
 
-
 extern int JDM_lu_decomp (double **, unsigned int, unsigned int *, double epsilon, int *);
 extern int JDM_lu_backsubst (double **, unsigned int, unsigned int *, double *);
 extern int JDM_ludecomp_inverse (double **, unsigned int);
@@ -316,7 +315,7 @@ extern unsigned int JDMwrite_s_int16 (short *, unsigned int, FILE *);
 
 /* Simplex fitting routines */
 typedef long *JDM_User_Type;
-typedef double (*JDMFit_Funct_Type) 
+typedef double (*JDMFit_Funct_Type)
 (
  unsigned int,			       /* ith point to be evaluated */
  double, 			       /* x[ith] */
@@ -326,7 +325,7 @@ typedef double (*JDMFit_Funct_Type)
  );
 
 /* This function is a chisqr hook. */
-extern double (*JDMSimplex_Chisqr) 
+extern double (*JDMSimplex_Chisqr)
 (
  double *,			       /* x array */
  double *,			       /* y array */
@@ -338,20 +337,20 @@ extern double (*JDMSimplex_Chisqr)
  JDMFit_Funct_Type		       /* function to compute fit */
  );
 
-extern int JDMsimplex_best_fit (double * /* xp */, 
-				double * /* yp */, 
+extern int JDMsimplex_best_fit (double * /* xp */,
+				double * /* yp */,
 				double * /* dyp */,
 				unsigned int /* npts */,
-				double * /* parm_list */, 
+				double * /* parm_list */,
 				unsigned int /* n_parms */,
 				unsigned int * /* vary_list */,
 				double /* scale */,
-				double * /* chisqr */, 
+				double * /* chisqr */,
 				JDMFit_Funct_Type /* f */,
 				JDM_User_Type * /* user */
 				);
 
-typedef struct 
+typedef struct
 {
    double reflect;
    double contract;
@@ -389,7 +388,7 @@ extern JDMComplex_Type JDMc_smul (double, JDMComplex_Type); /* az */
 extern JDMComplex_Type JDMc_imul (double, JDMComplex_Type); /* iaz */
 extern JDMComplex_Type JDMc_sadd (double, JDMComplex_Type); /* a + z */
 extern JDMComplex_Type JDMc_a_bz (double, double, JDMComplex_Type);/* a + bz */
-extern JDMComplex_Type JDMc_az1_bz2 (double, JDMComplex_Type, 
+extern JDMComplex_Type JDMc_az1_bz2 (double, JDMComplex_Type,
 				     double, JDMComplex_Type);/* az_1 + bz_2 */
 
 extern void JDMc_inc (JDMComplex_Type *, JDMComplex_Type);   /* *z += z1 */
@@ -397,7 +396,7 @@ extern void JDMc_inc (JDMComplex_Type *, JDMComplex_Type);   /* *z += z1 */
 extern double JDMc_abs (JDMComplex_Type);     /* |z| */
 
 #if JDMATH_HAS_INLINE
-extern __inline__ 
+extern __inline__
 JDMComplex_Type JDMc_add (JDMComplex_Type z1, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -406,7 +405,7 @@ JDMComplex_Type JDMc_add (JDMComplex_Type z1, JDMComplex_Type z2)
    return z;
 }
 
-extern __inline__ 
+extern __inline__
 JDMComplex_Type JDMc_mul (JDMComplex_Type z1, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -423,7 +422,6 @@ JDMComplex_Type JDMc_sub (JDMComplex_Type z1, JDMComplex_Type z2)
    z.i = z1.i - z2.i;
    return z;
 }
-
 
 extern __inline__
 JDMComplex_Type JDMc_smul (double a, JDMComplex_Type z1)
@@ -472,7 +470,7 @@ JDMComplex_Type JDMc_a_bz (double a, double b, JDMComplex_Type z1)
 }
 
 extern __inline__
-JDMComplex_Type JDMc_az1_bz2 (double a, JDMComplex_Type z1, 
+JDMComplex_Type JDMc_az1_bz2 (double a, JDMComplex_Type z1,
 			      double b, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -515,7 +513,7 @@ double JDMc_imag (JDMComplex_Type a)
 #endif				       /* JDMATH_HAS_INLINE */
 
 /* Vectors */
-typedef struct 
+typedef struct
 {
    double x, y, z;
 }
@@ -544,7 +542,7 @@ extern void JDMv_vector_to_spherical (JDMVector_Type, double *, double *, double
 extern void JDMv_unit_vector_to_spherical (JDMVector_Type, double *, double *);
 extern JDMVector_Type JDMv_spherical_to_vector (double, double, double);
 extern double JDMv_find_rotation_axis (JDMVector_Type, JDMVector_Type, JDMVector_Type *);
-extern void JDMv_spherical_to_triad (double theta, double phi, 
+extern void JDMv_spherical_to_triad (double theta, double phi,
 			      JDMVector_Type *r_hat, JDMVector_Type *theta_hat,
 			      JDMVector_Type *phi_hat);
 
@@ -565,7 +563,7 @@ extern __inline__ JDMVector_Type JDMv_cross_prod (JDMVector_Type a, JDMVector_Ty
    c.z = a.x * b.y - a.y * b.x;
    c.x = a.y * b.z - a.z * b.y;
    c.y = a.z * b.x - a.x * b.z;
-   
+
    return c;
 }
 
@@ -575,32 +573,32 @@ extern __inline__ JDMVector_Type JDMv_pcross_prod (JDMVector_Type *a, JDMVector_
    c.z = a->x * b->y - a->y * b->x;
    c.x = a->y * b->z - a->z * b->y;
    c.y = a->z * b->x - a->x * b->z;
-   
+
    return c;
 }
 
-extern __inline__ JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1, 
+extern __inline__ JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1,
 					       double b, JDMVector_Type x2)
 {
    JDMVector_Type c;
-   
+
    c.x = a * x1.x + b * x2.x;
    c.y = a * x1.y + b * x2.y;
    c.z = a * x1.z + b * x2.z;
-   
+
    return c;
 }
 
-extern __inline__ JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1, 
+extern __inline__ JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1,
 						   double b, JDMVector_Type x2,
 						   double c, JDMVector_Type x3)
 {
    JDMVector_Type d;
-   
+
    d.x = a * x1.x + b * x2.x + c * x3.x;
    d.y = a * x1.y + b * x2.y + c * x3.y;
    d.z = a * x1.z + b * x2.z + c * x3.z;
-   
+
    return d;
 }
 
@@ -608,11 +606,11 @@ extern __inline__ JDMVector_Type JDMv_pax1_bx2 (double a, JDMVector_Type *x1,
 						double b, JDMVector_Type *x2)
 {
    JDMVector_Type c;
-   
+
    c.x = a * x1->x + b * x2->x;
    c.y = a * x1->y + b * x2->y;
    c.z = a * x1->z + b * x2->z;
-   
+
    return c;
 }
 
@@ -629,7 +627,7 @@ extern __inline__ double JDMv_pdot_prod (JDMVector_Type *a, JDMVector_Type *b)
 extern __inline__ void JDMv_normalize (JDMVector_Type *a)
 {
    double len;
-   
+
    if ((len = JDMv_length (*a)) != 0.0)
      {
 	a->x = a->x / len;
@@ -647,22 +645,22 @@ extern __inline__ JDMVector_Type JDMv_unit_vector (JDMVector_Type a)
 extern __inline__ JDMVector_Type JDMv_sum (JDMVector_Type x1, JDMVector_Type x2)
 {
    JDMVector_Type c;
-   
+
    c.x = x1.x + x2.x;
    c.y = x1.y + x2.y;
    c.z = x1.z + x2.z;
-   
+
    return c;
 }
 
 extern __inline__ JDMVector_Type JDMv_diff (JDMVector_Type x1, JDMVector_Type x2)
 {
    JDMVector_Type c;
-   
+
    c.x = x1.x - x2.x;
    c.y = x1.y - x2.y;
    c.z = x1.z - x2.z;
-   
+
    return c;
 }
 
@@ -671,7 +669,7 @@ extern __inline__ double JDMv_distance (JDMVector_Type a, JDMVector_Type b)
    a.x -= b.x;
    a.y -= b.y;
    a.z -= b.z;
-   
+
    return JDMv_length (a);
 }
 #endif
@@ -687,18 +685,14 @@ extern void JDM3m_rot_matrix (JDM_3Matrix_Type, JDMVector_Type, double);
 extern void JDM3m_mul (JDM_3Matrix_Type, JDM_3Matrix_Type, JDM_3Matrix_Type);
 extern JDMVector_Type JDM3m_vector_mul (JDM_3Matrix_Type, JDMVector_Type);
 
-
-
-
 /* returns +1 if roots are real
  * returns 0 if roots are complex.  Then roots are:
  *    x1 = rplus + i rminus;
  *    x2 = rplus - i rminus;
  */
 extern int JDMquadratic_root (double /* a */, double /* b */, double /* c */,
-			      double * /* rplus */, 
+			      double * /* rplus */,
 			      double * /* rminus */);
-
 
 extern void JDMint_trapezoid (double (*)(double, JDM_User_Type *),
 			      JDM_User_Type *, double, double,
@@ -715,13 +709,13 @@ extern void JDMint_midpoint_inf (double (*)(double, JDM_User_Type *),
 				 JDM_User_Type *, double, double,
 				 unsigned int *, double *);
 
-extern int JDMint_romberg (double (*f)(double, JDM_User_Type *), 
+extern int JDMint_romberg (double (*f)(double, JDM_User_Type *),
 			   JDM_User_Type *, double, double,
 			   double *);
 
-extern int JDMint_oromberg (double (*f)(double, JDM_User_Type *), 
+extern int JDMint_oromberg (double (*f)(double, JDM_User_Type *),
 			    JDM_User_Type *, double, double,
-			    int, 
+			    int,
 			    double *);
 
 extern int JDMpoly_interp (double *, double *, unsigned int,
@@ -757,7 +751,7 @@ extern int JDMlog_grid (double *, unsigned int, double, double);
 extern int JDMlog_grid_f (float *, unsigned int, float, float);
 
 /* Binary data interface */
-typedef struct 
+typedef struct
 {
    FILE *fp;
 #define JDMBDATA_READ_MODE	1

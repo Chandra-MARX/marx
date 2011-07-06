@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -64,7 +63,7 @@ typedef struct /*{{{*/
    JDMVector_Type e1, e2;	       /* unit vectors along side */
    JDMVector_Type normal;
    double len1, len2;		       /* length of sides */
-   
+
 }
 
 /*}}}*/
@@ -74,7 +73,6 @@ Rectangle_Type;
 static Rectangle_Type Drake_Flats [2 * MAX_PLATES];
 
 static int Drake_N_Plates = 2;
-
 
 /* Arrays of optical constants.  The first group applies to carbon and the
  * second group applies to the Cr strip.
@@ -90,7 +88,6 @@ static float *Deltas_Cr;
 static float *Energies_Cr;
 static unsigned int Num_Energies_Cr;
 static char *Drake_Cr_Opt_File;
-
 
 static Param_Table_Type Drake_Parm_Table [] = /*{{{*/
 {
@@ -108,15 +105,13 @@ static Param_Table_Type Drake_Parm_Table [] = /*{{{*/
 
 /*}}}*/
 
-
-
 static void free_optical_constants (void) /*{{{*/
 {
    if (NULL != Betas_C) JDMfree_float_vector (Betas_C);
    if (NULL != Deltas_C) JDMfree_float_vector (Deltas_C);
    if (NULL != Energies_C) JDMfree_float_vector (Energies_C);
    Betas_C = Deltas_C = Energies_C = NULL;
-   
+
    if (NULL != Betas_Cr) JDMfree_float_vector (Betas_Cr);
    if (NULL != Deltas_Cr) JDMfree_float_vector (Deltas_Cr);
    if (NULL != Energies_Cr) JDMfree_float_vector (Energies_Cr);
@@ -125,16 +120,15 @@ static void free_optical_constants (void) /*{{{*/
 
 /*}}}*/
 
-static int read_opt_constants (char *file, 
+static int read_opt_constants (char *file,
 			       float **en, float **betas, float **deltas,
 			       unsigned int *num_energies)
 {
    unsigned int nread;
-      
 
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
-	
+
    marx_message ("\t%s\n", file);
 
    /* The optical constant file consists of:
@@ -147,33 +141,32 @@ static int read_opt_constants (char *file,
      }
 
    marx_free (file);
-   
+
    *num_energies = (unsigned int) nread;
-   
+
    return 0;
 }
-
 
 static int read_drake_opt_constants (void)
 {
    free_optical_constants ();
-   
+
    marx_message ("Reading Drake QE binary data files:\n");
 
-   if ((Drake_C_Opt_File != NULL) 
+   if ((Drake_C_Opt_File != NULL)
        && (*Drake_C_Opt_File != 0))
      {
 	if (-1 == read_opt_constants (Drake_C_Opt_File,
-				      &Energies_C, &Betas_C, &Deltas_C, 
+				      &Energies_C, &Betas_C, &Deltas_C,
 				      &Num_Energies_C))
 	  return -1;
      }
-   
+
    if ((Drake_Cr_Opt_File != NULL)
        && (*Drake_Cr_Opt_File != 0))
      {
 	if (-1 == read_opt_constants (Drake_Cr_Opt_File,
-				      &Energies_Cr, &Betas_Cr, &Deltas_Cr, 
+				      &Energies_Cr, &Betas_Cr, &Deltas_Cr,
 				      &Num_Energies_Cr))
 	  return -1;
      }
@@ -181,28 +174,27 @@ static int read_drake_opt_constants (void)
    return 0;
 }
 
-
 int _marx_drake_flat_init (Param_File_Type *p) /*{{{*/
 {
    char name[80];
    int i;
    double corner_x, corner_z;
-   
+
    if ((-1 == pf_get_parameters (p, Drake_Parm_Table))
        || (Drake_C_Opt_File == NULL)
        || (Drake_Cr_Opt_File == NULL)
        || (Drake_N_Plates <= 0)
        || (Drake_N_Plates > MAX_PLATES))
      return -1;
-   
+
    for (i = 0; i < Drake_N_Plates; i++)
      {
 	double theta;
-	  
+
 	sprintf (name, "HESFHeight%d", i + 1);
 	if (-1 == pf_get_double (p, name, i + Drake_Heights))
 	  return -1;
-	
+
 	sprintf (name, "HESFTheta%d", i + 1);
 	if (-1 == pf_get_double (p, name, &theta))
 	  return -1;
@@ -212,23 +204,23 @@ int _marx_drake_flat_init (Param_File_Type *p) /*{{{*/
 
    if (-1 == read_drake_opt_constants ())
      return -1;
-   
+
    /* Now massage the geometric information into normals and rectangular
     * regions.
     */
-   
+
    corner_x = Drake_X_Offset;
    corner_z = Drake_Z_Offset;
-   
+
    for (i = 0; i < Drake_N_Plates; i++)
      {
 	Rectangle_Type *rect;
 	double h, h_tan_theta;
-	
+
 	rect = Drake_Flats + i;
 	h = Drake_Heights[i];
 	h_tan_theta = h * tan (Drake_Angles[i]);
-	
+
 	rect->e1 = JDMv_vector (0.0, 1.0, 0.0);
 	rect->len1 = Drake_Length;
 	rect->e2 = JDMv_vector (h, 0.0, -h_tan_theta);
@@ -237,14 +229,14 @@ int _marx_drake_flat_init (Param_File_Type *p) /*{{{*/
 	rect->normal = JDMv_cross_prod (rect->e1, rect->e2);
 
 	/* Corner position */
-	rect->a = JDMv_vector (corner_x, Drake_Gap_Y1, corner_z);	
+	rect->a = JDMv_vector (corner_x, Drake_Gap_Y1, corner_z);
 	rect->a = JDMv_sum (_Marx_HRC_Geometric_Center, rect->a);
-	
+
 	rect->a1 = JDMv_ax1_bx2 (1.0, rect->a, rect->len1, rect->e1);
-	  
+
 	/* Now do other one in pair */
 	rect += Drake_N_Plates;
-	
+
 	rect->e1 = JDMv_vector (0.0, -1.0, 0.0);
 	rect->len1 = Drake_Length;
 	rect->e2 = JDMv_vector (h, 0.0, -h_tan_theta);
@@ -252,18 +244,18 @@ int _marx_drake_flat_init (Param_File_Type *p) /*{{{*/
 	rect->e2 = JDMv_unit_vector (rect->e2);
 	/* Note that since we want the outward normal, reverse cross product */
 	rect->normal = JDMv_cross_prod (rect->e2, rect->e1);
-	
+
 	/* corner position */
 	rect->a = JDMv_vector (corner_x, -Drake_Gap_Y2, corner_z);
 	rect->a = JDMv_sum (_Marx_HRC_Geometric_Center, rect->a);
 
 	rect->a1 = JDMv_ax1_bx2 (1.0, rect->a, rect->len1, rect->e1);
-	
+
 	/* Now move to next corner */
 	corner_z -= h_tan_theta;
 	corner_x += h;
      }
-   
+
    return 0;
 }
 
@@ -276,34 +268,34 @@ static Rectangle_Type *drake_intersection (JDMVector_Type *x, JDMVector_Type *p,
    Rectangle_Type *rect;
    double t, p_dot_n;
    JDMVector_Type new_x, old_x, old_p, x_prime;
-   
+
    old_x = *x; old_p = *p;
-   
+
    imax = 2 * Drake_N_Plates;
-   
+
    for (i = 0; i < imax; i++)
      {
 	double xx, yy;
 	rect = Drake_Flats + i;
-	
+
 	if (0.0 == (p_dot_n = JDMv_pdot_prod (&old_p, &rect->normal)))
 	  continue;
-       
+
 	t = JDMv_dot_prod (JDMv_diff (rect->a, old_x), rect->normal) / p_dot_n;
-	
+
 	new_x = JDMv_ax1_bx2 (1.0, old_x, t, old_p);
 	x_prime = JDMv_diff (new_x, rect->a);
-	
+
 	xx = JDMv_pdot_prod (&x_prime, &rect->e1);
 	if ((xx < 0.0) || (xx >= rect->len1))
 	  continue;
-	
+
 	yy = JDMv_pdot_prod (&x_prime, &rect->e2);
 	if ((yy < 0.0) || (yy >= rect->len2))
 	  continue;
-	
+
 	/* We have a hit. */
-	
+
 	if (xx < Drake_Cr_Width)
 	  *use_cr = 1;
 	else
@@ -324,7 +316,7 @@ int _marx_drake_reflect (Marx_Photon_Type *pt) /*{{{*/
    unsigned int n, i, *sorted_index;
 
    marx_prune_photons (pt);
-   
+
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
    sorted_index = pt->sorted_index;
@@ -335,13 +327,13 @@ int _marx_drake_reflect (Marx_Photon_Type *pt) /*{{{*/
 	double rfl;
 	double p_dot_n;
 	int use_cr;
-	
+
 	at = photon_attributes + sorted_index[i];
 	if (at->flags & BAD_PHOTON_MASK) continue;
-	
+
 	if (NULL == (plate = drake_intersection (&at->x, &at->p, &p_dot_n, &use_cr)))
 	  continue;
-	
+
 	/* Now we have intersected at at->x.  Compute new direction
 	 * but only if the reflectivity permits.
 	 */
@@ -357,21 +349,20 @@ int _marx_drake_reflect (Marx_Photon_Type *pt) /*{{{*/
 	       rfl = marx_interp_reflectivity (at->energy, p_dot_n, Energies_C, Betas_C, Deltas_C, Num_Energies_C);
 	     else rfl = 1.0;
 	  }
-	
+
 	if (rfl < JDMrandom ())
 	  {
 	     at->flags |= PHOTON_DRAKE_BLOCKED;
 	     continue;
 	  }
-	
+
 	/* New direction */
 	at->p = JDMv_ax1_bx2 (1.0, at->p, -2.0 * p_dot_n, plate->normal);
 	at->flags |= PHOTON_DRAKE_REFLECTED;
      }
-   
+
    return 0;
 }
 
 /*}}}*/
 
-	

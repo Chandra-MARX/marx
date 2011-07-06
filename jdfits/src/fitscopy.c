@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include <memory.h>
 #include <ctype.h>
 
@@ -29,7 +28,6 @@
 #endif
 
 #include "jdfits.h"
-
 
 int jdfits_copy_header (JDFits_Type *ftin, JDFits_Type *ftout)
 {
@@ -41,7 +39,7 @@ int jdfits_copy_header (JDFits_Type *ftin, JDFits_Type *ftout)
 	jdfits_error ("Unable to open keyword section.");
 	return -1;
      }
-   
+
    while (NULL != (k = jdfits_read_keyword (r)))
      {
 	if (-1 == jdfits_write_keyword (ftout, k))
@@ -52,7 +50,7 @@ int jdfits_copy_header (JDFits_Type *ftin, JDFits_Type *ftout)
 	  }
      }
    jdfits_close_keywords (r);
-   
+
    return 0;
 }
 
@@ -67,13 +65,13 @@ int jdfits_copy_data (JDFits_Type *ftin, JDFits_Type *ftout)
 	jdfits_error ("jdfits_copy_data: file is open in incorrect mode.");
 	return -1;
      }
-   
+
    if (-1 == jdfits_read_open_data (ftin))
      {
 	jdfits_error ("jdfits_copy_data: Unable to open data section.");
 	return -1;
      }
-   
+
    while (0 != (nread = jdfits_read_bytes (ftin, buf, sizeof(buf))))
      {
 	if (-1 == jdfits_write (ftout, buf, nread))

@@ -21,7 +21,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-/* These routines are used to randomally pick a number from a probabliity 
+/* These routines are used to randomally pick a number from a probabliity
  * distribution.
  */
 #include "config.h"
@@ -29,7 +29,6 @@
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -40,9 +39,8 @@
 #include "marx.h"
 #include "_marx.h"
 
-
 /* This routine returns m random values from a cumulative spectrum ycum of n
- * values.  Here ycum is assumed to be normalized such that it is a 
+ * values.  Here ycum is assumed to be normalized such that it is a
  * monotonically increasing function with values that lie from 0 to 1.
  */
 void marx_get_random_event (double *xevents, double *ycum, unsigned int n, /*{{{*/
@@ -50,7 +48,7 @@ void marx_get_random_event (double *xevents, double *ycum, unsigned int n, /*{{{
 {
    double *xrnd_max = xrnd + m;
    double r;
-   
+
    while (xrnd < xrnd_max)
      {
 	r = JDMrandom ();
@@ -60,8 +58,4 @@ void marx_get_random_event (double *xevents, double *ycum, unsigned int n, /*{{{
 }
 
 /*}}}*/
-
-
-
-   
 

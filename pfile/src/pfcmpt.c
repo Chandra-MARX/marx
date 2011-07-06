@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -116,12 +115,11 @@ double pgetd (paramfile pfile, char *pname)
    return d;
 }
 
-
 char *pgetstr (paramfile pfile, char *pname, char *string, int length)
 {
    char buf[PF_MAX_LINE_LEN];
    unsigned int len;
-   
+
    if (-1 == pf_get_string ((Param_File_Type *)pfile, pname, buf, sizeof (buf)))
      {
 	fprintf (stderr, "pgetstr: Error getting value for %s\n", pname);
@@ -151,15 +149,14 @@ static void copy_if_non_null (char *to, char *from)
      return;
    if (from == NULL)
      from = "";
-   
+
    strncpy (to, from, PF_MAX_LINE_LEN);
    if (strlen (from) >= PF_MAX_LINE_LEN)
      to[PF_MAX_LINE_LEN-1] = 0;
 }
 
-
 /* yuk */
-int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value, 
+int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value,
 	       char *min, char *max, char *prompt)
 {
    Param_Type *pf;
@@ -170,7 +167,7 @@ int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value,
      return 0;
    if (name == NULL)
      return 0;
-   
+
    if (NULL == (pf = _pf_locate_param_by_type ((Param_File_Type *)pfile, name, 0)))
      return 0;
 
@@ -183,23 +180,23 @@ int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value,
       case PF_BOOLEAN_TYPE:
 	*b++ = 'b';
 	break;
-	     
+
       case PF_INTEGER_TYPE:
 	*b++ = 'i';
 	break;
-	
+
       case PF_REAL_TYPE:
 	*b++ = 'r';
 	break;
-	     
+
       case PF_DOUBLE_TYPE:
 	*b++ = 'd';
 	break;
-	
+
       case PF_STRING_TYPE:
 	*b++ = 's';
 	break;
-	     
+
       case PF_FILE_TYPE:
 	*b++ = 'f';
 	if (pf->type & PF_FILE_EXISTS) *b++ = 'e';
@@ -207,13 +204,13 @@ int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value,
 	if (pf->type & PF_FILE_READABLE) *b++ = 'r';
 	if (pf->type & PF_FILE_WRITABLE) *b++ = 'w';
 	break;
-	     
+
       default:
 	break;
      }
    *b = 0;
    copy_if_non_null (type, buf);
-   
+
    /* mode */
    b = buf;
    if (pf->mode & PF_AUTO_MODE) *b++ = 'a';
@@ -238,17 +235,17 @@ int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value,
 	   case PF_UINT_TYPE:
 	     sprintf (buf, "%u", pf->current_value.uval);
 	     break;
-	
+
 	   case PF_REAL_TYPE:
 	   case PF_DOUBLE_TYPE:
 	     sprintf (buf, "%.16g", pf->current_value.dval);
 	     break;
-	
+
 	   case PF_FILE_TYPE:
 	   case PF_STRING_TYPE:
 	     b = pf->current_value.sval;
 	     break;
-	
+
 	   case PF_BOOLEAN_TYPE:
 	     strcpy (buf, (pf->current_value.ival ? "yes" : "no"));
 	     break;
@@ -261,6 +258,6 @@ int ParamInfo (paramfile pfile, char *name, char *mode, char *type, char *value,
    copy_if_non_null (min, pf->min);
    copy_if_non_null (max, pf->max);
    copy_if_non_null (prompt, pf->prompt);
-   
+
    return 1;
 }

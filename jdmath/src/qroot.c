@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -27,7 +26,6 @@
 #include <string.h>
 
 #include "jdmath.h"
-
 
 /* Returns -1 is a == 0,
  * returns +1 if roots are real
@@ -39,18 +37,18 @@ int JDMquadratic_root (double a, double b, double c,
 		       double *rplus, double *rminus)
 {
    double bsqr, ac4, factor, neg_b_over_2a;
-   
-   if (a == 0.0) 
+
+   if (a == 0.0)
      {
 	if (JDMath_Error == 0)
 	  JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return -1;
      }
-   
+
    bsqr = b * b;
    ac4 = a * c * 4;
    neg_b_over_2a = -b / (2.0 * a);
-   
+
    if (bsqr > ac4)
      {
 	factor = 1.0 + sqrt (1.0 - ac4 / bsqr);
@@ -58,13 +56,13 @@ int JDMquadratic_root (double a, double b, double c,
 	*rminus = neg_b_over_2a * factor;
 	return 1;
      }
-   
+
    if (bsqr == ac4)
      {
 	*rplus = *rminus = neg_b_over_2a;
 	return 1;
      }
-   
+
    /* complex */
    *rplus = neg_b_over_2a;
    *rminus = sqrt (c/a) * sqrt(1.0 - bsqr/ac4);
@@ -77,7 +75,7 @@ static int eval(double a, double b, double c)
 {
    double x, y;
    int ret;
-   
+
    ret = JDMquadratic_root (a, b, c, &x, &y);
    if (ret == -1)
      {
@@ -90,12 +88,11 @@ static int eval(double a, double b, double c)
 		 a, b, c, x, y);
 	return 0;
      }
-   
+
    fprintf (stderr, "%f %f %f ==> REAL: %f, %f\n",
 	    a, b, c, x, y);
    return 0;
 }
-
 
 int main ()
 {
@@ -107,9 +104,8 @@ int main ()
        || eval (1, 1, -12)
        )
      return 1;
-   
+
    return 0;
 }
-
 
 #endif

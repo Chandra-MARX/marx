@@ -67,31 +67,29 @@ static void parse_options (char *str)
 	   case 'r':
 	     Option_Flags |= RAW_FLAG;
 	     break;
-	     
+
 	   case 's':
 	     Option_Flags |= FULL_SCALE;
 	     break;
-	     
+
 	   case 'H':
 	     Option_Flags |= (HEADERS_ONLY | DUMP_HEADERS);
 	     break;
-	     
+
 	   case 'h':
 	     Option_Flags |= DUMP_HEADERS;
 	     break;
-	     
+
 	   case 't':
 	     Option_Flags |= (TEST_INTEGRITY | DUMP_HEADERS);
 	     break;
-	     
+
 	   default:
 	     fprintf (stderr, "fitsdump: Undefined option: %c\n", ch);
 	     usage ();
 	  }
      }
 }
-
-	       
 
 static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix_with_filename)
 {
@@ -102,7 +100,7 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
    char *header_fmt = NULL;
 
    ft = jdfits_open_file (file, JDFITS_READ_MODE);
-   
+
    if (ft == NULL)
      {
 	fprintf (stderr, "Unable to open %s as fits file.\n", file);
@@ -113,13 +111,13 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
    if ((Option_Flags & TEST_INTEGRITY) == 0)
      if (Extension_Name == NULL)
        header_fmt = "# EXTNAME[%d]: %s\n";
-	
-   while (1) 
+
+   while (1)
      {
 	char *extname = NULL;
 	if (Extension_Name == NULL) ok_to_dump = 1;
 	else ok_to_dump = (ext_to_dump == extnum);
-	
+
 	if (ft->header->type == JDFITS_BINTABLE_HEADER)
 	  {
 
@@ -136,16 +134,16 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
 		    }
 	       }
 	  }
-	
+
 	if (Option_Flags & TEST_INTEGRITY) ok_to_dump = 1;
 
 	if (extname == NULL)
 	  extname = "(none)";
-	
+
 	if (header_fmt != NULL)
 	  fprintf (stdout, header_fmt, extnum, extname);
 
-	if (ok_to_dump 
+	if (ok_to_dump
 	    && (Option_Flags & DUMP_HEADERS)
 	    && (NULL != (r = jdfits_open_keywords (ft))))
 	  {
@@ -167,30 +165,30 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
 		     case JDFITS_FLOAT64_TYPE:
 		       ret = fprintf (stdout, "=%20.16g", kw->v.dval);
 		       break;
-		       
+
 		     case JDFITS_FLOAT32_TYPE:
 		       ret = fprintf (stdout, "=%20.16g", kw->v.fval);
 		       break;
-		       
+
 		     case JDFITS_INT32_TYPE:
 		       ret = fprintf (stdout, "=%20ld", (long) kw->v.lval);
 		       break;
-		       
+
 		     case JDFITS_INT_TYPE:
 		       ret = fprintf (stdout, "=%20d", kw->v.ival);
 		       break;
 		     case JDFITS_BOOL_TYPE:
 		       ret = fprintf (stdout, "=%20c", kw->v.ival ? 'T' : 'F');
 		       break;
-		       
+
 		     case JDFITS_INT16_TYPE:
 		       ret = fprintf (stdout, "=%20hd", kw->v.hval);
 		       break;
-		       
+
 		     case JDFITS_STRING_TYPE:
 		       ret = fprintf (stdout, "= '%-8s'", kw->v.sval);
 		       break;
-		       
+
 		     case JDFITS_COMMENT_TYPE:
 		       ret = fprintf (stdout, "%s", kw->v.sval);
 		       break;
@@ -198,8 +196,8 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
 		     default:
 		       break;
 		    }
-		  
-		  if (ret < 0) 
+
+		  if (ret < 0)
 		    exit (1);
 
 		  if ((kw->comment != NULL) && (kw->type != JDFITS_COMMENT_TYPE))
@@ -210,7 +208,7 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
 		  if (EOF == putc ('\n', stdout))
 		    exit (1);
 	       }
-	     
+
 	     jdfits_close_keywords (r);
 	  }
 	if (Option_Flags & TEST_INTEGRITY) ok_to_dump = 0;
@@ -221,7 +219,7 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
 	     int scale = 0;
 	     if (Option_Flags & RAW_FLAG) scale = -1;
 	     else if (Option_Flags & FULL_SCALE) scale = 1;
-	     
+
 	     if (-1 == jdfits_bintable_dump_data (ft, scale, stdout, colname))
 	       {
 		  jdfits_close_file (ft);
@@ -231,10 +229,10 @@ static int fitsdump_file (char *file, int ext_to_dump, char *colname, int prefix
 	else if (jdfits_skip_to_next_header (ft) == -1)
 	  break;
 
-	if (jdfits_read_header (ft) == -1) 
+	if (jdfits_read_header (ft) == -1)
 	  break;
 	/* if (jdfits_parse_header (ft) == -1) break; */
-	
+
 	extnum++;
      }
    jdfits_close_file (ft);
@@ -258,18 +256,18 @@ int main (int argc, char **argv)
 	     if (1 != sscanf (Extension_Name, "%d", &ext_to_dump))
 	       ext_to_dump = -1;
 	  }
-	
+
 	else if (!strcmp ("-c", argv[i]))
 	  {
 	     i++;
 	     if (i == argc) usage ();
 	     colname = argv[i];
 	  }
-	
+
 	else if (*(argv[i]) == '-') parse_options (*(argv + i) + 1);
 	else break;
      }
-   
+
    if (i == argc)
      usage ();
 
@@ -279,7 +277,7 @@ int main (int argc, char **argv)
 #ifdef IDL_HACK
    return jdfits_to_idl (argv[0], NULL);
 #endif
-   
+
    for (i = 0; i < argc; i++)
      {
 	char *file = argv[i];
@@ -287,7 +285,7 @@ int main (int argc, char **argv)
 	if (argc > 1)
 	  fprintf (stdout, "==>>> %s:\n", file);
 
-	if (-1 == fitsdump_file (file, ext_to_dump, colname, 
+	if (-1 == fitsdump_file (file, ext_to_dump, colname,
 				 (argc>1) && (Option_Flags & HEADERS_ONLY)))
 	  fprintf (stderr, "Error dumping %s\n", file);
      }
@@ -295,4 +293,3 @@ int main (int argc, char **argv)
    return 0;
 }
 
-   

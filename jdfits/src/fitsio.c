@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -33,13 +32,13 @@
 int jdfits_read_open_data (JDFits_Type *ft)
 {
    unsigned long size, dsize;
-   
-   if ((ft->mode & JDFITS_READ_MODE) == 0) 
+
+   if ((ft->mode & JDFITS_READ_MODE) == 0)
      {
 	jdfits_error ("jdfits_read_open_data: Fits file not open for read.");
 	return -1;
      }
-   
+
    if (ft->header == NULL)
      {
 	jdfits_error ("jdfits_read_open_data: Fits header is NULL!");
@@ -47,16 +46,15 @@ int jdfits_read_open_data (JDFits_Type *ft)
      }
 
    size = ft->header->size;
-   
+
    dsize = size % JDFITS_RECORD_SIZE;
    if (dsize) dsize = JDFITS_RECORD_SIZE - dsize;
 
    ft->bytes_left_to_read = size;
    ft->bytes_padded = dsize;
-   
+
    return 0;
 }
-
 
 static int read_pad (JDFits_Type *ft)
 {
@@ -93,7 +91,7 @@ static int read_pad (JDFits_Type *ft)
 static void byte_swap32 (unsigned char *ss, unsigned int n)
 {
    unsigned char *p, *pmax, ch;
-   
+
    if (n <= 0) return;
    p = (unsigned char *) ss;
    pmax = p + 4 * n;
@@ -102,7 +100,7 @@ static void byte_swap32 (unsigned char *ss, unsigned int n)
 	ch = *p;
 	*p = *(p + 3);
 	*(p + 3) = ch;
-	
+
 	ch = *(p + 1);
 	*(p + 1) = *(p + 2);
 	*(p + 2) = ch;
@@ -113,7 +111,7 @@ static void byte_swap32 (unsigned char *ss, unsigned int n)
 static void byte_swap64 (unsigned char *ss, unsigned int n)
 {
    unsigned char *p, *pmax, ch;
-   
+
    if (n <= 0) return;
    p = (unsigned char *) ss;
    pmax = p + 8 * n;
@@ -122,19 +120,19 @@ static void byte_swap64 (unsigned char *ss, unsigned int n)
 	ch = *p;
 	*p = *(p + 7);
 	*(p + 7) = ch;
-	
+
 	ch = *(p + 6);
 	*(p + 6) = *(p + 1);
 	*(p + 1) = ch;
-	
+
 	ch = *(p + 5);
 	*(p + 5) = *(p + 2);
 	*(p + 2) = ch;
-	
+
 	ch = *(p + 4);
 	*(p + 4) = *(p + 3);
 	*(p + 3) = ch;
-	
+
 	p += 8;
      }
 }
@@ -142,7 +140,7 @@ static void byte_swap64 (unsigned char *ss, unsigned int n)
 static void byte_swap16 (unsigned char *p, unsigned int nread)
 {
    unsigned char *pmax, ch;
-   
+
    pmax = p + 2 * nread;
    while (p < pmax)
      {
@@ -154,151 +152,141 @@ static void byte_swap16 (unsigned char *p, unsigned int nread)
 }
 #endif
 
-	
-   
-
 unsigned int jdfits_read_bytes (JDFits_Type *ft, unsigned char *b, unsigned int n)
 {
    unsigned int nread;
-   
+
    if (ft->bytes_left_to_read < n)
      {
 	n = ft->bytes_left_to_read;
-     }   
-   
+     }
+
    if (n != (nread = fread (b, 1, n, ft->fp)))
-     { 
+     {
 	jdfits_error ("jdfits_read_bytes: read error.");
      }
-   
+
    ft->bytes_left_to_read -= n;
-   
+
    if ((ft->bytes_left_to_read == 0) && (ft->bytes_padded))
      {
 	(void) read_pad (ft);
      }
-   
+
    return nread;
 }
-
 
 unsigned int jdfits_read_int16 (JDFits_Type *ft, int16 *ss, unsigned int n)
 {
    unsigned int nread;
-   
+
    if (ft->bytes_left_to_read < 2 * n)
      {
 	n = ft->bytes_left_to_read / 2;
-     }   
-   
+     }
+
    if (n != (nread = fread (ss, 2, n, ft->fp)))
-     { 
+     {
 	jdfits_error ("jdfits_read_int16: read error.");
      }
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap16 ((unsigned char *) ss, nread);
 #endif
-   
+
    ft->bytes_left_to_read -= n * 2;
-   
+
    if ((ft->bytes_left_to_read == 0) && (ft->bytes_padded))
      {
 	(void) read_pad (ft);
      }
-   
+
    return nread;
 }
-
-
 
 unsigned int jdfits_read_int32 (JDFits_Type *ft, int32 *ss, unsigned int n)
 {
    unsigned int nread;
-   
+
    if (ft->bytes_left_to_read < 4 * n)
      {
 	n = ft->bytes_left_to_read / 4;
-     }   
-   
+     }
+
    if (n != (nread = fread (ss, 4, n, ft->fp)))
-     { 
+     {
 	jdfits_error ("jdfits_read_int32: read error.");
      }
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) ss, nread);
 #endif
-   
+
    ft->bytes_left_to_read -= n * 4;
-   
+
    if ((ft->bytes_left_to_read == 0) && (ft->bytes_padded))
      {
 	(void) read_pad (ft);
      }
-   
+
    return nread;
 }
-
-
-
 
 unsigned int jdfits_read_float64 (JDFits_Type *ft, float64 *ss, unsigned int n)
 {
    unsigned int nread;
-   
+
    if (ft->bytes_left_to_read < 8 * n)
      {
 	n = ft->bytes_left_to_read / 8;
-     }   
-   
+     }
+
    if (n != (nread = fread (ss, 8, n, ft->fp)))
-     { 
+     {
 	jdfits_error ("jdfits_read_float64: read error.");
      }
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap64 ((unsigned char *) ss, nread);
 #endif
-   
+
    ft->bytes_left_to_read -= n * 8;
 
    if ((ft->bytes_left_to_read == 0) && (ft->bytes_padded))
      {
 	(void) read_pad (ft);
      }
-   
+
    return nread;
 }
 
 unsigned int jdfits_read_float32 (JDFits_Type *ft, float32 *ss, unsigned int n)
 {
    unsigned int nread;
-   
+
    if (ft->bytes_left_to_read < 4 * n)
      {
 	n = ft->bytes_left_to_read / 4;
-     }   
-   
+     }
+
    if (n != (nread = fread (ss, 4, n, ft->fp)))
-     { 
+     {
 	jdfits_error ("jdfits_read_float32: read error.");
      }
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) ss, nread);
 #endif
-   
+
    ft->bytes_left_to_read -= n * 4;
 
    if ((ft->bytes_left_to_read == 0) && (ft->bytes_padded))
      {
 	(void) read_pad (ft);
      }
-   
+
    return nread;
 }
-
 
 int jdfits_read_close_data (JDFits_Type *ft)
 {
@@ -316,7 +304,6 @@ int jdfits_read_close_data (JDFits_Type *ft)
    return 0;
 }
 
-
 int jdfits_write_float32 (JDFits_Type *ft, float32 *x, unsigned int n)
 {
    int ret;
@@ -329,7 +316,6 @@ int jdfits_write_float32 (JDFits_Type *ft, float32 *x, unsigned int n)
 #endif
    return ret;
 }
-
 
 int jdfits_write_float64 (JDFits_Type *ft, float64 *x, unsigned int n)
 {
@@ -374,7 +360,7 @@ static int jdfits_write_pad (JDFits_Type *ft, unsigned int len, char fill_char)
 {
    if (-1 == jdfits_check_mode (ft, JDFITS_WRITE_MODE))
      return -1;
-   
+
    while (len--)
      {
 	if (EOF == putc (fill_char, ft->fp))
@@ -386,12 +372,11 @@ static int jdfits_write_pad (JDFits_Type *ft, unsigned int len, char fill_char)
    return 0;
 }
 
-
 int jdfits_flush_output (JDFits_Type *ft, char fill_char)
 {
    if (-1 == jdfits_check_mode (ft, JDFITS_WRITE_MODE))
      return -1;
-   
+
    if (ft->write_buffer_len == 0) return 0;
 
    if (ft->write_buffer_len != fwrite (ft->write_buffer, 1, ft->write_buffer_len, ft->fp))
@@ -399,7 +384,7 @@ int jdfits_flush_output (JDFits_Type *ft, char fill_char)
 	jdfits_error ("Error writing to file.");
 	return -1;
      }
-   
+
    if (-1 == jdfits_write_pad (ft, JDFITS_RECORD_SIZE - ft->write_buffer_len, fill_char))
      {
 	return -1;
@@ -408,16 +393,15 @@ int jdfits_flush_output (JDFits_Type *ft, char fill_char)
    return 0;
 }
 
-
 int jdfits_write (JDFits_Type *ft, unsigned char *buf, unsigned int len)
 {
    unsigned int space;
    unsigned int n;
    unsigned char *fbuf;
-   
+
    if (-1 == jdfits_check_mode (ft, JDFITS_WRITE_MODE)) return -1;
    fbuf = ft->write_buffer;
-   
+
    while (len)
      {
 	n = ft->write_buffer_len;
@@ -432,12 +416,12 @@ int jdfits_write (JDFits_Type *ft, unsigned char *buf, unsigned int len)
 	     n = ft->write_buffer_len = 0;
 	     space = JDFITS_RECORD_SIZE;
 	  }
-	
+
 	if (len <= space)
 	  {
 	     space = len;
 	  }
-	
+
 	memcpy ((char *) fbuf + n, (char *) buf, space);
 	ft->write_buffer_len += space;
 	len -= space;
@@ -451,7 +435,7 @@ unsigned char *jdfits_str_read_int32 (int32 *ss, unsigned int n, unsigned char *
 {
    unsigned int len = 4 * n;
    if (s != (unsigned char *) ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *) ss, n);
 #endif
@@ -463,9 +447,9 @@ unsigned char *jdfits_str_read_int32 (int32 *ss, unsigned int n, unsigned char *
 unsigned char *jdfits_str_read_int16 (int16 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 2 * n;
-   
+
    if (s != (unsigned char *)ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap16 ((unsigned char *) ss, n);
 #endif
@@ -477,9 +461,9 @@ unsigned char *jdfits_str_read_int16 (int16 *ss, unsigned int n, unsigned char *
 unsigned char *jdfits_str_read_float64 (float64 *ss, unsigned int n, unsigned char *s) /*{{{*/
 {
    unsigned int len = 8 * n;
-   
+
    if (s != (unsigned char *)ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap64 ((unsigned char *)ss, n);
 #endif
@@ -492,7 +476,7 @@ unsigned char *jdfits_str_read_float32 (float32 *ss, unsigned int n, unsigned ch
 {
    unsigned int len = 4 * n;
    if (s != (unsigned char *)ss) memcpy ((char *) ss, (char *) s, len);
-   
+
 #ifdef NEEDS_BYTE_SWAP
    byte_swap32 ((unsigned char *)ss, n);
 #endif
@@ -500,7 +484,7 @@ unsigned char *jdfits_str_read_float32 (float32 *ss, unsigned int n, unsigned ch
 }
 
 /*}}}*/
-     
+
 #define STR_READ_X_Y_FUN(from,to) \
    unsigned char *jdfits_read_ ## from ## _ ## to (to *y, unsigned int n, unsigned char *s) \
        { unsigned int i; \

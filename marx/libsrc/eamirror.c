@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -58,7 +57,7 @@ static double Mirror_Radii[MARX_NUM_MIRRORS] = /*{{{*/
 /*}}}*/
 
 /* The mirror shutters consist of a string characters (0,1) that represent
- * a bitmapped array for the mirror shutters.  1 means the shutter is closed 
+ * a bitmapped array for the mirror shutters.  1 means the shutter is closed
  * for that quadrant.
  */
 static char *Mirror_Shutters [MARX_NUM_MIRRORS];
@@ -104,7 +103,7 @@ static Mirror_Type Mirrors;
 static void create_on_axis_ray (Marx_Photon_Attr_Type *at) /*{{{*/
 {
    double azimuth;
-   
+
    /* Assign an azimuthal angle */
    azimuth = JDMrandom () * (2.0 * PI);
    at->x.x = 0.0;
@@ -117,7 +116,6 @@ static void create_on_axis_ray (Marx_Photon_Attr_Type *at) /*{{{*/
 
 /*}}}*/
 #endif
-
 
 /* The mirror file contains 7 columns:
  *    wavelength, energy, total_area, area_1, area_3, area_4, area_6
@@ -136,7 +134,6 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
        || (HRMA_EA_File == NULL) || (0 == *HRMA_EA_File))
      return -1;
 
-
    for (j = 0; j < n_mirrors; j++)
      {
 	if (-1 == _marx_parse_shutter_string (Mirror_Shutters[j],
@@ -149,7 +146,7 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
 	JDMmsg_error ("Unable to initial mirror blur.");
 	return -1;
      }
-   
+
    if (NULL == (file = marx_make_data_file_name (HRMA_EA_File)))
      return -1;
 
@@ -162,10 +159,10 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
      }
    if (Mirrors.energies != NULL) JDMfree_float_vector (Mirrors.energies);
    Mirrors.energies = NULL;
-   
+
    marx_message ("Reading binary mirror effective area file\n\t%s\n", file);
 
-   if (-1 == marx_f_read_bdat (file, &nread, 7, 
+   if (-1 == marx_f_read_bdat (file, &nread, 7,
 			       NULL,   /* wavelength */
 			       &Mirrors.energies,
 			       NULL,   /* total area */
@@ -178,7 +175,7 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
 	return -1;
      }
    marx_free (file);
-   
+
    /* The zeroth element of the arrays is the geometric area.  Find the total
     * geometric area taking into account of shutters.
     */
@@ -190,15 +187,15 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
 	     g_area += 0.25 * Mirrors.cum_eff_area [j][0] * Mirrors.num_open_shutters[j];
 	  }
      }
-   
+
    if (g_area <= 0.0)
      {
 	marx_error ("The mirror geometric area is 0.  Check shutters.");
 	return -1;
      }
-   
+
    Marx_Mirror_Geometric_Area = g_area;
-   
+
    /* Now compute the cumulative effective area.  Take shutters into account. */
    for (i = 0; i < nread; i++)
      {
@@ -212,11 +209,11 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
 	     Mirrors.cum_eff_area[j][i] = total / g_area;
 	  }
      }
-   
+
    Mirrors.n_mirrors = n_mirrors;
    Mirrors.n_energies = nread;
    Mirrors.vignetting_factor = Mirror_Vignetting_Factor;
-	
+
    for (j = 0; j < n_mirrors; j++)
      {
 	Mirrors.radius[j] = Mirror_Radii[j];
@@ -227,7 +224,6 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
 }
 
 /*}}}*/
-
 
 /* Now we give the photon a position and direction.  We must first project
  * photons to the mirror as on-axis rays since that is all this module
@@ -242,22 +238,22 @@ static void reflect_photon (Marx_Photon_Attr_Type *at, unsigned int shell) /*{{{
    at->mirror_shell = shell;
    radius = Mirrors.radius[shell];
    bitmap = Mirrors.shutter_bitmap[shell];
-   
+
    do
      {
 	theta = JDMrandom ();
 	quad = (unsigned int) (4.0 * theta);   /* 0, 1, 2, 3 */
      }
    while (0 == (bitmap & (1 << quad)));
-     
+
    theta = (2.0 * PI) * (theta - 1.0 / 8.0);
 
    x = &(at->x);
-   
+
    x->y = radius * sin (theta);
    x->z = radius * cos (theta);
    x->x = HRMA_Position;
-   
+
    p = &(at->p);
    /* For a perfectly focused ray, the direction is just -x/|x|. */
    p->x = -x->x;
@@ -281,12 +277,12 @@ int _marx_ea_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 
    if (pt->history & MARX_MIRROR_SHELL_OK)
      return 0;			       /* been here already */
-   
+
    pt->history |= MARX_MIRROR_SHELL_OK;
-   
-   if (Mirror_Use_Effective_Area == 0) 
+
+   if (Mirror_Use_Effective_Area == 0)
      return mirror_perfect_reflect (pt);
-   
+
    marx_prune_photons (pt);
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
@@ -302,29 +298,29 @@ int _marx_ea_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	     (photon_attributes + sorted_index[i])->flags |= PHOTON_MIRROR_VBLOCKED;
 	  }
      }
-   
-   /* I could have pruned in the previous loop but it is a better idea to 
+
+   /* I could have pruned in the previous loop but it is a better idea to
     * leave it for a function call.
     */
    marx_prune_photons (pt);
    photon_energies = pt->sorted_energies;
    n = pt->num_sorted;
-   
+
    interp_areas = JDMdouble_matrix (n_mirrors, n);
    if (interp_areas == NULL) return -1;
-   
+
    /* Now perform the interpolation */
    JDMinterpolate_n_dfvector (photon_energies, interp_areas, n,
 			      Mirrors.energies, Mirrors.cum_eff_area, Mirrors.n_energies,
 			      n_mirrors);
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int shell;
-	
+
 	r = JDMrandom ();
 	at = photon_attributes + sorted_index[i];
-	
+
 	for (shell = 0; shell < n_mirrors; shell++)
 	  {
 	     if (r <= interp_areas[shell][i])
@@ -338,7 +334,7 @@ int _marx_ea_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 #if 0
 	     static FILE *fp;
 	     if (fp == NULL) fp = fopen ("out", "w");
-	     if (fp != NULL) 
+	     if (fp != NULL)
 	       {
 		  fprintf (fp, "%d\t%16g%16g\n", i, at->arrival_time, at->energy);
 	       }
@@ -346,7 +342,7 @@ int _marx_ea_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	     at->flags |= PHOTON_UNREFLECTED;
 	  }
      }
-   
+
    JDMfree_double_matrix (interp_areas, n_mirrors);
    return _marx_mirror_blur (pt);
 }
@@ -361,7 +357,7 @@ static int mirror_perfect_reflect (Marx_Photon_Type *pt) /*{{{*/
    unsigned int n, i, *sorted_index;
    unsigned int n_mirrors = Mirrors.n_mirrors, shell;
    double cum[MARX_NUM_MIRRORS];
-   
+
    marx_prune_photons (pt);
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
@@ -377,21 +373,21 @@ static int mirror_perfect_reflect (Marx_Photon_Type *pt) /*{{{*/
 	     (photon_attributes + sorted_index[i])->flags |= PHOTON_MIRROR_VBLOCKED;
 	  }
      }
-   
+
    marx_prune_photons (pt);
    photon_energies = pt->sorted_energies;
    n = pt->num_sorted;
-   
+
    for (shell = 0; shell < n_mirrors; shell++)
      {
 	cum[shell] = Mirrors.cum_eff_area[shell][0];
      }
-   
+
    for (i = 0; i < n; i++)
      {
 	r = JDMrandom ();
 	at = photon_attributes + sorted_index[i];
-	
+
 	for (shell = 0; shell < n_mirrors; shell++)
 	  {
 	     if (r <= cum[shell])
@@ -403,7 +399,7 @@ static int mirror_perfect_reflect (Marx_Photon_Type *pt) /*{{{*/
 	if (shell == n_mirrors)
 	  at->flags |= PHOTON_UNREFLECTED;
      }
-   
+
    return _marx_mirror_blur (pt);
 }
 
@@ -421,7 +417,7 @@ int dump_mirror_curves (double energy, FILE *fp) /*{{{*/
    int i;
    double **eff_area;
    double total;
-   
+
    for (i = 0; i < Mirrors.n_mirrors; i++)
      {
 	if (Mirrors.cum_eff_area[i] == NULL)
@@ -430,7 +426,7 @@ int dump_mirror_curves (double energy, FILE *fp) /*{{{*/
 	     return -1;
 	  }
      }
-	  
+
    eff_area = JDMdouble_matrix (Mirrors.n_mirrors, 1);
    if (eff_area == NULL)
      {
@@ -439,19 +435,18 @@ int dump_mirror_curves (double energy, FILE *fp) /*{{{*/
      }
 
    JDMinterpolate_n_dvector (&energy, eff_area, 1,
-			     Mirrors.energies, Mirrors.cum_eff_area, 
+			     Mirrors.energies, Mirrors.cum_eff_area,
 			     Mirrors.n_energies,
 			     Mirrors.n_mirrors);
-   
 
    total = 0.0;
    for (i = 0; i < Mirrors.n_mirrors; i++)
      {
 	double value;
-	
+
 	value = eff_area[i][0] - total;
 	total += value;
-	
+
 	if (EOF == fprintf (fp, "\t%e", value))
 	  {
 	     marx_error ("dump_mirror_curves: write error.");
@@ -470,14 +465,14 @@ int dump_mirror_curves (double energy, FILE *fp) /*{{{*/
 unsigned int dump_mirror_curves_open (unsigned int i, FILE *fp) /*{{{*/
 {
    unsigned int j;
-   
+
    fputs ("\n#Mirror:", fp);
    for (j = 0; j < 4; j++)
      {
 	fprintf (fp, " Col_%u:Mirror-Shell-%u", i, j);
 	i++;
      }
-   
+
    fprintf (fp, " Col_%u:Total_Mirror", i);
    i++;
    return i;

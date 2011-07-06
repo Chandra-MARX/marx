@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include <memory.h>
 #include <ctype.h>
 
@@ -35,11 +34,11 @@ static int check_ascii (char *name, int allow_newline)
 {
    unsigned int ch;
    char *save_name;
-   
+
    if (name == NULL) return 0;	       /* NULL values mapped to "" by calling routine */
-   
+
    save_name = name;
-   
+
    while ((ch = (unsigned int) *name++) != 0)
      {
 	if ((ch >= 127) || (ch < 32))
@@ -56,11 +55,10 @@ static int check_ascii (char *name, int allow_newline)
    return 0;
 }
 
-
 static int check_keyword (char *name)
 {
    char *n, ch;
-   
+
    if (name == NULL) return 0;
    if (check_ascii (name, 0) == -1) return -1;
    n = name;
@@ -76,7 +74,7 @@ static int check_keyword (char *name)
 	     return -1;
 	  }
      }
-   
+
    if ((int)strlen (name) > 8)
      {
 	jdfits_error ("Keyword (%s) must be less than 8 characters.\n", name);
@@ -88,11 +86,11 @@ static int check_keyword (char *name)
 static unsigned int check_comment (char *comment, unsigned int len)
 {
    unsigned int clen = strlen (comment);
-   
+
    if (clen && (comment [clen - 1] == '\n'))
      clen--;
 
-   if (clen > len) 
+   if (clen > len)
      {
 	fprintf (stderr, "Comment too long-- truncated.\n");
 	return len;
@@ -105,24 +103,24 @@ static void jdfits_append_comment (char *buf, char *comment)
    unsigned int comment_len;
    unsigned int buf_len = strlen (buf);
    char *b, *bmax;
-   
+
    b = buf + buf_len;
-   
+
    if (comment != NULL)
      {
 	int slash_ok;
 	unsigned int space;
-	
+
 	slash_ok = 0;
 	space = JDFITS_CARD_SIZE - buf_len;
-	
+
 	if (space > 2)
 	  {
 	     slash_ok = 1;
 	     space -= 2;
 	  }
 	if (*comment == '/') comment++;
-	
+
 	comment_len = check_comment (comment, space);
 
 	if (comment_len)
@@ -149,12 +147,12 @@ int jdfits_write_header_string (JDFits_Type *ft, char *name, char *s, char *comm
 {
    char buf[JDFITS_CARD_SIZE + 1];
    char *b, *bmax, *bsave, ch;
-   
+
    if ((-1 == check_keyword (name))
        || (-1 == check_ascii (s, 0))
        || (-1 == check_ascii (comment, 1)))
      return -1;
-   
+
    /* Strings must begin with a ' character in column 11 and have a closing one
     * before the end of the card.  Actually the closing one must be at column
     * 20 or beyond.
@@ -162,7 +160,7 @@ int jdfits_write_header_string (JDFits_Type *ft, char *name, char *s, char *comm
    sprintf (buf, "%-8s= '", name);
    bsave = b = buf + strlen(buf);
    bmax = buf + JDFITS_CARD_SIZE;
-   
+
    while (b < bmax)
      {
 	ch = *s++;
@@ -176,7 +174,7 @@ int jdfits_write_header_string (JDFits_Type *ft, char *name, char *s, char *comm
 	     jdfits_append_comment (buf, comment);
 	     return jdfits_write (ft, (unsigned char *) buf, JDFITS_CARD_SIZE);
 	  }
-	
+
 	if (ch == '\'')
 	  {
 	     *b++ = ch;
@@ -191,30 +189,30 @@ int jdfits_write_header_string (JDFits_Type *ft, char *name, char *s, char *comm
 int jdfits_write_header_logical (JDFits_Type *ft, char *name, int val, char *comment)
 {
    char buf[JDFITS_CARD_SIZE + 1];
-   
+
    if ((-1 == check_keyword (name))
        || (-1 == check_ascii(comment, 1)))
      return -1;
 
    if (val) val = 'T'; else val = 'F';
-   
+
    sprintf (buf, "%-8s=%21c", name, val);
    jdfits_append_comment (buf, comment);
-   
+
    return jdfits_write (ft, (unsigned char *) buf, JDFITS_CARD_SIZE);
 }
 
 int jdfits_write_header_integer (JDFits_Type *ft, char *name, int val, char *comment)
 {
    char buf[JDFITS_CARD_SIZE + 1];
-   
+
    if ((-1 == check_keyword (name))
        || (-1 == check_ascii(comment, 1)))
      return -1;
-   
+
    sprintf (buf, "%-8s= %20d", name, val);
    jdfits_append_comment (buf, comment);
-   
+
    return jdfits_write (ft, (unsigned char *) buf, JDFITS_CARD_SIZE);
 }
 
@@ -228,7 +226,7 @@ static int format_double (double d, int prec, char *buf)
    /* Unfortunately, I have no idea what form has been used.  So, let's probe. */
    expon = strchr (buf, 'E');
    decim = strchr (buf, '.');
-	
+
    if (expon == NULL)
      {
 	if (decim == NULL)
@@ -252,7 +250,7 @@ int jdfits_write_header_double (JDFits_Type *ft, char *name, double val, char *c
    if ((-1 == check_keyword (name))
        || (-1 == check_ascii(comment, 1)))
      return -1;
-   
+
    /* According to the FITS NOST document, the resulting value should be right
     * justified in columns 11-30.  It must contain a decimal point and E must
     * be used if with in exponential form.
@@ -272,10 +270,9 @@ int jdfits_write_header_double (JDFits_Type *ft, char *name, double val, char *c
    while ((prec > 5) && (strlen (buf) > 30));
 
    jdfits_append_comment (buf, comment);
-   
+
    return jdfits_write (ft, (unsigned char *) buf, JDFITS_CARD_SIZE);
 }
-
 
 int jdfits_end_header (JDFits_Type *ft)
 {
@@ -292,13 +289,13 @@ int jdfits_write_header_comment (JDFits_Type *ft, char *name, char *comment)
    char *bmin, *bmax, *b, ch;
 
    if (name == NULL) name = "";
-   
+
    /* Check for all blanks which is ok for comments */
    b = name;
    while (((ch = *b++) != 0) && (ch == ' '))
      ;
-   
-   if (ch == 0) 
+
+   if (ch == 0)
      {
 	if (strlen (name) > 8)
 	  {
@@ -308,16 +305,15 @@ int jdfits_write_header_comment (JDFits_Type *ft, char *name, char *comment)
      }
    else if (-1 == check_keyword (name))
      return -1;
-   
+
    if (comment == NULL) comment = "";
-   
+
    if (-1 == check_ascii (comment, 1)) return -1;
-   
+
    sprintf (buf, "%-8s ", name);
    bmin = buf + 9;
    bmax = buf + JDFITS_CARD_SIZE;
-   
-   
+
    while (1)
      {
 	b = bmin;
@@ -327,12 +323,12 @@ int jdfits_write_header_comment (JDFits_Type *ft, char *name, char *comment)
 	     if (ch == '\n') break;
 	     *b++ = ch;
 	  }
-	
+
 	if ((b == bmax) && (ch != 0))
 	  {
 	     char *bmin_2;
 	     unsigned int diff;
-	     
+
 	     diff = bmax - bmin;
 	     bmin_2 = bmin + (diff / 2);
 	     /* Try to break it at a space. */
@@ -351,14 +347,14 @@ int jdfits_write_header_comment (JDFits_Type *ft, char *name, char *comment)
 		  *(b - 1) = '\\';
 	       }
 	  }
-	
+
 	while (b < bmax) *b++ = ' ';
-	
+
 	*b = 0;
-	
+
 	if (-1 == jdfits_write (ft, (unsigned char *) buf, JDFITS_CARD_SIZE))
 	  return -1;
-	
+
 	if ((ch == '\n') && (*comment == 0)) break;
 	if (ch == 0) break;
      }
@@ -366,9 +362,7 @@ int jdfits_write_header_comment (JDFits_Type *ft, char *name, char *comment)
 }
 
 int jdfits_end_data (JDFits_Type *ft)
-{   
+{
    return jdfits_flush_output (ft, 0);
 }
-
-
 

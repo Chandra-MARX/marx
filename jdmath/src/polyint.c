@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
@@ -36,14 +35,14 @@ int JDMpoly_interp (double *xdat, double *ydat, unsigned int npts,
    unsigned int i, m;
    unsigned int closest_i;
    double diff, y, dy, dx;
-   
+
    if (npts > MAX_POINTS)
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	JDMmsg_error2 ("JDMpoly_interp", "polynomial degree not supported.");
 	return -1;
      }
-   
+
    /* Find the point that is closest to x.  This point will be used below to
     * compute the error *dyp.
     */
@@ -60,24 +59,24 @@ int JDMpoly_interp (double *xdat, double *ydat, unsigned int npts,
 	     closest_i = i;
 	  }
      }
-   
+
    dy = y = ydat [closest_i];
-   
-   /* Since the first column was filled-in above, we only need to fill in 
+
+   /* Since the first column was filled-in above, we only need to fill in
     * npts - 1 more.
     */
-   
+
    for (m = 1; m < npts; m++)
      {
 	unsigned int imax = npts - m;
-	
+
 	for (i = 0; i < imax; i++)
 	  {
 	     double den, num;
 
 	     diff = xdat[i] - x;
 	     dx = xdat[i + m] - x;
-	     
+
 	     den = diff - dx;
 	     if (den == 0.0)
 	       {
@@ -85,22 +84,22 @@ int JDMpoly_interp (double *xdat, double *ydat, unsigned int npts,
 		  JDMmsg_error ("JDMpoly_interp");
 		  return -1;
 	       }
-	     
+
 	     num = (c[i + 1] - d[i]) / den;
-	     
+
 	     c[i] = diff * num;
 	     d[i] = dx * num;
 	  }
-	
+
 	/* Now correct y value by this iteration's results. */
 	if (closest_i != 0)
 	  dy = d[--closest_i];
 	else
 	  dy = c[0];
-	
+
 	  y += dy;
      }
-   
+
    *dyp = dy;
    *yp = y;
    return 0;
@@ -111,18 +110,18 @@ int JDMpoly_interp (double *xdat, double *ydat, unsigned int npts,
 int main (int argc, char **argv)
 {
 #define NPTS 10
-   
+
    double xa[NPTS], ya[NPTS];
    double y, dy, x;
    unsigned int i;
-   
+
    for (i = 0; i < NPTS; i++)
      {
 	xa[i] = i + 0.5 * JDMRANDOM;
 	ya[i] = JDMRANDOM;
 	fprintf (stdout, "%f\t%f\n", xa[i], ya[i]);
      }
-   
+
    for (x = 0; x < NPTS; x += 0.1)
      {
 	(void) JDMpoly_interp (xa, ya, NPTS, x, &y, &dy);

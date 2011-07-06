@@ -27,7 +27,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -37,8 +36,8 @@
 
 #include <jdmath.h>
 
-   /* Now read in each encircled energy array one by one.  Use the array to 
-    * interpolate a new set of thetas for a common ee grid.  That is, the 
+   /* Now read in each encircled energy array one by one.  Use the array to
+    * interpolate a new set of thetas for a common ee grid.  That is, the
     * file contains a mapping of encircled energies as a function of theta
     * where there is a common theta axis.  Simply transform to the reverse---
     * theta as a function of ee.
@@ -58,18 +57,18 @@ int main (int argc, char **argv) /*{{{*/
    unsigned int i, n;
 
    (void) argc; (void) argv;
-   
+
    if (NULL == (fp = fopen (file, "rb"))) return -1;
 
    if (25 != JDMread_float32 (energy, 25, fp))
      return -1;
-   
+
    if (564 != JDMread_float32 (theta, 564, fp))
      return -1;
-   
+
    if (4 * 564 * 25 != JDMread_float32 ((float32 *)ee_n, 4 * 564 * 25, fp))
      return -1;
-   
+
    fclose (fp);
 
    /* Fix up data.  The EEs should be an increasing function ending at 1.0!!
@@ -89,22 +88,22 @@ int main (int argc, char **argv) /*{{{*/
 	     ee_n[n][i][563] = 1.0;
 	  }
      }
-   
+
    if (NULL == (fpout = fopen ("mirr-ee.bin", "wb")))
      {
 	fprintf (stderr, "Unable to open output file.\n");
 	exit (-1);
      }
-   
+
    JDMwrite_int32 (&num_energies, 1, fpout);
    JDMwrite_int32 (&num_ee, 1, fpout);
-   
+
    if (num_energies != (int)JDMwrite_float32 (energy, (unsigned int) num_energies, fpout))
      {
 	fprintf (stderr, "Write error.\n");
 	return -1;
      }
-				      
+
    /* Create a new ee grid.  Since the function goes up very fast and levels
     * out at 1.0, use a log grid to give more samples near 1.0.
     */
@@ -112,13 +111,13 @@ int main (int argc, char **argv) /*{{{*/
      {
 	new_ee[i - 1] = (float) (log ((double)i) / log((double) num_ee));
      }
-   
+
    if (num_ee != (int)JDMwrite_float32 (new_ee, (unsigned int) num_ee, fpout))
      {
 	fprintf (stderr, "Write error.\n");
 	return -1;
      }
-   
+
    /* Now interpolate all thetas to this grid */
    for (n = 0; n < 4; n++)
      {
@@ -127,14 +126,14 @@ int main (int argc, char **argv) /*{{{*/
 	     unsigned int j;
 	     JDMinterpolate_fvector (new_ee, new_theta, (unsigned int) num_ee,
 				     (float *)ee_n[n][i], theta, (unsigned int) num_ee);
-	     
+
 	     /* Convert the theta array to radians. */
 	     for (j = 0; j < (unsigned int) num_ee; j++)
 	       {
 		  new_theta[j] = (new_theta[j] / 3600.0) * (PI / 180.0);
 		  if (new_theta[j] < 0.0) new_theta[j] = 0.0;
 	       }
-	     
+
 	     if (num_ee != (int)JDMwrite_float32 (new_theta, (unsigned int) num_ee, fpout))
 	       {
 		  fprintf (stderr, "Write error.\n");
@@ -149,16 +148,16 @@ int main (int argc, char **argv) /*{{{*/
 	for (j = 0; j < num_energies; j++)
 	  {
 	     fprintf (stdout, "%e %e %e %e %e %e\n",
-		      
+
 		      new_theta[i],
-		      new_ee[0][3][i], new_ee[1][3][i], 
+		      new_ee[0][3][i], new_ee[1][3][i],
 		      new_ee[2][3][i], new_ee[3][3][i]);
 	  }
 	fputs ("\n\n", stdout);
      }
-   
+
 #endif
-   
+
    fclose (fpout);
    return 0;
 }

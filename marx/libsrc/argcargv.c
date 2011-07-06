@@ -51,7 +51,7 @@ static char *argcargv_strchr (char *name, char ch) /*{{{*/
 static char *argcargv_make_string (char *str) /*{{{*/
 {
    char *s;
-   
+
    s = (char *)malloc (strlen (str) + 1);
    if (s != NULL) strcpy (s, str);
    return s;
@@ -68,15 +68,15 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
    char name_buf[256];
    int (*func)(int *, char ***);
    unsigned int or_value;
-   
+
    argc = *argc_p;
    argv = *argv_p;
-   
+
    while (argc > 0)
      {
 	name = *argv++;
 	argc--;
-	
+
 	/* *argc_p = argc; *argv_p = argv; */
 
 	if (NULL != (eqs_value = argcargv_strchr (name, '=')))
@@ -84,7 +84,7 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 	     name_len = (unsigned int) (eqs_value - name);
 	     if (name_len >= sizeof (name_buf))
 	       name_len = sizeof (name_buf) - 1;
-	     
+
 	     strncpy (name_buf, name, name_len);
 	     name_buf[name_len] = 0;
 	     name = name_buf;
@@ -98,23 +98,23 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 	     if (!strncmp (t->name, name, name_len))
 	       {
 		  /* Ok, we have a match upto name_len characters.  Is the
-		   * match unique?  Let's assume that the table has been 
+		   * match unique?  Let's assume that the table has been
 		   * ordered in such a way that this is not our concern.
 		   */
-		  
+
 		  if (eqs_value == NULL)
 		    {
 		       or_value = 0;
 		       eqs_value = *argv;
 		    }
 		  else or_value = ARGCARGV_EQS_FLAG;
-		 
+
 		  switch (t->type | or_value)
 		    {
 		     case ARGCARGV_STRING:
 		       if (argc == 0)
 			 {
-			    fprintf (stderr, "The %s parameter takes an argument.\n", 
+			    fprintf (stderr, "The %s parameter takes an argument.\n",
 				     t->name);
 			    return -1;
 			 }
@@ -125,7 +125,7 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 			 return -1;
 		       *(char **) (t->addr) = eqs_value;
 		       break;
-		       
+
 		     case ARGCARGV_INTEGER:
 		       if (argc == 0)
 			 {
@@ -142,7 +142,7 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 			    return -1;
 			 }
 		       break;
-		       
+
 		     case ARGCARGV_FLOAT:
 		       if (argc == 0)
 			 {
@@ -176,15 +176,15 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 			    return -1;
 			 }
 		       break;
-		       
+
 		     case ARGCARGV_BOOLEAN:
 		       *(int *) t->addr = 1;
 		       break;
-		       
+
 		     case ARGCARGV_TOGGLE_BOOLEAN:
 		       *(int *) t->addr = ! *(int *) t->addr;
 		       break;
-		       
+
 		     case ARGCARGV_FUNCTION:
 		       func = (int (*)(int *, char ***)) t->addr;
 		       if (func == NULL)
@@ -198,18 +198,18 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 			    return -1;
 			 }
 		       break;
-		       
+
 		     default:
 		       /* This should not happen */
 		       break;
 		    }
-		  
+
 		  break;	       /* break out of while loop */
 	       }
-	     
+
 	     t++;
 	  }
-	
+
 	if (t->name == NULL)
 	  {
 	     /* Not found */
@@ -218,14 +218,13 @@ int argcargv (int *argc_p, char ***argv_p, ArgcArgv_Type *table) /*{{{*/
 	     break;
 	  }
      }
-   
+
    *argc_p = argc;
    *argv_p = argv;
    return 0;
 }
 
 /*}}}*/
-
 
 #if 0
 
@@ -255,7 +254,7 @@ int main (int argc, char **argv) /*{{{*/
      {
 	fprintf (stderr, "Unprocessed: %s\n", *argv);
      }
-   
+
    fprintf (stdout, "i1 = %d\n", I1);
    fprintf (stdout, "i2 = %d\n", I2);
    fprintf (stdout, "s1 = %s\n", (S1 == NULL) ? "NULL" : S1);

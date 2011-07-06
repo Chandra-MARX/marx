@@ -31,13 +31,13 @@ int main (int argc, char **argv)
 {
    Param_Type *pf;
    Param_File_Type *p;
-   
+
    if (argc == 1)
      {
 	fprintf (stderr, "Usage: %s pfile [p-assign...]\n", argv[0]);
 	return -1;
      }
-   
+
    argc--;
    argv++;
    p = pf_parse_cmd_line (argv[0], "rwL", argc, argv);
@@ -57,6 +57,6 @@ int main (int argc, char **argv)
 	  }
      }
    pf_close_parameter_file (p);
-	
+
    return 0;
 }

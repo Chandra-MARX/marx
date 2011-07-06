@@ -23,7 +23,7 @@
 #ifndef JD_ARGC_ARGV_H
 #define JD_ARGC_ARGV_H
 
-typedef struct 
+typedef struct
 {
    char *name;
    unsigned int type;
@@ -42,10 +42,10 @@ typedef struct
 ArgcArgv_Type;
 
 /* The first argument argc will contain the number of unparsed arguments
- * upon return.  The second argument, argv, will be left pointing at the 
+ * upon return.  The second argument, argv, will be left pointing at the
  * unparsed argument.  If called from main using argc, argv from main,
  * be sure to bump argc, argv so that argv[0] is not passed.
- * 
+ *
  * Returns 0 upon success, -1 upon failure.
  */
 extern int argcargv (int * /* argc */, char *** /* argv */ , ArgcArgv_Type *);

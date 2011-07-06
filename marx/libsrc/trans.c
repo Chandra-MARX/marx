@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -41,11 +40,11 @@
 static void rotate_vector (double *m, JDMVector_Type *v)
 {
    double x, y, z;
-   
+
    x = v->x;
    y = v->y;
    z = v->z;
-   
+
    v->x = m[0] * x + m[1] * y + m[2] * z;
    v->y = m[3] * x + m[4] * y + m[5] * z;
    v->z = m[6] * x + m[7] * y + m[8] * z;
@@ -54,16 +53,15 @@ static void rotate_vector (double *m, JDMVector_Type *v)
 static void rotate_vector_inv (double *m, JDMVector_Type *v)
 {
    double x, y, z;
-   
+
    x = v->x;
    y = v->y;
    z = v->z;
-   
+
    v->x = m[0] * x + m[3] * y + m[6] * z;
    v->y = m[1] * x + m[4] * y + m[7] * z;
    v->z = m[2] * x + m[5] * y + m[8] * z;
 }
-
 
 void _marx_transform_ray (JDMVector_Type *x, JDMVector_Type *p, /*{{{*/
 			  _Marx_Coord_Transform_Type *a)
@@ -86,7 +84,7 @@ void _marx_transform_ray_reverse (JDMVector_Type *x, JDMVector_Type *p, /*{{{*/
 
    x->x += a->dx;
    x->y += a->dy;
-   x->z += a->dz;   
+   x->z += a->dz;
 }
 
 /*}}}*/

@@ -27,7 +27,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
 #endif
@@ -37,8 +36,8 @@
 
 #include <jdmath.h>
 
-   /* Now read in each encircled energy array one by one.  Use the array to 
-    * interpolate a new set of thetas for a common ee grid.  That is, the 
+   /* Now read in each encircled energy array one by one.  Use the array to
+    * interpolate a new set of thetas for a common ee grid.  That is, the
     * file contains a mapping of encircled energies as a function of theta
     * where there is a common theta axis.  Simply transform to the reverse---
     * theta as a function of ee.
@@ -61,9 +60,9 @@ int main (int argc, char **argv) /*{{{*/
    float value;
    float *energies;
    float *ee;
-   
+
    int i, n;
-   
+
    if (NULL == (fp = fopen (file, "rb"))) return -1;
 
    if ((1 != JDMread_int32 (&num_energies, 1, fp))
@@ -73,11 +72,11 @@ int main (int argc, char **argv) /*{{{*/
    if ((NULL == (ee = JDMfloat_vector (num_ee)))
        || (NULL == (energies = JDMfloat_vector (num_energies))))
      JDMmsg_error (NULL);
-   
+
    if ((num_energies != JDMread_float32 (energies, num_energies, fp))
        || (num_ee != JDMread_float32 (ee, num_ee, fp)))
      read_error ();
-   
+
    /* Now interpolate all thetas to this grid */
    for (n = 0; n < 4; n++)
      {
@@ -89,14 +88,14 @@ int main (int argc, char **argv) /*{{{*/
 	       {
 		  if (1 != JDMread_float32 (&value, 1, fp))
 		    read_error ();
-		  
+
 		  fprintf (stdout, "%e %e\n", ee[j], value);
 	       }
 	     fprintf (stdout, "@eod\n");
 	  }
 	fprintf (stdout, "@pause\n@clear\n");
      }
-   
+
    fclose (fp);
    return 0;
 }

@@ -13,13 +13,12 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
 #include <stdio.h>
 #include <math.h>
-
 
 #ifdef HAVE_STDLIB_H
 # include <stdlib.h>
@@ -28,21 +27,20 @@
 
 #include "jdmath.h"
 
-
 double JDMgaussian_random (void)
 {
    static int one_available = 0;
    double g1, g, s;
    static double g2;
-   
+
    if (one_available)
      {
 	one_available = 0;
 	return g2;
      }
-   
+
    one_available = 1;
-   
+
    do
      {
 	g1 = 2.0 * JDMrandom () - 1.0;
@@ -50,7 +48,7 @@ double JDMgaussian_random (void)
 	g = g1 * g1 + g2 * g2;
      }
    while ((g >= 1.0) || (g == 0.0));
-   
+
    s = sqrt (-2.0 * log (g) / g);
    g2 = g2 * s;
    return g1 * s;
@@ -59,7 +57,7 @@ double JDMgaussian_random (void)
 double JDMexpn_random (void)
 {
    double r;
-   
+
    do
      {
 	r = JDMrandom ();
@@ -74,7 +72,7 @@ int main ()
 {
    unsigned int i, imax = 1000000;
    double x, x2, xi;
-   
+
    x = x2 = 0.0;
    for (i = 0; i < imax; i++)
      {
@@ -85,7 +83,7 @@ int main ()
 
 	fprintf (stdout, "%f\n", xi);
      }
-   
+
    fprintf (stderr, "<x> = %f, <x^2> = %f, <x^2> - <x>^2 = %f\n",
 	    x, x2, x2 - x * x);
    return 0;

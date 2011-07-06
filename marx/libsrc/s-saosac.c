@@ -71,7 +71,6 @@ static int compute_weights_scale_factor (char *file, double *wp)
 	return -1.0;
      }
 
-
    wmax = 0.0;
 
    while (-1 != jdfits_simple_d_read_btable (bt, &w))

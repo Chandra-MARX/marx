@@ -13,7 +13,7 @@
 
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc., 675
- Mass Ave, Cambridge, MA 02139, USA. 
+ Mass Ave, Cambridge, MA 02139, USA.
 */
 #include "config.h"
 
@@ -32,7 +32,7 @@
  * incorrect results if the row pointers is imposed on a linear array.
  * So, _JDMswap_dvector is called.
  */
-	
+
 int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 {
    int *piv, *row, *col;
@@ -40,21 +40,21 @@ int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 
    if ((n == 0) || (m == 0))
      return 0;
-       
+
    if ((a == NULL) || (b == NULL))
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return -1;
      }
-   
+
    if (NULL == (piv = (int *)_JDMmalloc (3 * n * sizeof (int), "JDMgauss_jordan")))
      return -1;
-   
+
    row = piv + n;
    col = row + n;
-   
+
    memset ((char *) piv, 0, n * sizeof (int));
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int j;
@@ -66,10 +66,10 @@ int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 	for (j = 0; j < n; j++)
 	  {
 	     unsigned int k;
-	     
+
 	     if (piv[j] == 1)
 	       continue;
-	     
+
 	     for (k = 0; k < n; k++)
 	       {
 		  if (piv[k] != 0)
@@ -79,10 +79,10 @@ int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 
 		       goto return_error;
 		    }
-		  
+
 		  if (fabs (a[j][k]) < largest)
 		    continue;
-		  
+
 		  largest = fabs (a[j][k]);
 		  piv_row = j;
 		  piv_col = k;
@@ -92,23 +92,23 @@ int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 	piv[piv_col] += 1;
 	if (piv_row != piv_col)
 	  _JDMswap_dvector (a[piv_row], a[piv_col], n);
-	
+
 	a_piv = a[piv_col];
 	b_piv = b[piv_col];
 
 	inv = a_piv[piv_col];
 	if (inv == 0)
 	  goto return_error;
-	
+
 	inv = 1/inv;
 	a_piv[piv_col] = 1;
 
 	row[i] = piv_row;
 	col[i] = piv_col;
-   
+
 	for (j = 0; j < n; j++) a_piv[j] = a_piv[j] * inv;
 	for (j = 0; j < m; j++) b_piv[j] = b_piv[j] * inv;
-	
+
 	for (j = 0; j < n; j++)
 	  {
 	     unsigned int k;
@@ -125,7 +125,7 @@ int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 	     aj = b[j]; for (k = 0; k < m; k++) aj[k] -= b_piv[k] * val;
 	  }
      }
-   
+
    i = n;
    while (i)
      {
@@ -135,12 +135,12 @@ int JDMgauss_jordan_n (double **a, double **b, unsigned int n, unsigned int m)
 	if (row[i] == col[i]) continue;
 	for (k = 0; k < n; k++)
 	  {
-	     double tmp = a[k][row[i]]; 
+	     double tmp = a[k][row[i]];
 	     a[k][row[i]] = a[k][col[i]];
 	     a[k][col[i]] = tmp;
 	  }
      }
-   
+
    _JDMfree ((char *)piv);
    return 0;
 
@@ -157,21 +157,21 @@ int JDMgauss_jordan (double **a, double *b, unsigned int n)
 
    if (n == 0)
      return 0;
-       
+
    if ((a == NULL) || (b == NULL))
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return -1;
      }
-   
+
    if (NULL == (piv = (int *)_JDMmalloc (3 * n * sizeof (int), "JDMgauss_jordan")))
      return -1;
-   
+
    row = piv + n;
    col = row + n;
-   
+
    memset ((char *) piv, 0, n * sizeof (int));
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int j;
@@ -183,10 +183,10 @@ int JDMgauss_jordan (double **a, double *b, unsigned int n)
 	for (j = 0; j < n; j++)
 	  {
 	     unsigned int k;
-	     
+
 	     if (piv[j] == 1)
 	       continue;
-	     
+
 	     for (k = 0; k < n; k++)
 	       {
 		  if (piv[k] != 0)
@@ -196,10 +196,10 @@ int JDMgauss_jordan (double **a, double *b, unsigned int n)
 
 		       goto return_error;
 		    }
-		  
+
 		  if (fabs (a[j][k]) < largest)
 		    continue;
-		  
+
 		  largest = fabs (a[j][k]);
 		  piv_row = j;
 		  piv_col = k;
@@ -213,19 +213,19 @@ int JDMgauss_jordan (double **a, double *b, unsigned int n)
 	     t = b[piv_row]; b[piv_row] = b[piv_col]; b[piv_col] = t;
 	     _JDMswap_dvector (a[piv_row], a[piv_col], n);
 	  }
-	
+
 	a_piv = a[piv_col];
 
 	inv = a_piv[piv_col];
 	if (inv == 0)
 	  goto return_error;
-	
+
 	inv = 1/inv;
 	a_piv[piv_col] = 1;
 
 	row[i] = piv_row;
 	col[i] = piv_col;
-   
+
 	for (j = 0; j < n; j++) a_piv[j] = a_piv[j] * inv;
 	b[piv_col] = b[piv_col] * inv;
 
@@ -245,7 +245,7 @@ int JDMgauss_jordan (double **a, double *b, unsigned int n)
 	     b[j] -= b[piv_col] * val;
 	  }
      }
-   
+
    i = n;
    while (i)
      {
@@ -255,12 +255,12 @@ int JDMgauss_jordan (double **a, double *b, unsigned int n)
 	if (row[i] == col[i]) continue;
 	for (k = 0; k < n; k++)
 	  {
-	     double tmp = a[k][row[i]]; 
+	     double tmp = a[k][row[i]];
 	     a[k][row[i]] = a[k][col[i]];
 	     a[k][col[i]] = tmp;
 	  }
      }
-   
+
    _JDMfree ((char *)piv);
    return 0;
 
@@ -277,21 +277,21 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
 
    if (n == 0)
      return 0;
-       
+
    if (a == NULL)
      {
 	JDMath_Error = JDMATH_INVALID_PARAMETER;
 	return -1;
      }
-   
+
    if (NULL == (piv = (int *)_JDMmalloc (3 * n * sizeof (int), "JDMgauss_jordan")))
      return -1;
-   
+
    row = piv + n;
    col = row + n;
-   
+
    memset ((char *) piv, 0, n * sizeof (int));
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int j;
@@ -303,10 +303,10 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
 	for (j = 0; j < n; j++)
 	  {
 	     unsigned int k;
-	     
+
 	     if (piv[j] == 1)
 	       continue;
-	     
+
 	     for (k = 0; k < n; k++)
 	       {
 		  if (piv[k] != 0)
@@ -316,10 +316,10 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
 
 		       goto return_error;
 		    }
-		  
+
 		  if (fabs (a[j][k]) < largest)
 		    continue;
-		  
+
 		  largest = fabs (a[j][k]);
 		  piv_row = j;
 		  piv_col = k;
@@ -335,13 +335,13 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
 	inv = a_piv[piv_col];
 	if (inv == 0)
 	  goto return_error;
-	
+
 	inv = 1/inv;
 	a_piv[piv_col] = 1;
 
 	row[i] = piv_row;
 	col[i] = piv_col;
-   
+
 	for (j = 0; j < n; j++) a_piv[j] = a_piv[j] * inv;
 
 	for (j = 0; j < n; j++)
@@ -359,7 +359,7 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
 	     for (k = 0; k < n; k++) aj[k] -= a_piv[k] * val;
 	  }
      }
-   
+
    i = n;
    while (i)
      {
@@ -369,12 +369,12 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
 	if (row[i] == col[i]) continue;
 	for (k = 0; k < n; k++)
 	  {
-	     double tmp = a[k][row[i]]; 
+	     double tmp = a[k][row[i]];
 	     a[k][row[i]] = a[k][col[i]];
 	     a[k][col[i]] = tmp;
 	  }
      }
-   
+
    _JDMfree ((char *)piv);
    return 0;
 
@@ -383,7 +383,6 @@ int JDMgauss_jordan_inverse (double **a, unsigned int n)
    _JDMfree ((char *)piv);
    return -1;
 }
-
 
 #ifdef TEST_GAUSSJ
 
@@ -394,7 +393,7 @@ int main (int argc, char **argv)
    double **a, *b, **a1, *b1;
 
    n = 50;
-   
+
    a = JDMdouble_matrix (n, n);
    a1 = JDMdouble_matrix (n, n);
    b = JDMdouble_vector (n);
@@ -404,10 +403,10 @@ int main (int argc, char **argv)
      {
 	for (j = 0; j < n; j++)
 	  a[i][j] = a1[i][j] = JDMrandom ();
-	
+
 	b[i] = b1[i] = JDMrandom ();
      }
-   
+
    if (0 == JDMgauss_jordan (a, b, n))
      {
 	for (i = 0; i < n; i++)
@@ -415,11 +414,11 @@ int main (int argc, char **argv)
 	     double sum = 0;
 	     for (j = 0; j < n; j++)
 	       sum += a[i][j] * b1[j];
-	     
+
 	     fprintf (stdout, "%e\n", sum - b[i]);
 	  }
      }
-   
+
    return 0;
 }
 #endif

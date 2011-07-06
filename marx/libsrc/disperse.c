@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -44,11 +43,10 @@
 double HRMA_To_Detector_Distance = 10069.0;    /* mm */
 double Grating_To_Detector_Distance = 8635.0;   /* mm */
 double Focus_Detector_Offset = 0.2;             /* mm */
-/* Note: the Focus_Detector_Offset should really be a time-dependent 
+/* Note: the Focus_Detector_Offset should really be a time-dependent
  * random number that varies with the position on the focal plane.  Here,
  * it is simply set to the maximum expected distance (worse case).
  */
-
 
 int disperse_photons (Photon_Type *pt) /*{{{*/
 {
@@ -63,43 +61,41 @@ int disperse_photons (Photon_Type *pt) /*{{{*/
    double factor = HBAR_C * 2.0 * PI;
    double blur_ratio;
 
-   
    if (Grating_To_Detector_Distance <= 0.0)
-     {	
+     {
 	blur_ratio = 1.0e10;
      }
    else blur_ratio = Focus_Detector_Offset / Grating_To_Detector_Distance;
-   
-   
+
    /* precompute sin/cos for efficiency */
    for (i = 0; i < NUM_MIRRORS; i++)
      {
 	diffract_update_geometry (grating_assembly + i, i);
-	
+
 	sines[i] = sin(grating_assembly[i].dispersion_angle);
 	cosines[i] = cos(grating_assembly[i].dispersion_angle);
-	
+
 	detector_blur[i] = blur_ratio * grating_assembly[i].grating_radius;
      }
-   
+
    prune_photons (pt);
    n = pt->num_sorted;
    photon_attributes = pt->attributes;
    sorted_index = pt->sorted_index;
-   
+
    for (i = 0; i < n; i++)
      {
 	unsigned int mirror_shell;
 	double c, s;
 	float dy, dz;
 	int order;
-	
+
 	at = photon_attributes + sorted_index[i];
 	mirror_shell = at->mirror_shell;
 	g = &grating_assembly[mirror_shell];
-	     
+
 	order = at->order;
-	
+
 	if (order != 0)
 	  {
 	     dy = order * ((factor / at->energy) / g->grating_period) * gdist;
@@ -109,20 +105,20 @@ int disperse_photons (Photon_Type *pt) /*{{{*/
 	  {
 	     dy = dz = 0.0;
 	  }
-	
+
 	/* Grating blur will have to be added here: */
-	
+
 	/* Here is the blur due to the detector not exactly at the focal
 	 * plane.
 	 */
 	dy += detector_blur[mirror_shell];
-	
+
 	/* Now rotate */
 	c = cosines[mirror_shell];
 	s = sines[mirror_shell];
 	at->y =  dy * c + dz * s;
 	at->z = -dy * s + dz * c;
-	
+
 	/* Add in mirror blur terms */
 	at->y += at->blur_theta * mdist * cos((double)at->azimuth);
 	at->z += at->blur_theta * mdist * sin((double)at->azimuth);
@@ -143,5 +139,3 @@ int dump_disperse_variables (FILE *fp) /*{{{*/
 
 /*}}}*/
 
-	
-	
