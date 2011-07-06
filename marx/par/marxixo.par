@@ -112,14 +112,15 @@ UserSourceArgs,s,a,"pnts.dat",,,"Enter user source parameter"
 #
 SAOSACFile,s,a,"saosac.fits",,,"Enter marx input source/output ray filename"
 SAOSAC_Color_Rays,b,a,no,,,"Color SAOSAC rays?"
+SAOSAC_Scale_Wgts,b,h,no,,,"Should SAOSAC ray weights be rescaled?"
 #---------------------------------------------------------------------------
 #
 # Dither/Aspect Parameters
 #
 #---------------------------------------------------------------------------
 DitherModel,s,a,"NONE","NONE|INTERNAL|FILE",,"Enter Dither Model"
-AspectBlur,r,a,0.07,,,"Enter aspect blur (sigma -- arcsec)"
 DitherFile,f,a,"obsid_105/data/asol1.fits",,,"Enter ASPSOL File"
+AspectBlur,r,a,0.07,,,"Enter aspect blur (sigma -- arcsec)"
 #
 # Internal Dither Model Parameters: 
 #
@@ -133,8 +134,8 @@ RA_Nom,r,a,0,,,"Enter RA_NOM for dither (degrees)"
 Dec_Nom,r,a,0,,,"Enter DEC_NOM for dither (degrees)"
 Roll_Nom,r,a,0,,,"Enter ROLL_NOM for dither (degrees)"
 #
-DitherAmp_RA,r,a,0,0,,"Enter Amplitude for RA dither (arcsec)"
-DitherAmp_Dec,r,a,0,0,,"Enter Amplitude for Dec dither (arcsec)"
+DitherAmp_RA,r,a,8,0,,"Enter Amplitude for RA dither (arcsec)"
+DitherAmp_Dec,r,a,8,0,,"Enter Amplitude for Dec dither (arcsec)"
 DitherAmp_Roll,r,a,0,0,,"Enter Amplitude for Roll dither (arcsec)"
 DitherPeriod_RA,r,a,1000,1,,"Enter Period for RA dither (sec)"
 DitherPeriod_Dec,r,a,707,1,,"Enter Period for Dec dither (sec)"
@@ -387,6 +388,7 @@ legCoarseBarWidth,r,h,68.0,0.0,,"Enter LEG Coarse bar width (um)"
 legCoarsePeriod,r,h,2000,0.1,,"Enter LEG Coarse period (um)"
 #legFineNumOrders,i,h,0,0,100,"Enter LETG Fine Grating num orders (2n+1)"
 #legCoarseNumOrders,i,h,0,0,100,"Enter LETG Coarse Grating num orders (2n+1)"
+DetExtendFlag,b,h,no,,,"Should off-detector coordinates be computed?"
 #---------------------------------------------------------------------------
 #
 # ACIS setup
