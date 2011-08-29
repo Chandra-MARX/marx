@@ -372,7 +372,7 @@ static Param_Table_Type IXO_CCD_Parm_Table [] =
    {"IXO_Num_CCDs",		PF_UINT_TYPE,	&Num_IXO_CCDs},
    {"IXO_CCD_XPixel_Size",	PF_REAL_TYPE,	&X_Pixel_Size},
    {"IXO_CCD_YPixel_Size",	PF_REAL_TYPE,	&Y_Pixel_Size},
-   {"IXO_CCD_Num_XPixels",	PF_UINT_TYPE,	&Num_Y_Pixels},
+   {"IXO_CCD_Num_XPixels",	PF_UINT_TYPE,	&Num_X_Pixels},
    {"IXO_CCD_Num_YPixels",	PF_UINT_TYPE,	&Num_Y_Pixels},
    {NULL, 0, NULL}
 };

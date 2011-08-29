@@ -49,8 +49,20 @@ typedef struct _Grating_Type
 }
 Grating_Type;
 
+typedef struct
+{
+   Grating_Type *gratings;
+   double xmin, xmax, ymin, ymax, zmin, zmax;   /* bounding box */
+   double dispersion_angle;
+}
+Grating_Module_Type;
+
 static int Use_Finite_Facets = 1;
 static int Use_Support_Structure = 0;
+
+#define SECTOR_SIZE (30.0/2)	       /* degrees */
+#define MIN_SECTOR_RADIUS 200.0	       /* mm */
+#define MAX_SECTOR_RADIUS 800.0	       /* mm */
 
 static void free_grating_eff_type (Grating_Eff_Type *geff)
 {
@@ -103,8 +115,10 @@ static Grating_Eff_Type *alloc_grating_eff_type (unsigned num_energies, int min_
    return geff;
 }
 
-static Grating_Type *The_Left_Gratings;
-static Grating_Type *The_Right_Gratings;
+static Grating_Module_Type The_Left_Gratings;
+static Grating_Module_Type The_Right_Gratings;
+static double Left_Dispersion_Angle = 2.0;
+static double Right_Dispersion_Angle = -2.0;
 
 static double Rowland_Theta = 1.5, Rowland_Phi = 4.5;
 static double Rowland_Sin_Phi, Rowland_Cos_Phi, Rowland_Tan_Phi;
@@ -302,19 +316,39 @@ static int intersect_torus (JDMVector_Type *xp, JDMVector_Type *pp)
 static Grating_Type *intersect_facets (JDMVector_Type *xp, JDMVector_Type *pp)
 {
    Grating_Type *g;
-
+   Grating_Module_Type *module;
+   double y, z, t;
    if (Use_Finite_Facets == 0)
      {
 	if (1 != intersect_torus (xp, pp))
 	  return NULL;
 
-	g = (xp->y < 0) ? The_Left_Gratings : The_Right_Gratings;
+	g = (xp->y < 0) ? The_Left_Gratings.gratings : The_Right_Gratings.gratings;
 	compute_grating_vectors (g, xp);
 
 	return g;
      }
 
-   g = (xp->y < 0) ? The_Left_Gratings : The_Right_Gratings;
+   module = (xp->y < 0) ? &The_Left_Gratings : &The_Right_Gratings;
+   /* Project the ray to the plane of the bounding box closest to the mirror.
+    * If the position does not fall within the bbbox there, reject it.
+    * It is possible wild ray to still intersect the grating module from
+    * entering the side of the bbox, but that seems extremely unlikely.
+    *
+    * X = X0 + pt
+    * x = x0 + px*t ==> t = (x-x0)/px
+    * y = y0 + py/px*(x-x0)
+    * z = z0 + pz/px*(x-x0)
+    */
+   t = (module->xmax - xp->x)/pp->x;
+   y = xp->y + pp->y*t;
+   if ((y < module->ymin) || (y > module->ymax))
+     return NULL;
+   z = xp->z + pp->z*t;
+   if ((z < module->zmin) || (z > module->zmax))
+     return NULL;
+
+   g = module->gratings;
 
    while (g != NULL)
      {
@@ -438,7 +472,7 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	/* at->flags |= PHOTON_UNDIFFRACTED; */
 	at->order = 0;
 
-	if (1 || (Use_Finite_Facets == 0))
+	if (Use_Finite_Facets == 0)
 	  {
 	     if ((at->mirror_shell < 73) || (at->mirror_shell > 175))
 	       continue;
@@ -446,7 +480,6 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	     theta = atan2 (at->x.z, at->x.y);   /* -PI <= theta <= PI */
 	     theta *= 180.0/PI;
 
-#define SECTOR_SIZE 15
 	     theta = fabs(theta);
 	     if ((theta > SECTOR_SIZE) && (theta < 180.0-SECTOR_SIZE))
 	       continue;
@@ -661,6 +694,8 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_Right_Grating_Eff_File",PF_FILE_TYPE,	&Right_Grating_Eff_File},
    {"IXO_Left_Grating_Period",	PF_REAL_TYPE,	&Left_Grating_Period},
    {"IXO_Right_Grating_Period",	PF_REAL_TYPE,	&Right_Grating_Period},
+   {"IXO_Left_Dispersion_Angle",PF_REAL_TYPE,	&Left_Dispersion_Angle},
+   {"IXO_Right_Dispersion_Angle",PF_REAL_TYPE,	&Right_Dispersion_Angle},
    {"IXO_Grating_Facet_Size", PF_REAL_TYPE,	&Facet_Size},
    {"IXO_Grating_Facet_Y", 	PF_REAL_TYPE,	&Finite_Facet_Center_Y},
    {"IXO_CATGS_dPoverP",	PF_REAL_TYPE,	&dP_Over_P_Sigma},
@@ -688,6 +723,8 @@ static void _marx_catgs_init_variables (void)
    Rowland_Tan_Phi = tan (Rowland_Phi);
 
    Use_Finite_Facets = (Facet_Size > 0);
+   Left_Dispersion_Angle *= PI/180.0;
+   Right_Dispersion_Angle *= PI/180.0;
 
    Variables_Inited = 1;
 }
@@ -703,6 +740,94 @@ static int read_ixo_catgs_parms (Param_File_Type *p)
    return 0;
 }
 
+static void compute_grating_module_bbox (Grating_Module_Type *module)
+{
+   double
+     xmin = 1e30, xmax = -1e30,
+     ymin = 1e30, ymax = -1e30,
+     zmin = 1e30, zmax = -1e30;
+   Grating_Type *g;
+   int count = 0;
+
+   g = module->gratings;
+
+   while (g != NULL)
+     {
+	double x, y, z, xc, yc, zc, dx, dy,
+	  xhat_x, xhat_y, xhat_z, yhat_x, yhat_y, yhat_z;
+	int sx, sy;
+
+	count++;
+	xc = g->origin.x; yc = g->origin.y; zc = g->origin.z;
+	dx = 0.5*g->xlen; dy = 0.5*g->ylen;
+
+	xhat_x = g->xhat.x; xhat_y = g->xhat.y; xhat_z = g->xhat.z;
+	yhat_x = g->yhat.x; yhat_y = g->yhat.y; yhat_z = g->yhat.z;
+
+	for (sx = -1; sx < 2; sx += 2)
+	  {
+	     for (sy = -1; sy < 2; sy += 2)
+	       {
+		  x = xc + sx*dx*xhat_x + sy*dy*yhat_x;
+		  y = yc + sx*dx*xhat_y + sy*dy*yhat_y;
+		  z = zc + sx*dx*xhat_z + sy*dy*yhat_z;
+		  if (x < xmin) xmin = x;
+		  if (y < ymin) ymin = y;
+		  if (z < zmin) zmin = z;
+		  if (x > xmax) xmax = x;
+		  if (y > ymax) ymax = y;
+		  if (z > zmax) zmax = z;
+	       }
+	  }
+	g = g->next;
+     }
+   module->xmin = xmin;
+   module->xmax = xmax;
+   module->ymin = ymin;
+   module->ymax = ymax;
+   module->zmin = zmin;
+   module->zmax = zmax;
+   fprintf (stderr, "%d grating\n", count);
+}
+
+static void rotate_vector (JDMVector_Type *v, double c, double s)
+{
+   double vy, vz;
+   vy = c*v->y - s*v->z;
+   vz = s*v->y + c*v->z;
+   v->y = vy;
+   v->z = vz;
+}
+
+static void rotate_grating (Grating_Type *g, double c, double s)
+{
+   /* The rotation is about the x axis using the right hand rule. */
+   rotate_vector (&g->n, c, s);
+   rotate_vector (&g->l, c, s);
+   rotate_vector (&g->d, c, s);
+   rotate_vector (&g->origin, c, s);
+   rotate_vector (&g->xhat, c, s);
+   rotate_vector (&g->yhat, c, s);
+   rotate_vector (&g->zhat, c, s);
+   if (g->support_structure != NULL)
+     rotate_grating (g->support_structure, c, s);
+}
+
+static void rotate_grating_module (Grating_Module_Type *module, double dispersion_angle)
+{
+   double s, c;
+   Grating_Type *g;
+
+   s = sin(dispersion_angle);
+   c = cos(dispersion_angle);
+   g = module->gratings;
+   while (g != NULL)
+     {
+	rotate_grating (g, c, s);
+	g = g->next;
+     }
+}
+
 static Grating_Type *
 make_finite_facet_module (double period, Grating_Eff_Type *geff,
 			  double center_y, double center_z)
@@ -712,17 +837,32 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
    JDMVector_Type p;
    double dy = Facet_Size, dz = Facet_Size;
    double gap = 1.0;
+   double rmin = MIN_SECTOR_RADIUS, rmax = MAX_SECTOR_RADIUS;
    int num_z = 12, num_y = 8;	       /* assumed even!!! */
    int i, j;
+   double s;
 
    /* dy /= 12; dz /= 12; num_z *= 12; num_y *= 12; */
+   (void) center_z;
+
+   s = (center_y < 0) ? -1 : 1;
+
+   min_z = -rmax*sin(PI/180.0*SECTOR_SIZE);
+   num_z = 1 + (int) ((-2*min_z)/(dz+gap));
+   min_y = (center_y < 0) ? -rmax : rmin;
+   num_y = 1 + (int)((rmax-rmin)/(dy+gap));
+
+   min_z += 0.5*dz;
+   min_y += 0.5*dz;
 
    /*   +---+---+---+---+---+---+
     *   |   |   |   |   |   |   |
     *   +---+---+---+---+---+---+
     */
+#if 0
    min_y = center_y - (num_y/2)*(dy + gap) + 0.5*dy;
    min_z = center_z - (num_z/2)*(dz + gap) + 0.5*dz;
+#endif
 
    gratings = NULL;
    tail = NULL;
@@ -734,7 +874,16 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 	  {
 	     Grating_Type *g;
 	     JDMVector_Type x, x0, x1, x2, x3, x4;
+	     double r, theta;
 	     double z = min_z + j*(dz + gap);
+
+	     /* If the center falls in the sector, accept the grating */
+	     theta = fabs (atan2 (z, y) * (180.0/PI));
+	     if ((theta > SECTOR_SIZE) && (theta < 180.0-SECTOR_SIZE))
+	       continue;
+	     r = hypot (y, z);
+	     if ((r < rmin) || (r > rmax))
+	       continue;
 
 	     if (NULL == (g = alloc_grating (geff, period)))
 	       {
@@ -852,21 +1001,30 @@ static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_
 {
    double center_y = Finite_Facet_Center_Y;
    double center_z = 0.0;
+   Grating_Module_Type *module;
 
-   if (NULL == (The_Left_Gratings
+   module = &The_Left_Gratings;
+   if (NULL == (module->gratings
 		= make_finite_facet_module (Left_Grating_Period, left_geff,
 					    -center_y, center_z)))
      return -1;
+   module->dispersion_angle = Left_Dispersion_Angle;
+   rotate_grating_module (module, module->dispersion_angle);
+   compute_grating_module_bbox (module);
 
-   if (NULL == (The_Right_Gratings
+   module = &The_Right_Gratings;
+   if (NULL == (module->gratings
 		= make_finite_facet_module (Right_Grating_Period, right_geff,
 					    center_y, center_z)))
      return -1;
+   module->dispersion_angle = Right_Dispersion_Angle;
+   rotate_grating_module (module, module->dispersion_angle);
+   compute_grating_module_bbox (module);
 
-   if (-1 == add_support_structure (The_Right_Gratings))
+   if (-1 == add_support_structure (The_Right_Gratings.gratings))
      return -1;
 
-   if (-1 == add_support_structure (The_Left_Gratings))
+   if (-1 == add_support_structure (The_Left_Gratings.gratings))
      return -1;
 
    return 0;
@@ -899,11 +1057,13 @@ int _marx_catgs_init (Param_File_Type *pf)
      }
    else
      {
-	if (NULL == (The_Left_Gratings = alloc_grating (left_geff, Left_Grating_Period)))
+	if (NULL == (The_Left_Gratings.gratings = alloc_grating (left_geff, Left_Grating_Period)))
 	  goto free_and_return;
+	The_Left_Gratings.dispersion_angle = Left_Dispersion_Angle;
 
-	if (NULL == (The_Right_Gratings = alloc_grating (right_geff, Right_Grating_Period)))
+	if (NULL == (The_Right_Gratings.gratings = alloc_grating (right_geff, Right_Grating_Period)))
 	  goto free_and_return;
+	The_Right_Gratings.dispersion_angle = Right_Dispersion_Angle;
      }
 
    ret = 0;
