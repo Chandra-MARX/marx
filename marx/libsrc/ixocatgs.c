@@ -59,8 +59,8 @@ Grating_Module_Type;
 
 static int Use_Finite_Facets = 1;
 static int Use_Support_Structure = 0;
+static double Sector_Size = 30.0/2;	       /* degrees */
 
-#define SECTOR_SIZE (30.0/2)	       /* degrees */
 #define MIN_SECTOR_RADIUS 200.0	       /* mm */
 #define MAX_SECTOR_RADIUS 800.0	       /* mm */
 
@@ -464,7 +464,6 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 
    for (i = 0; i < num_sorted; i++)
      {
-	double theta;
 	Grating_Type *g;
 
 	at = photon_attributes + sorted_index[i];
@@ -474,14 +473,19 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 
 	if (Use_Finite_Facets == 0)
 	  {
+	     double theta;
+
 	     if ((at->mirror_shell < 73) || (at->mirror_shell > 175))
 	       continue;
 
 	     theta = atan2 (at->x.z, at->x.y);   /* -PI <= theta <= PI */
 	     theta *= 180.0/PI;
 
+	     /* Here we assume left+right grating sectors.  Anything else
+	      * would require additional code.
+	      */
 	     theta = fabs(theta);
-	     if ((theta > SECTOR_SIZE) && (theta < 180.0-SECTOR_SIZE))
+	     if ((theta > Sector_Size) && (theta < 180.0-Sector_Size))
 	       continue;
 	  }
 
@@ -699,6 +703,7 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_Grating_Facet_Size", PF_REAL_TYPE,	&Facet_Size},
    {"IXO_Grating_Facet_Y", 	PF_REAL_TYPE,	&Finite_Facet_Center_Y},
    {"IXO_CATGS_dPoverP",	PF_REAL_TYPE,	&dP_Over_P_Sigma},
+   {"IXO_CATGS_Sector_Size",	PF_REAL_TYPE,	&Sector_Size},
    {NULL, 0, NULL}
 };
 
@@ -725,6 +730,7 @@ static void _marx_catgs_init_variables (void)
    Use_Finite_Facets = (Facet_Size > 0);
    Left_Dispersion_Angle *= PI/180.0;
    Right_Dispersion_Angle *= PI/180.0;
+   Sector_Size /= 2.0;
 
    Variables_Inited = 1;
 }
@@ -847,7 +853,7 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 
    s = (center_y < 0) ? -1 : 1;
 
-   min_z = -rmax*sin(PI/180.0*SECTOR_SIZE);
+   min_z = -rmax*sin(PI/180.0*Sector_Size);
    num_z = 1 + (int) ((-2*min_z)/(dz+gap));
    min_y = (center_y < 0) ? -rmax : rmin;
    num_y = 1 + (int)((rmax-rmin)/(dy+gap));
@@ -879,7 +885,7 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 
 	     /* If the center falls in the sector, accept the grating */
 	     theta = fabs (atan2 (z, y) * (180.0/PI));
-	     if ((theta > SECTOR_SIZE) && (theta < 180.0-SECTOR_SIZE))
+	     if ((theta > Sector_Size) && (theta < 180.0-Sector_Size))
 	       continue;
 	     r = hypot (y, z);
 	     if ((r < rmin) || (r > rmax))
@@ -997,6 +1003,22 @@ static int add_support_structure (Grating_Type *gratings)
    return 0;
 }
 
+static void print_grating_configuration (Grating_Module_Type *module, char *name)
+{
+   Grating_Type *g;
+   unsigned int num;
+
+   fprintf (stderr, "The %s module:\n", name);
+   g = module->gratings;
+   num = 0;
+   while (g != NULL)
+     {
+	num++;
+	g = g->next;
+     }
+   fprintf (stderr, " num facets: %u\n", num);
+}
+
 static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_Type *right_geff)
 {
    double center_y = Finite_Facet_Center_Y;
@@ -1026,6 +1048,9 @@ static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_
 
    if (-1 == add_support_structure (The_Left_Gratings.gratings))
      return -1;
+
+   print_grating_configuration (&The_Left_Gratings, "Left");
+   print_grating_configuration (&The_Right_Gratings, "Right");
 
    return 0;
 }
