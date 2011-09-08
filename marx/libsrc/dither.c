@@ -74,7 +74,10 @@ static double Aspect_Blur;
 static char *Dither_Model;
 static char *Dither_File_Name;
 
-static int (*Get_Dither_Function)(double, Marx_Dither_Type *);
+/* The last parameter is the value of the roll to use when applying the
+ * dither.  SAOSAC rays are already rolled, so this value will be 0.
+ */
+static int (*Get_Dither_Function)(double, Marx_Dither_Type *, double *);
 
 static Param_Table_Type Dither_Parm_Table [] =
 {
@@ -148,7 +151,7 @@ static int setup_pointing_ra_dec (void)
    return 0;
 }
 
-static int get_internal_dither (double t, Marx_Dither_Type *d)
+static int get_internal_dither (double t, Marx_Dither_Type *d, double *rollp)
 {
    t = (2.0*PI) * t;
 
@@ -161,23 +164,32 @@ static int get_internal_dither (double t, Marx_Dither_Type *d)
    d->dz = 0; /* JDMrandom(); */
    d->dtheta = 0;
 
+   *rollp = d->roll;
    return 1;
+}
+
+static int get_saosac_dither (double t, Marx_Dither_Type *d, double *rollp)
+{
+   int status = get_internal_dither (t, d, rollp);
+   *rollp = 0.0; /* SAOSAC rays are already rolled. */
+   return status;
 }
 
 static int init_internal_dither1 (int zero_amp)
 {
    _Marx_Dither_Mode = _MARX_DITHER_MODE_INTERNAL;
-   Get_Dither_Function = get_internal_dither;
 
    /* Convert from arc-sec to radians */
    if (zero_amp)
      {
 	Ra_Amp = Dec_Amp = Roll_Amp = 0;
+	Get_Dither_Function = get_saosac_dither;
 	/* Get_Dither_Function = NULL; */
 	/* Saosac_Hack = 1; */
      }
    else
      {
+	Get_Dither_Function = get_internal_dither;
 	Ra_Amp = Ra_Amp * (PI/(180.0 * 3600));
 	Dec_Amp = Dec_Amp * (PI/(180.0 * 3600));
 	Roll_Amp = Roll_Amp * (PI/(180.0 * 3600));
@@ -304,7 +316,7 @@ static int get_aspsol_point (double t)
    return 1;
 }
 
-static int get_aspsol_dither (double t, Marx_Dither_Type *d)
+static int get_aspsol_dither (double t, Marx_Dither_Type *d, double *rollp)
 {
    double dt;
 
@@ -322,6 +334,7 @@ static int get_aspsol_dither (double t, Marx_Dither_Type *d)
    d->dz = Aspsol.dz0 + dt * (Aspsol.dz1 - Aspsol.dz0);
    d->dtheta = Aspsol.dtheta0 + dt * (Aspsol.dtheta1 - Aspsol.dtheta0);
 
+   *rollp = d->roll;
    return 1;
 }
 
@@ -519,18 +532,19 @@ static int dither_ray (Marx_Photon_Attr_Type *at, double t)
    int status;
    Marx_Dither_Type *d;
    double delta_ra, delta_dec;
+   double roll;
 
    t += at->arrival_time;
    d = &at->dither_state;
 
-   status =  (*Get_Dither_Function)(t, d);
+   status =  (*Get_Dither_Function)(t, d, &roll);
    if (status != 1)
      return status;
 
    delta_ra = Aspect_Blur * JDMgaussian_random ();
    delta_dec = Aspect_Blur * JDMgaussian_random ();
 
-   at->p = apply_dither (d->ra + delta_ra, d->dec + delta_dec, d->roll, at->p);
+   at->p = apply_dither (d->ra + delta_ra, d->dec + delta_dec, roll, at->p);
    return 1;
 }
 

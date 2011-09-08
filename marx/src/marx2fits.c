@@ -3438,7 +3438,9 @@ static int read_dither_value (Data_Def_Type *ddt) /*{{{*/
 {
    float32 val;
 
-   if (1 != JDMread_float32 (&val, 1, ddt->ddt_dft->fp))
+   if (Simulation_Used_Dither == 0)
+     val = 0;
+   else if (1 != JDMread_float32 (&val, 1, ddt->ddt_dft->fp))
      return -1;
 
    if ((Data_Table.dtt_update_dither) || (Pixel_Adjust == PIX_ADJ_EXACT))

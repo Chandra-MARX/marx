@@ -273,7 +273,7 @@ int marx_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
      {
 	if (exposure_time != NULL)
 	  {
-	     double tmax = *exposure_time;
+	     double tmax = _Marx_TStart_MJDsecs + (*exposure_time);
 	     for (i = 0; i < n; i++)
 	       {
 		  sorted_energies[i] = at[i].energy;

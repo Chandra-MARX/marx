@@ -255,7 +255,11 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	else
 	  {
 	     if (File_Has_Time_Column)
-	       this_time = buf[8] - start_time;
+	       {
+		  if (start_time == 0)
+		    start_time = buf[8];
+		  this_time = buf[8] - start_time;
+	       }
 	     else
 	       this_time += 1.0;
 
