@@ -3569,13 +3569,13 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 	break;
 
       case PIX_ADJ_NONE:
-	x = (int)x + 0.5;
-	y = (int)y + 0.5;
+	x = floor(x) + 0.5;
+	y = floor(y) + 0.5;
 	break;
 
       case PIX_ADJ_RANDOMIZE:
-	x = (int)x + JDMrandom ();
-	y = (int)y + JDMrandom ();
+	x = floor(x) + JDMrandom ();
+	y = floor(y) + JDMrandom ();
 	break;
 
       case PIX_ADJ_EDSER:
@@ -3583,8 +3583,8 @@ static int compute_detxy (Data_Def_Type *ddt) /*{{{*/
 					    Data_Table.dtt_benergy, Data_Table.dtt_fltgrade, &dx, &dy))
 	  return -1;
 
-	x = (int)x + 0.5 + dx;
-	y = (int)y + 0.5 + dy;
+	x = floor(x) + 0.5 + dx;
+	y = floor(y) + 0.5 + dy;
 	break;
      }
 
@@ -3701,8 +3701,8 @@ static int compute_fltgrade (Data_Def_Type *ddt) /*{{{*/
 
    (void) ddt;
 
-   dx = (int)(3.0*(Data_Table.dtt_chipx - (int)Data_Table.dtt_chipx));
-   dy = (int)(3.0*(Data_Table.dtt_chipy - (int)Data_Table.dtt_chipy));
+   dx = (int)(3.0*(Data_Table.dtt_chipx - floor(Data_Table.dtt_chipx)));
+   dy = (int)(3.0*(Data_Table.dtt_chipy - floor(Data_Table.dtt_chipy)));
    fltgrades = Flight_Grade_Table[3*dy + dx];
    Data_Table.dtt_fltgrade = fltgrades[(int)(4*JDMrandom())];
    return 0;

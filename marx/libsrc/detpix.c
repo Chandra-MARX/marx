@@ -94,11 +94,13 @@ static Det_Name_Type Detectors [] =
    {"HRC-I", MARX_DETECTOR_HRC_I},
    {"ACIS-S", MARX_DETECTOR_ACIS_S},
    {"ACIS-I", MARX_DETECTOR_ACIS_I},
-#ifdef MARX_DETECTOR_IXO_CATGS_CCD
+#if MARX_HAS_IXO_SUPPORT
+# ifdef MARX_DETECTOR_IXO_CATGS_CCD
    {"IXOCCD", MARX_DETECTOR_IXO_CATGS_CCD},
-#endif
-#ifdef MARX_DETECTOR_IXO_XMS
+# endif
+# ifdef MARX_DETECTOR_IXO_XMS
    {"IXOXMS", MARX_DETECTOR_IXO_XMS},
+# endif
 #endif
    {NULL, 0}
 };
@@ -146,16 +148,17 @@ marx_get_detector_info (char *detname) /*{{{*/
       case MARX_DETECTOR_HRC_I:
 	d = _marx_get_hrc_i_detector ();
 	break;
-
-#ifdef MARX_DETECTOR_IXO_CATGS_CCD
+#if MARX_HAS_IXO_SUPPORT
+# ifdef MARX_DETECTOR_IXO_CATGS_CCD
       case MARX_DETECTOR_IXO_CATGS_CCD:
 	d = _marx_get_ixo_ccd_detector ();
 	break;
-#endif
-#ifdef MARX_DETECTOR_IXO_XMS
+# endif
+# ifdef MARX_DETECTOR_IXO_XMS
       case MARX_DETECTOR_IXO_XMS:
 	d = _marx_get_ixo_xms_detector ();
 	break;
+# endif
 #endif
      }
 
