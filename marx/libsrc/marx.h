@@ -68,6 +68,7 @@ typedef struct
 #define PHOTON_MISSED_DETECTOR	0x08
 #define PHOTON_MIRROR_VBLOCKED	0x10   /* blocked by vignetting */
 #define PHOTON_DRAKE_BLOCKED	0x20   /* blocked by drake */
+#define PHOTON_GRATING_VBLOCKED	0x40   /* blocked by grating vignetting */
 #define BAD_PHOTON_MASK		0xFF
 
 #define PHOTON_DRAKE_REFLECTED	0x100

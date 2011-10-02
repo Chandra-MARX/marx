@@ -525,6 +525,7 @@ IXO_Grating_Facet_Size,r,h,60.0,0,,"Enter grating facet size (mm)"
 IXO_Grating_Facet_Y,r,h,1045.0,0,,"Enter central grating facet y position"
 IXO_CATGS_dPoverP,r,a,60e-6,,,"Enter dP/P (rms)"
 IXO_CATGS_Sector_Size,r,h,30,10,45,"CATGS Sector Size"
+IXO_CATGS_Vig,r,h,0.729,0,1,"CATGS Vignetting Factor"
 #
 IXO_XMS_Inner_QE_File,f,h,"ixo/ixoxms_qe.fits",,,"Enter IXO XMS Inner QE/Filter file"
 IXO_XMS_Outer_QE_File,f,h,"ixo/ixoxms_qe_outer.fits",,,"Enter IXO XMS Outer QE/Filter file"

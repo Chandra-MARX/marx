@@ -60,6 +60,7 @@ Grating_Module_Type;
 static int Use_Finite_Facets = 1;
 static int Use_Support_Structure = 0;
 static double Sector_Size = 30.0/2;	       /* degrees */
+static double Vignetting = 1.0;
 
 #define MIN_SECTOR_RADIUS 200.0	       /* mm */
 #define MAX_SECTOR_RADIUS 800.0	       /* mm */
@@ -457,10 +458,23 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
      return 0;
    pt->history |= MARX_ORDER_OK;
 
-   marx_prune_photons (pt);
-   num_sorted = pt->num_sorted;
    photon_attributes = pt->attributes;
+   if (Vignetting < 1.0)
+     {
+	double vig = Vignetting;
+	sorted_index = pt->sorted_index;
+	num_sorted = pt->num_sorted;
+	for (i = 0; i < num_sorted; i++)
+	  {
+	     at = photon_attributes + sorted_index[i];
+	     if (JDMrandom () > vig)
+	       at->flags |= PHOTON_GRATING_VBLOCKED;
+	  }
+     }
+
+   marx_prune_photons (pt);
    sorted_index = pt->sorted_index;
+   num_sorted = pt->num_sorted;
 
    for (i = 0; i < num_sorted; i++)
      {
@@ -704,6 +718,7 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_Grating_Facet_Y", 	PF_REAL_TYPE,	&Finite_Facet_Center_Y},
    {"IXO_CATGS_dPoverP",	PF_REAL_TYPE,	&dP_Over_P_Sigma},
    {"IXO_CATGS_Sector_Size",	PF_REAL_TYPE,	&Sector_Size},
+   {"IXO_CATGS_Vig",		PF_REAL_TYPE,	&Vignetting},
    {NULL, 0, NULL}
 };
 
