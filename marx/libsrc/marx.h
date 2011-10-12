@@ -57,7 +57,7 @@ typedef struct
 
    /* Misc attributes that describe the history of the photon */
 
-   double arrival_time;
+   double arrival_time;		       /* time offset from Marx_Photon_Type.start_time */
    unsigned int flags;		       /* if non-zero, this photon is
 					* invalid.  In that case, the individual
 					* bits carry more information.

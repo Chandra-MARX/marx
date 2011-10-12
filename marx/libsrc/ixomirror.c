@@ -117,6 +117,9 @@ static double Az_Blur_Sigma = 0.0;
 static double El_Blur_Sigma = 0.0;
 static double Lateral_Disp_Blur_Sigma = 0;
 static double Defocus_Blur_Sigma = 0;
+static char *Mirror_Sector_String;
+static Marx_Range_Type *Mirror_Sector_Ranges;
+static double Sector_Fraction;
 
 static Param_Table_Type IXOMirror_Parm_Table [] =
 {
@@ -131,6 +134,7 @@ static Param_Table_Type IXOMirror_Parm_Table [] =
    {"IXOMirror_El_Blur",	PF_REAL_TYPE,		&El_Blur_Sigma},
    {"IXOMirror_Lateral_Blur",	PF_REAL_TYPE,		&Lateral_Disp_Blur_Sigma},
    {"IXOMirror_Defocus_Blur",	PF_REAL_TYPE,		&Defocus_Blur_Sigma},
+   {"IXOMirror_Sectors",	PF_STRING_TYPE,		&Mirror_Sector_String},
    {NULL, 0, NULL}
 };
 
@@ -404,9 +408,10 @@ static int init_mirror_shells (Param_File_Type *pf) /*{{{*/
      }
 
    /* This is used in the Flux function to get the time between photons.
-    * cm^2
+    * Need to multiply by PI since it was omitted above and divide by 100
+    * to get cm^2.  The multiply by the fraction of open sectors.
     */
-   Marx_Mirror_Geometric_Area = (total_area * PI) / 100.0;
+   Marx_Mirror_Geometric_Area = Sector_Fraction * (total_area * PI) / 100.0;
 
    /* Now normalize the cumulative area fraction. */
    for (i = 0; i < num_shells; i++)
@@ -547,17 +552,26 @@ static int project_photon_to_mirror (Marx_Photon_Attr_Type *at, /*{{{*/
 	     if (r < h->area_fraction)
 	       {
 		  double theta, radius;
+		  double dr, r0, r1;
 
 		  at->mirror_shell = i;
 
-		  radius = h->min_radius
-		    + (h->max_radius - h->min_radius) * JDMrandom ();
+		  /* Use radius^2 = r0^2 + (r1^2-r0^2)*r */
+		  r0 = h->min_radius; r1 = h->max_radius; dr = r1-r0;
+		  radius = r0*sqrt(1.0 + ((r0+r1)/(r0*r0))*(r1-r0)*JDMrandom());
 
-		  theta = (2.0 * PI) * JDMrandom();
+		  theta = 360.0*JDMrandom();
+		  if (Mirror_Sector_Ranges != NULL) while (1)
+		    {
+		       theta = JDMrandom () * 360.0;
+		       if (_marx_is_in_range (Mirror_Sector_Ranges, theta))
+			 break;
+		    }
+		  theta *= PI/180.0;
 
-		  at->x.z = radius * cos (theta);
-		  at->x.y = radius * sin (theta);
 		  at->x.x = h->front_position;
+		  at->x.y = radius * cos (theta);
+		  at->x.z = radius * sin (theta);
 
 		  /* Account for mis-alignment of this shell */
 		  at->x.z -= h->to_osac_p.z;
@@ -775,12 +789,40 @@ return_error:
    return -1;
 }
 
+
 int _marx_ixo_mirror_init (Param_File_Type *p) /*{{{*/
 {
    char *file;
 
    if (-1 == pf_get_parameters (p, IXOMirror_Parm_Table))
      return -1;
+
+   if (*Mirror_Sector_String != 0)
+     {
+	double len;
+
+	Mirror_Sector_Ranges = _marx_parse_range_string (Mirror_Sector_String);
+	if (Mirror_Sector_Ranges == NULL)
+	  return -1;
+	len = _marx_compute_range_length (Mirror_Sector_Ranges);
+	if (len < 0)
+	  Sector_Fraction = 1.0;
+	else if (len == 0.0)
+	  {
+	     marx_error ("Mirror sector ranges are empty/invalid");
+	     return -1;
+	  }
+	else
+	  {
+	     Sector_Fraction = len/360.0;
+	     if (Sector_Fraction > 1.0) Sector_Fraction = 1.0;
+	  }
+     }
+   else
+     {
+	Mirror_Sector_Ranges = NULL;
+	Sector_Fraction = 1.0;
+     }
 
    if (Mirror_Is_Ideal)
      {

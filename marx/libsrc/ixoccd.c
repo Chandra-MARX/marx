@@ -263,7 +263,7 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
    double dx, dy;
    unsigned int i;
 
-   /* The method here is to position a detector plan at the origin, and then
+   /* The method here is to position a detector plane at the origin, and then
     * rotate it into place.  The rotation axis is located at the center of the
     * torus and is directed along the y axis.
     *
@@ -296,15 +296,24 @@ static int setup_geom (Marx_Detector_Geometry_Type *geom)
 
    /* The center angle is the angle of the center of the detector array with
     * respect to a grating on the rowland surface at the optical axis.  Let
-    * phi0 denote the angle with respect to the center of the torus.  Then:
+    * phi0 denote the angle with respect to the center of the rowland circle.
+    * Then:
     *   phi0 = Rowland_Theta + 2*t
     *   Center_CCD_Angle = Rowland_Theta + t
     * ==>
     *   phi0 = Rowland_Theta + 2*(Center_CCD_Angle-Rowland_Theta)
     *        = 2*Center_CCD_Angle - Rowland_Theta;
     */
-   phi0 = 2.0*Center_CCD_Angle - Rowland_Theta
-     - 0.5*(Num_IXO_CCDs)*delta_phi + 0.5*(Num_IXO_CCDs % 2)*delta_phi;
+   phi0 = 2.0*Center_CCD_Angle - Rowland_Theta;
+   /* phi0 is now the desired center of the detector array.  Adjust it to
+    * get the desired center of the first CCD.
+    *
+    *     O     | 1 | 2 | 3 |     (odd number)
+    *     O   | 1 | 2 | 3 | 4 |   (even number)
+    *
+    * For an even number
+    */
+   phi0 -= ((Num_IXO_CCDs/2) - 0.5*((Num_IXO_CCDs+1) % 2))*delta_phi;
 
 #if 0
    /* Setup the imaging CCD */

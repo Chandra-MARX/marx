@@ -246,4 +246,10 @@ extern double _marx_qe_compute (Marx_QE_Type *qeinfo, double energy);
 extern void _marx_qe_inc_ref (Marx_QE_Type *qeinfo);
 extern Marx_QE_Type *_marx_qe_read_file (char *file, char *ext, char *encol, char *qecol, char *filtercol);
 
+typedef struct _Marx_Range_Type Marx_Range_Type;
+extern Marx_Range_Type *_marx_parse_range_string (char *str);
+extern void _marx_free_range_type (Marx_Range_Type *r);
+extern int _marx_is_in_range (Marx_Range_Type *r, double x);
+extern double _marx_compute_range_length (Marx_Range_Type *r);
+
 #endif /* _M_MARX_H_ */

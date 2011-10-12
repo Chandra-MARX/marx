@@ -62,8 +62,9 @@ static int Use_Support_Structure = 0;
 static double Sector_Size = 30.0/2;	       /* degrees */
 static double Vignetting = 1.0;
 
-#define MIN_SECTOR_RADIUS 200.0	       /* mm */
-#define MAX_SECTOR_RADIUS 800.0	       /* mm */
+static double Min_Sector_Radius = 100.0;   /* mm */
+static double Max_Sector_Radius = 1500.0;   /* mm */
+static double Facet_Gap_Size = 1.0;    /* mm */
 
 static void free_grating_eff_type (Grating_Eff_Type *geff)
 {
@@ -226,6 +227,9 @@ static void compute_grating_vectors (Grating_Type *g, JDMVector_Type *xp)
 {
    JDMVector_Type n, l, d;
 
+   if (g == NULL)
+     return;
+
    /* Here we assume that the facets are
     * perfect in the sense that the facet normal lies in the direction of
     * the origin.
@@ -319,6 +323,7 @@ static Grating_Type *intersect_facets (JDMVector_Type *xp, JDMVector_Type *pp)
    Grating_Type *g;
    Grating_Module_Type *module;
    double y, z, t;
+
    if (Use_Finite_Facets == 0)
      {
 	if (1 != intersect_torus (xp, pp))
@@ -453,10 +458,16 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 {
    Marx_Photon_Attr_Type *photon_attributes, *at;
    unsigned int num_sorted, i, *sorted_index;
+   int needs_sorted = 1;
 
    if (pt->history & MARX_ORDER_OK)
      return 0;
    pt->history |= MARX_ORDER_OK;
+
+   marx_prune_photons (pt);
+   sorted_index = pt->sorted_index;
+   num_sorted = pt->num_sorted;
+   needs_sorted = 0;
 
    photon_attributes = pt->attributes;
    if (Vignetting < 1.0)
@@ -470,11 +481,16 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	     if (JDMrandom () > vig)
 	       at->flags |= PHOTON_GRATING_VBLOCKED;
 	  }
+	needs_sorted = 1;
      }
+#define PHOTONS_MUST_HIT_SECTOR 0
 
-   marx_prune_photons (pt);
-   sorted_index = pt->sorted_index;
-   num_sorted = pt->num_sorted;
+   if (needs_sorted)
+     {
+	marx_prune_photons (pt);
+	sorted_index = pt->sorted_index;
+	num_sorted = pt->num_sorted;
+     }
 
    for (i = 0; i < num_sorted; i++)
      {
@@ -505,18 +521,11 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 
 	g = intersect_facets (&at->x, &at->p);
 	if (g == NULL)
-	  continue;
-
-	if (0)
 	  {
-	     double len;
-	     JDMVector_Type dx, x1 = at->x;
-	     (void) intersect_torus (&at->x, &at->p);
-	     dx = JDMv_diff (x1, at->x);
-	     len = JDMv_length (dx);
-	     if (1)
-	       {
-	       }
+#if PHOTONS_MUST_HIT_SECTOR
+	     at->flags |= PHOTON_UNDIFFRACTED;
+#endif
+	     continue;
 	  }
 
 	if (-1 == compute_diffraction_order (at->energy, g->geff, &at->order))
@@ -565,51 +574,71 @@ static double Support_Period = 5.0;    /* microns */
 #define MIN_GEFF_ORDER -2
 #define MAX_GEFF_ORDER 16
 #define MAX_GEFF_COLUMNS (MAX_GEFF_ORDER-MIN_GEFF_ORDER+2)
-static char *Geff_Columns [MAX_GEFF_COLUMNS] =
-{
-   "f:ENERGY",
-   "f:EFFm2", "f:EFFm1", "f:EFF0",
-   "f:EFF1", "f:EFF2", "f:EFF3", "f:EFF4",
-   "f:EFF5", "f:EFF6", "f:EFF7",
-   "f:EFF8", "f:EFF9", "f:EFF10",
-   "f:EFF11", "f:EFF12", "f:EFF13"
-   "f:EFF14", "f:EFF15", "f:EFF16"
-};
 
 static Grating_Eff_Type *read_geff_caldb_file (char *file)
 {
-   int min_order, max_order;
+   int order, min_order, max_order;
    unsigned int num_energies, num_orders = 0;
    JDFits_Type *f;
    char hduname[16];
    JDFits_Row_Type *r;
    JDFits_Col_Data_Type *c;
    unsigned int i;
-   Grating_Eff_Type *geff = NULL;
+   char column_name_buffers[MAX_GEFF_COLUMNS][16];
+   char *column_names[MAX_GEFF_COLUMNS];
 
+   Grating_Eff_Type *geff = NULL;
    sprintf (hduname, "IXO_GREFF");
    marx_message ("\t%s[%s]\n", file, hduname);
 
    if (NULL == (f = _marx_open_binary_hdu (file, hduname)))
      return NULL;
 
-   min_order = -2; max_order = 1;
-   while (max_order < MAX_GEFF_ORDER)
+   min_order = max_order = MIN_GEFF_ORDER-1;
+   num_orders = 0;
+   for (order = MIN_GEFF_ORDER; order < MAX_GEFF_ORDER; order++)
      {
 	char colnam [16];
 	int status;
 
-	sprintf (colnam, "EFF%d", max_order+1);
+	if (order < 0)
+	  sprintf (colnam, "EFFm%d", -order);
+	else
+	  sprintf (colnam, "EFF%d", order);
+
 	status = jdfits_bintable_column_exists (f, colnam);
 	if (status == -1)
 	  goto return_error;
 	if (status == 0)
-	  break;
-	max_order++;
+	  {
+	     if (min_order < MIN_GEFF_ORDER)
+	       continue;
+	     break;
+	  }
+	max_order = order;
+	if (min_order < MIN_GEFF_ORDER)
+	  min_order = order;
+	num_orders++;
      }
-   num_orders = max_order - min_order + 1;
+   if (num_orders == 0)
+     {
+	marx_error ("%s has no order columns", file);
+	goto return_error;
+     }
 
-   r = jdfits_bintable_aopen_rows (f, 1+num_orders, Geff_Columns);
+   i = 0;
+   column_names[i] = "f:ENERGY"; i++;
+   for (order = min_order; order <= max_order; order++)
+     {
+	if (order < 0)
+	  sprintf (column_name_buffers[i], "f:EFFm%d", -order);
+	else
+	  sprintf (column_name_buffers[i], "f:EFF%d", order);
+	column_names[i] = column_name_buffers[i];
+	i++;
+     }
+
+   r = jdfits_bintable_aopen_rows (f, 1+num_orders, column_names);
 
    if (r == NULL)
      goto return_error;
@@ -719,6 +748,9 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_CATGS_dPoverP",	PF_REAL_TYPE,	&dP_Over_P_Sigma},
    {"IXO_CATGS_Sector_Size",	PF_REAL_TYPE,	&Sector_Size},
    {"IXO_CATGS_Vig",		PF_REAL_TYPE,	&Vignetting},
+   {"IXO_CATGS_Min_Radius",	PF_REAL_TYPE,	&Min_Sector_Radius},
+   {"IXO_CATGS_Max_Radius",	PF_REAL_TYPE,	&Max_Sector_Radius},
+   {"IXO_CATGS_Facet_Gap",	PF_REAL_TYPE,	&Facet_Gap_Size},
    {NULL, 0, NULL}
 };
 
@@ -754,6 +786,13 @@ static int read_ixo_catgs_parms (Param_File_Type *p)
 {
    if (-1 == pf_get_parameters (p, IXO_CATGS_Parm_Table))
      return -1;
+
+   if ((Min_Sector_Radius < 0) || (Max_Sector_Radius < 0)
+       || (Facet_Gap_Size < 0) || (Facet_Size < 0))
+     {
+	marx_error ("%s", "One of more of the facet/sector parameters is negative");
+	return -1;
+     }
 
    Variables_Inited = 0;
    _marx_catgs_init_variables ();
@@ -802,12 +841,12 @@ static void compute_grating_module_bbox (Grating_Module_Type *module)
 	  }
 	g = g->next;
      }
-   module->xmin = xmin;
-   module->xmax = xmax;
-   module->ymin = ymin;
-   module->ymax = ymax;
-   module->zmin = zmin;
-   module->zmax = zmax;
+   module->xmin = xmin-Facet_Size;
+   module->xmax = xmax+Facet_Size;
+   module->ymin = ymin-Facet_Size;
+   module->ymax = ymax+Facet_Size;
+   module->zmin = zmin-Facet_Size;
+   module->zmax = zmax+Facet_Size;
    fprintf (stderr, "%d grating\n", count);
 }
 
@@ -849,62 +888,112 @@ static void rotate_grating_module (Grating_Module_Type *module, double dispersio
      }
 }
 
+static int shift_grating_to_torus (Grating_Type *g,
+				   double y, double z, double dy, double dz)
+{
+   JDMVector_Type p, x, x0, x1, x2, x3, x4;
+
+   /* The facet is tangent */
+
+   /* Intersect the center and the 4 corners with the torus.  Take
+    * the weighted mean:
+    *    X = 1/2 * (Xcntr + 1/4 * sum_corners)
+    */
+   p.x = -1; p.y = 0; p.z = 0;
+   x0.x = Rowland_Distance; x0.y = y; x0.z = z;
+   x1 = JDMv_sum (x0, JDMv_ax1_bx2 (-0.5*dy, g->xhat, -0.5*dz, g->yhat));
+   x2 = JDMv_sum (x0, JDMv_ax1_bx2 (-0.5*dy, g->xhat, 0.5*dz, g->yhat));
+   x3 = JDMv_sum (x0, JDMv_ax1_bx2 (0.5*dy, g->xhat, -0.5*dz, g->yhat));
+   x4 = JDMv_sum (x0, JDMv_ax1_bx2 (0.5*dy, g->xhat,  0.5*dz, g->yhat));
+
+   if ((1 != intersect_torus (&x0, &p))
+       || (1 != intersect_torus (&x1, &p))
+       || (1 != intersect_torus (&x2, &p))
+       || (1 != intersect_torus (&x3, &p))
+       || (1 != intersect_torus (&x4, &p)))
+     {
+	marx_error ("Failed to intersect the grating facet with the torus!");
+	return -1;
+     }
+
+   x.x = 0.5*x0.x + 0.125*(x1.x + x2.x + x3.x + x4.x);
+   x.y = 0.5*x0.y + 0.125*(x1.y + x2.y + x3.y + x4.y);
+   x.z = 0.5*x0.z + 0.125*(x1.z + x2.z + x3.z + x4.z);
+   compute_grating_vectors (g, &x);
+   /* The facet normal is aligned with the grating normal.  For
+    * modules on the left/right, yhat is in the dispersion direction,
+    * which correponds to the marx z direction
+    */
+   g->zhat = g->n;
+   g->yhat = g->d;
+   g->xhat = g->l;
+   g->origin = x;
+   g->xlen = dy;
+   g->ylen = dz;
+   return 0;
+}
+
 static Grating_Type *
 make_finite_facet_module (double period, Grating_Eff_Type *geff,
 			  double center_y, double center_z)
 {
    Grating_Type *gratings, *tail;
-   double min_y, min_z;
-   JDMVector_Type p;
+   double min_y, max_y, max_z;
    double dy = Facet_Size, dz = Facet_Size;
-   double gap = 1.0;
-   double rmin = MIN_SECTOR_RADIUS, rmax = MAX_SECTOR_RADIUS;
-   int num_z = 12, num_y = 8;	       /* assumed even!!! */
-   int i, j;
+   double gap = Facet_Gap_Size;
+   double rmin = Min_Sector_Radius, rmax = Max_Sector_Radius;
    double s;
+   double yinc, zinc;
 
    /* dy /= 12; dz /= 12; num_z *= 12; num_y *= 12; */
    (void) center_z;
 
    s = (center_y < 0) ? -1 : 1;
+   min_y = rmin*cos(PI/180.0*Sector_Size);
+   max_y = rmax;
+   yinc = dy+gap;
+   if (s < 0)
+     {
+	yinc = -yinc;
+	min_y = -min_y;
+	max_y = -max_y;
+     }
 
-   min_z = -rmax*sin(PI/180.0*Sector_Size);
-   num_z = 1 + (int) ((-2*min_z)/(dz+gap));
-   min_y = (center_y < 0) ? -rmax : rmin;
-   num_y = 1 + (int)((rmax-rmin)/(dy+gap));
-
-   min_z += 0.5*dz;
-   min_y += 0.5*dz;
+   max_z = rmax * cos(PI/180.0*Sector_Size);
+   zinc = dz+gap;
 
    /*   +---+---+---+---+---+---+
     *   |   |   |   |   |   |   |
     *   +---+---+---+---+---+---+
     */
-#if 0
-   min_y = center_y - (num_y/2)*(dy + gap) + 0.5*dy;
-   min_z = center_z - (num_z/2)*(dz + gap) + 0.5*dz;
-#endif
 
    gratings = NULL;
    tail = NULL;
 
-   for (i = 0; i < num_y; i++)
+   min_y -= 0.5*s*dy;		       /* add more coverage near center */
+
+   while (s*(max_y - min_y)>0)
      {
-	double y = min_y + i*(dy + gap);
-	for (j = 0; j < num_z; j++)
+	double y = min_y + 0.5*s*dy;     /* middle of facet */
+	double z = 0.0;		       /* middle of facet */
+	while (z < max_z)
 	  {
 	     Grating_Type *g;
-	     JDMVector_Type x, x0, x1, x2, x3, x4;
 	     double r, theta;
-	     double z = min_z + j*(dz + gap);
 
 	     /* If the center falls in the sector, accept the grating */
 	     theta = fabs (atan2 (z, y) * (180.0/PI));
 	     if ((theta > Sector_Size) && (theta < 180.0-Sector_Size))
-	       continue;
+	       {
+		  z += zinc;
+		  continue;
+	       }
 	     r = hypot (y, z);
 	     if ((r < rmin) || (r > rmax))
-	       continue;
+	       {
+		  z += zinc;
+		  continue;
+	       }
 
 	     if (NULL == (g = alloc_grating (geff, period)))
 	       {
@@ -917,45 +1006,32 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 	       tail->next = g;
 	     tail = g;
 
-	     /* The facet is tangent */
-
-	     /* Intersect the center and the 4 corners with the torus.  Take
-	      * the weighted mean:
-	      *    X = 1/2 * (Xcntr + 1/4 * sum_corners)
-	      */
-	     p.x = -1; p.y = 0; p.z = 0;
-	     x0.x = Rowland_Distance; x0.y = y; x0.z = z;
-	     x1 = JDMv_sum (x0, JDMv_ax1_bx2 (-0.5*dy, g->xhat, -0.5*dz, g->yhat));
-	     x2 = JDMv_sum (x0, JDMv_ax1_bx2 (-0.5*dy, g->xhat, 0.5*dz, g->yhat));
-	     x3 = JDMv_sum (x0, JDMv_ax1_bx2 (0.5*dy, g->xhat, -0.5*dz, g->yhat));
-	     x4 = JDMv_sum (x0, JDMv_ax1_bx2 (0.5*dy, g->xhat,  0.5*dz, g->yhat));
-
-	     if ((1 != intersect_torus (&x0, &p))
-		 || (1 != intersect_torus (&x1, &p))
-		 || (1 != intersect_torus (&x2, &p))
-		 || (1 != intersect_torus (&x3, &p))
-		 || (1 != intersect_torus (&x4, &p)))
+	     if (-1 == shift_grating_to_torus (g, y, z, dy, dz))
 	       {
-		  marx_error ("Failed to intersect the grating facet with the torus!");
 		  free_gratings (gratings);
 		  return NULL;
 	       }
 
-	     x.x = 0.5*x0.x + 0.125*(x1.x + x2.x + x3.x + x4.x);
-	     x.y = 0.5*x0.y + 0.125*(x1.y + x2.y + x3.y + x4.y);
-	     x.z = 0.5*x0.z + 0.125*(x1.z + x2.z + x3.z + x4.z);
-	     compute_grating_vectors (g, &x);
-	     /* The facet normal is aligned with the grating normal.  For
-	      * modules on the left/right, yhat is in the dispersion direction,
-	      * which correponds to the marx z direction
-	      */
-	     g->zhat = g->n;
-	     g->yhat = g->d;
-	     g->xhat = g->l;
-	     g->origin = x;
-	     g->xlen = dy;
-	     g->ylen = dz;
+	     if (z > 0)
+	       {
+		  if (NULL == (g = alloc_grating (geff, period)))
+		    {
+		       free_gratings (gratings);
+		       return NULL;
+		    }
+		  tail->next = g;
+		  tail = g;
+
+		  if (-1 == shift_grating_to_torus (g, y, -z, dy, dz))
+		    {
+		       free_gratings (gratings);
+		       return NULL;
+		    }
+	       }
+
+	     z += zinc;
 	  }
+	min_y += yinc;
      }
    return gratings;
 }

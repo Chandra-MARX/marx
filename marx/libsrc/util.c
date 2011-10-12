@@ -36,6 +36,7 @@
 # include <unistd.h>
 #endif
 
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -284,4 +285,263 @@ int _marx_check_monotonicity_d (double *p, unsigned int n)
 	x = *p++;
      }
    return 0;
+}
+
+
+/* Range syntax:
+ *
+ *   ranges:
+ *      range
+ *      range "," ranges
+ *
+ *   range:
+ *      number_optional
+ *      lowerbndchar_optional number_optional ":" number_optional upperbndchar_optional
+ *
+ *   lowerbndchar:
+ *     "(" | "["
+ *   upperbndchar:
+ *     "]" | ")"
+ *
+ *  examples:
+ *       2:5   ==> 2 <= x < 5
+ *       2:5]  ==> 2 <= x <= 5
+ *      (2:    ==> 2 < x
+ *       :5]   ==> x <= 5
+ *       :     null range
+ *      2:)    ==> 2 <= x
+ *      (2)    ==> 2 < x < 2 (not 2)
+ *
+ *  Note: Infinity is NOT handled.  
+ */
+
+struct _Marx_Range_Type
+{
+   double a, b;
+   int type;
+#define RANGE_TYPE_EMPTY	0
+#define RANGE_TYPE_LT_LT	1      /* "(a,b)"   a < x < y  */
+#define RANGE_TYPE_LT_LE	2      /* "(a,b]"   a < x <= y */
+#define RANGE_TYPE_LE_LT	3      /* "a:b"     a <= x < y */
+#define RANGE_TYPE_LE_LE	4      /* "a:b]"    a <= x <= y */
+#define RANGE_TYPE_LT		5      /* "(a:"     a < x */
+#define RANGE_TYPE_LE		6      /* "[a:"     a <= x */
+#define RANGE_TYPE_GT		7      /* ":a"      a > x */
+#define RANGE_TYPE_GE		8      /* ":a]"     a >= x */
+   struct _Marx_Range_Type *next;
+};
+
+int _marx_is_in_range (Marx_Range_Type *r, double x)
+{
+   while (r != NULL)
+     {
+	switch (r->type)
+	  {
+	   case RANGE_TYPE_EMPTY: return 1;
+	   case RANGE_TYPE_LT_LT: if ((r->a < x) && (x < r->b)) return 1; break;
+	   case RANGE_TYPE_LT_LE: if ((r->a < x) && (x <= r->b)) return 1; break;
+	   case RANGE_TYPE_LE_LT: if ((r->a <= x) && (x < r->b)) return 1; break;
+	   case RANGE_TYPE_LE_LE: if ((r->a <= x) && (x <= r->b)) return 1; break;
+	   case RANGE_TYPE_LT: if (r->a < x) return 1; break;
+	   case RANGE_TYPE_LE: if (r->a <= x) return 1; break;
+	   case RANGE_TYPE_GT: if (r->a > x) return 1; break;
+	   case RANGE_TYPE_GE: if (r->a <= x) return 1; break;
+	  }
+	r = r->next;
+     }
+   return 0;
+}
+
+double _marx_compute_range_length (Marx_Range_Type *r)
+{
+   double sum = 0.0;
+
+#define UNBOUNDED_RANGE -1.0
+
+   /* Note: this does not handle overlapping sectors! */
+   while (r != NULL)
+     {
+	switch (r->type)
+	  {
+	   case RANGE_TYPE_LT_LT:
+	   case RANGE_TYPE_LT_LE:
+	   case RANGE_TYPE_LE_LT:
+	   case RANGE_TYPE_LE_LE:
+	     if (r->b > r->a)
+	       sum += r->b - r->a;
+	     break;
+	   case RANGE_TYPE_LT:
+	   case RANGE_TYPE_LE:
+	   case RANGE_TYPE_GT:
+	   case RANGE_TYPE_GE:
+	   case RANGE_TYPE_EMPTY:
+	     return UNBOUNDED_RANGE;
+	  }
+	r = r->next;
+     }
+   return sum;
+}
+
+
+void _marx_free_range_type (Marx_Range_Type *r)
+{
+   while (r != NULL)
+     {
+	Marx_Range_Type *next = r->next;
+	marx_free ((char *)r);
+	r = next;
+     }
+}
+
+static int parse_number (char **strp, double *xp)
+{
+   char *s0, *s1;
+   double x;
+
+   s0 = *strp;
+   while (isspace (*s0)) s0++;
+
+   x = strtod (s0, &s1);
+   *strp = s1;
+   *xp = x;
+
+   if (s0 == s1)
+     return 0;
+
+   return 1;
+}
+
+Marx_Range_Type *_marx_parse_range_string (char *str)
+{
+   Marx_Range_Type *root = NULL, *tail;
+
+   if (str != NULL) while (1)
+     {
+	char ch;
+	int type;
+#define RANGEOPEN 1
+#define RANGECLOSED 2
+	int a_type, b_type, has_a, has_b;
+	double a = 0, b = 0;
+	Marx_Range_Type *r;
+
+	ch = *str;
+	if (ch == 0)
+	  break;
+
+	if (isspace (ch) || (ch == ','))
+	  {
+	     str++;
+	     continue;
+	  }
+
+	/* at the start of a new range */
+	if (ch == '(')
+	  {
+	     a_type = RANGEOPEN;
+	     str++;
+	  }
+	else if (ch == '[')
+	  {
+	     a_type = RANGECLOSED;
+	     str++;
+	  }
+	else a_type = RANGECLOSED;
+
+	has_a = parse_number (&str, &a);
+
+	while (isspace (*str))
+	  str++;
+
+	if (*str == ':')
+	  {
+	     str++;
+	     has_b = parse_number (&str, &b);
+	     while (isspace (*str))
+	       str++;
+	  }
+	else has_b = 0;
+
+	ch = *str;
+	if (ch == ')')
+	  {
+	     b_type = RANGEOPEN;
+	     str++;
+	     while (isspace (*str)) str++;
+	  }
+	else if (ch == ']')
+	  {
+	     b_type = RANGECLOSED;
+	     str++;
+	     while (isspace (*str)) str++;
+	  }
+	else b_type = RANGEOPEN;
+
+	if ((*str != 0) && (*str != ','))
+	  {
+	     marx_error ("While parsing the range specification, expected a comma or end of string, found: '%c'", *str);
+	     goto return_error;
+	  }
+
+	if (has_a)
+	  {
+	     if (has_b)
+	       {
+		  if (a_type == RANGEOPEN)
+		    {
+		       if (b_type == RANGEOPEN)
+			 type = RANGE_TYPE_LT_LT;
+		       else
+			 type = RANGE_TYPE_LT_LE;
+		    }
+		  else if (b_type == RANGEOPEN)
+		    type = RANGE_TYPE_LE_LT;
+		  else
+		    type = RANGE_TYPE_LE_LE;
+	       }
+	     else if (a_type == RANGEOPEN)
+	       type = RANGE_TYPE_LT;
+	     else
+	       type = RANGE_TYPE_LE;
+	  }
+	else if (has_b)
+	  {
+	     if (b_type == RANGEOPEN)   /* ":a)" x < a ==> a>x */
+	       type = RANGE_TYPE_GT;
+	     else 		       /* ":a]" ==> x <= a */
+	       type = RANGE_TYPE_GE;
+	     a = b;
+	  }
+	else  /* empty range */
+	  type = RANGE_TYPE_EMPTY;
+
+	r = (Marx_Range_Type *)marx_malloc(sizeof (Marx_Range_Type));
+	if (r == NULL)
+	  goto return_error;
+	r->next = NULL;
+	r->type = type;
+	r->a = a;
+	r->b = b;
+
+	if (root == NULL)
+	  root = r;
+	else
+	  tail->next = r;
+
+	tail = r;
+     }
+
+   if (root == NULL)
+     {
+	root = (Marx_Range_Type *)marx_malloc(sizeof (Marx_Range_Type));
+	if (root == NULL)
+	  return NULL;
+	root->type = RANGE_TYPE_EMPTY;
+	root->next = NULL;
+     }
+   return root;
+
+return_error:
+   _marx_free_range_type (root);
+   return NULL;
 }

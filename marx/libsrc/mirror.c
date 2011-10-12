@@ -169,3 +169,4 @@ int _marx_parse_shutter_string (char *str, unsigned int *bitmap, unsigned int *n
 }
 
 /*}}}*/
+
