@@ -45,15 +45,15 @@ extern int marx_select_image_source (Marx_Source_Type *, Param_File_Type *,
 
 static Source_Object_Type Sources [] =
 {
-   {"POINT", marx_select_point_source, 1, 0},
-   {"GAUSS", marx_select_gauss_source, 1, 0},
-   {"LINE", marx_select_line_source, 1, 0},
-   {"BETA", marx_select_beta_source, 1, 0},
-   {"RAYFILE", marx_select_rayfile_source, 0, 0},
-   {"DISK", marx_select_disk_source, 1, 0},
-   {"USER", marx_select_user_source, 1, 0},
-   {"SAOSAC", marx_select_saosac_source, 2, 0},
-   {"IMAGE", marx_select_image_source, 1, 0},
+   {"POINT", marx_select_point_source, 0, 0},
+   {"GAUSS", marx_select_gauss_source, 0, 0},
+   {"LINE", marx_select_line_source, 0, 0},
+   {"BETA", marx_select_beta_source, 0, 0},
+   {"RAYFILE", marx_select_rayfile_source, _MARX_DITHER_UNSUPPORTED, 0},
+   {"DISK", marx_select_disk_source, 0, 0},
+   {"USER", marx_select_user_source, 0, 0},
+   {"SAOSAC", marx_select_saosac_source, _MARX_DITHER_ZERO_AMP|_MARX_DITHER_RECORD_ONLY, 0},
+   {"IMAGE", marx_select_image_source, 0, 0},
    {NULL, NULL, 0, 0}
 };
 #if MARX_HAS_DYNAMIC_LINKING

@@ -491,7 +491,7 @@ static int write_formatted (FILE *fp, char *fmt)
 {
    unsigned int i, imax;
    Photon_Attr_Type *at, *attr;
-   float start_time;
+   double start_time;
    char output_buf[4096], *f, *p;
    unsigned int count;
 

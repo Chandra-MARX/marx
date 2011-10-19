@@ -44,7 +44,8 @@
 static JDFits_BTable_Read_Type *Saosac_Bin_Table;
 static int File_Has_Time_Column;
 static double Wgts_Scale_Factor = 1.0;
-static int Use_Color_Rays;
+
+static int Use_Color_Rays = 0;
 
 static int compute_weights_scale_factor (char *file, double *wp)
 {
@@ -164,10 +165,10 @@ static int saosac_close_source (Marx_Source_Type *st) /*{{{*/
 
 /*}}}*/
 
+static double Start_Time = 0.0;
 static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 				   unsigned int num, unsigned int *num_created)
 {
-   static double start_time = 0.0;
    unsigned int num_read;
    Marx_Photon_Attr_Type *at;
    JDFits_BTable_Read_Type *bt;
@@ -256,12 +257,15 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	  {
 	     if (File_Has_Time_Column)
 	       {
-		  if (start_time == 0)
-		    start_time = buf[8];
-		  this_time = buf[8] - start_time;
+		  if (Start_Time == 0)
+		    Start_Time = buf[8];
+		  this_time = buf[8] - Start_Time;
 	       }
 	     else
 	       this_time += 1.0;
+
+	     if (this_time < 0)
+	       continue;
 
 	     at->energy = buf[6];
 	     at->arrival_time = this_time;
@@ -271,17 +275,17 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	num_read++;
      }
 
-   if (File_Has_Time_Column)
-     start_time += this_time;
-
    pt->history |= (MARX_ENERGY_OK
 		   | MARX_X_VECTOR_OK
 		   | MARX_P_VECTOR_OK);
 
    pt->history |= MARX_MIRROR_SHELL_OK;
 
-   if (Use_Color_Rays == 0)
-     pt->history |= MARX_TIME_OK;
+   if (File_Has_Time_Column)
+     {
+	Start_Time += this_time;
+	pt->history |= MARX_TIME_OK;
+     }
 
    *num_created = num_read;
 
@@ -296,6 +300,7 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    char file [PF_MAX_LINE_LEN];
    JDFits_BTable_Read_Type *bt;
    int scale_wgts;
+   char dither_model[PF_MAX_LINE_LEN];
 
    (void) source_id; (void) name;
    st->open_source = saosac_open_source;
@@ -304,9 +309,20 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 
    if (-1 == pf_get_string (p, "SAOSACFile", file, sizeof (file)))
      return -1;
+   if (-1 == pf_get_string (p, "DitherModel", dither_model, sizeof (dither_model)))
+     return -1;
+   if (0 == strcmp (dither_model, "FILE"))
+     {
+	/* Initialized from marx.c from the aspect file.  Yes this is ugly. */
+	Start_Time = _Marx_TStart_MJDsecs;
+     }
+   else Start_Time = 0;
 
+#if 0
    if (-1 == pf_get_boolean (p, "SAOSAC_Color_Rays", &Use_Color_Rays))
      return -1;
+#endif
+   Use_Color_Rays = 0;		       /* nolonger supported */
 
    if (-1 == pf_get_boolean (p, "SAOSAC_Scale_Wgts", &scale_wgts))
      return -1;
@@ -325,8 +341,9 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    Saosac_Bin_Table = bt;
 
    if (Use_Color_Rays)
-     return _marx_get_simple_specrum_parms (p, st, name);
-
+     {
+	return _marx_get_simple_specrum_parms (p, st, name);
+     }
    st->spectrum.type = MARX_SAOSAC_SPECTRUM;
 
    return 0;

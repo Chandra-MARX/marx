@@ -140,6 +140,11 @@ extern int _Marx_Dither_Mode;
 # define _MARX_DITHER_MODE_INTERNAL		1
 # define _MARX_DITHER_MODE_ASPSOL		2
 
+/* source.def flags */
+#define _MARX_DITHER_UNSUPPORTED		1
+#define _MARX_DITHER_RECORD_ONLY		2
+#define _MARX_DITHER_ZERO_AMP			4
+
 void _marx_undither_detector (Marx_Dither_Type *);
 void _marx_dither_detector (Marx_Dither_Type *);
 #endif

@@ -92,9 +92,7 @@ static char *Rayfile_Name;
 
 static double MJDref = 50814.0;
 static double MJDref_Years = 1998.0;
-static time_t MJDref_Unix;
 static time_t TStart_Unix;
-static double TStart_Years;
 static double TStart_MJDref;
 
 /*}}}*/
@@ -289,11 +287,42 @@ static int setup_tstart (Param_File_Type *pf)
    double secs_per_year = 365.25 * 24.0 * 3600.0;
    double tstart, yrs_tstart;
    time_t time_t_mjdref;
-   time_t time_t_tstart;
    struct tm tm;
+   char *asol_file = NULL;
+   char buf[2048];
 
-   if (-1 == pf_get_double (pf, "TStart", &tstart))
+   if (-1 == pf_get_string (pf, "SourceType", buf, sizeof(buf)))
      return -1;
+   if (0 == jdfits_strcasecmp (buf, "SAOSAC"))
+     {
+	if (-1 == pf_get_string (pf, "DitherModel", buf, sizeof(buf)))
+	  return -1;
+	if (0 == jdfits_strcasecmp (buf, "FILE"))
+	  {
+	     if (-1 == pf_get_string (pf, "DitherFile", buf, sizeof(buf)))
+	       return -1;
+	     asol_file = buf;
+	  }
+     }
+   if (asol_file == NULL)
+     {
+	if (-1 == pf_get_double (pf, "TStart", &tstart))
+	  return -1;
+     }
+   else
+     {
+	JDFits_Type *ft;
+
+	marx_message ("For dithered SAOSAC rays, the TSTART value will be taken from %s\n", asol_file);
+	if (NULL == (ft = jdfits_open_binary_table (asol_file, "ASPSOL")))
+	  return -1;
+	if (-1 == jdfits_read_keyword_dbl (ft, "TSTART", &tstart))
+	  {
+	     (void) jdfits_close_file (ft);
+	     return -1;
+	  }
+	(void) jdfits_close_file (ft);
+     }
 
    if (tstart < 1999)
      {
@@ -301,17 +330,6 @@ static int setup_tstart (Param_File_Type *pf)
 	return -1;
      }
 
-   memset ((char *) &tm, 0, sizeof (tm));
-   tm.tm_sec = 0;
-   tm.tm_min = 0;
-   tm.tm_hour = 0;
-   tm.tm_mday = 1;
-   tm.tm_mon = 0;
-   tm.tm_year = 98;
-   tm.tm_yday = 0;
-   tm.tm_isdst = 0;
-
-   time_t_mjdref = marx_timegm (&tm);
    if (tstart < 2020)
      {
 	/* asssume that tstart is in years */
@@ -323,14 +341,22 @@ static int setup_tstart (Param_File_Type *pf)
 	/* assume tstart is secs from mjdref */
 	yrs_tstart = MJDref_Years + tstart/secs_per_year;
      }
-   time_t_tstart = (time_t) (time_t_mjdref + tstart);
 
-   MJDref_Unix = time_t_mjdref;
-   TStart_Years = yrs_tstart;
-   TStart_Unix = time_t_tstart;
-   TStart_MJDref = TStart_Unix - MJDref_Unix;
+   memset ((char *) &tm, 0, sizeof (tm));
+   tm.tm_sec = 0;
+   tm.tm_min = 0;
+   tm.tm_hour = 0;
+   tm.tm_mday = 1;
+   tm.tm_mon = 0;
+   tm.tm_year = 98;
+   tm.tm_yday = 0;
+   tm.tm_isdst = 0;
+   time_t_mjdref = marx_timegm (&tm);
 
-   if (-1 == marx_set_time (TStart_Years, tstart))
+   TStart_Unix = (time_t) (time_t_mjdref + tstart);
+   TStart_MJDref = TStart_Unix - time_t_mjdref;
+
+   if (-1 == marx_set_time (yrs_tstart, tstart))
      return -1;
 
    return 0;

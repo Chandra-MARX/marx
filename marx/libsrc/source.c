@@ -48,7 +48,7 @@ typedef struct /*{{{*/
 {
    char *name;
    int (*select_source) (Marx_Source_Type *, Param_File_Type *, char *, unsigned int);
-   int can_be_dithered;
+   int dither_flags;
    int source_id;
 }
 
@@ -136,7 +136,7 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
    if (s == NULL)
      return -1;
 
-   if (-1 == _marx_init_dither (pf, s->can_be_dithered, &yoff, &zoff))
+   if (-1 == _marx_init_dither (pf, s->dither_flags, &yoff, &zoff))
      return -1;
 
    if (-1 == marx_get_nominal_pointing (&ra_nom, &dec_nom, &roll_nom))

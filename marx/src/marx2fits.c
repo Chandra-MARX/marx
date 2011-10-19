@@ -52,7 +52,7 @@
 #define HRC_FITS_FILE_SPEC		"HRC_L1_0.0"
 static char *Program_Name = "marx2fits";
 static char Marx2fits_Pgm[80];
-#define MARX2FITS_PATCHLVL "-1"
+#define MARX2FITS_PATCHLVL "-0"
 
 static Marx_Detector_Type *The_Detector;
 static int Simulation_Grating_Type;    /* 0==>NONE, 1==>HETG, 2==>LETG */
@@ -2374,10 +2374,7 @@ static int get_marx_pfile_info (void) /*{{{*/
      {
 	  Simulation_Used_Dither = 1;
      }
-#if 0
-   if (0 == _marx_strcasecmp (SourceType, "SAOSAC"))
-     Simulation_Used_Dither = 0;
-#endif
+
    if (Simulation_Detector_Type & DETECTOR_ACIS)
      {
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
