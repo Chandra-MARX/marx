@@ -66,6 +66,9 @@ static double Min_Sector_Radius = 100.0;   /* mm */
 static double Max_Sector_Radius = 1500.0;   /* mm */
 static double Facet_Gap_Size = 1.0;    /* mm */
 
+static char *Mirror_Shell_Range_String;
+static Marx_Range_Type *Mirror_Shell_Ranges;
+
 static void free_grating_eff_type (Grating_Eff_Type *geff)
 {
    if (geff == NULL)
@@ -505,7 +508,8 @@ int _marx_catgs_diffract (Marx_Photon_Type *pt)
 	  {
 	     double theta;
 
-	     if ((at->mirror_shell < 73) || (at->mirror_shell > 175))
+	     if ((Mirror_Shell_Ranges != NULL)
+		 && (_marx_is_in_range (Mirror_Shell_Ranges, at->mirror_shell)))
 	       continue;
 
 	     theta = atan2 (at->x.z, at->x.y);   /* -PI <= theta <= PI */
@@ -751,6 +755,7 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_CATGS_Min_Radius",	PF_REAL_TYPE,	&Min_Sector_Radius},
    {"IXO_CATGS_Max_Radius",	PF_REAL_TYPE,	&Max_Sector_Radius},
    {"IXO_CATGS_Facet_Gap",	PF_REAL_TYPE,	&Facet_Gap_Size},
+   {"IXO_CATGS_Invalid_Shells",	PF_STRING_TYPE,	&Mirror_Shell_Range_String},
    {NULL, 0, NULL}
 };
 
@@ -786,6 +791,13 @@ static int read_ixo_catgs_parms (Param_File_Type *p)
 {
    if (-1 == pf_get_parameters (p, IXO_CATGS_Parm_Table))
      return -1;
+
+   if (*Mirror_Shell_Range_String != 0)
+     {
+	Mirror_Shell_Ranges = _marx_parse_range_string (Mirror_Shell_Range_String);
+	if (Mirror_Shell_Ranges == NULL)
+	  return -1;
+     }
 
    if ((Min_Sector_Radius < 0) || (Max_Sector_Radius < 0)
        || (Facet_Gap_Size < 0) || (Facet_Size < 0))
