@@ -530,6 +530,7 @@ IXO_CATGS_Vig,r,h,0.729,0,1,"CATGS Vignetting Factor"
 IXO_CATGS_Min_Radius,r,h,100,0,,"CATGS min sector radius"
 IXO_CATGS_Max_Radius,r,h,1500,0,,"CATGS max sector radius"
 IXO_CATGS_Facet_Gap,r,h,1.0,0,,"CATGS facet gap size"
+IXO_CATGS_Invalid_Shells,s,h,"",,,"CATGS invalid mirror shell ranges"
 #
 IXO_XMS_Inner_QE_File,f,h,"ixo/ixoxms_qe.fits",,,"Enter IXO XMS Inner QE/Filter file"
 IXO_XMS_Outer_QE_File,f,h,"ixo/ixoxms_qe_outer.fits",,,"Enter IXO XMS Outer QE/Filter file"

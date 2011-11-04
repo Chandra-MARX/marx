@@ -33,6 +33,7 @@
 #endif
 
 static char *Pgm_Name = "detinfo";
+static double Focal_Length = 10065.5;
 
 static void usage (void)
 {
@@ -65,6 +66,34 @@ int main (int argc, char **argv)
 	/* drop */
       default:
 	usage ();
+     }
+
+   if (NULL != strstr(name, ".par"))
+     {
+	Param_File_Type *p;
+	static char namebuf[1024];
+
+	if (NULL == (p = pf_open_parameter_file (name, "r")))
+	  return 1;
+
+	if (-1 == marx_mirror_init (p))
+	  return 1;
+
+	if (-1 == marx_grating_init (p))
+	  return 1;
+
+	if (-1 == marx_detector_init (p))
+	  return 1;
+
+	if ((-1 == pf_get_string (p, "DetectorType", namebuf, sizeof(namebuf)))
+	    || (-1 == pf_get_double (p, "FocalLength", &Focal_Length)))
+	  {
+	     pf_close_parameter_file (p);
+	     return 1;
+	  }
+
+	pf_close_parameter_file (p);
+	name = namebuf;
      }
 
    if (NULL == (det = marx_get_detector_info (name)))
@@ -112,8 +141,6 @@ static void compute_ra_dec (Marx_Chip_To_MNC_Type *chip_mnc,
    *tx = *tx * (60.0 * 180.0/PI);
    *ty = *ty * (60.0 * 180.0/PI);
 }
-
-static double Focal_Length = 10065.5;
 
 static void dump_sky_geometry (Marx_Detector_Type *det, char *name)
 {

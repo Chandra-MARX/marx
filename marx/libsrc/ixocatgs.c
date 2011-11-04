@@ -971,7 +971,7 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 	max_y = -max_y;
      }
 
-   max_z = rmax * cos(PI/180.0*Sector_Size);
+   max_z = rmax*sin(PI/180.0*Sector_Size);
    zinc = dz+gap;
 
    /*   +---+---+---+---+---+---+
@@ -1043,7 +1043,10 @@ make_finite_facet_module (double period, Grating_Eff_Type *geff,
 
 	     z += zinc;
 	  }
-	min_y += yinc;
+	if (gratings == NULL)
+	  min_y += 0.5*yinc;
+	else
+	  min_y += yinc;
      }
    return gratings;
 }
@@ -1110,16 +1113,42 @@ static void print_grating_configuration (Grating_Module_Type *module, char *name
 {
    Grating_Type *g;
    unsigned int num;
+   FILE *fp;
 
-   fprintf (stderr, "The %s module:\n", name);
+   fp = fopen (name, "w");
+   if (fp == NULL)
+     return;
+
+   fprintf (fp, "# Filename: %s\n", name);
+   fprintf (fp, "id,x,y,z,xlen,ylen");
+   fprintf (fp, ",xhat_x,xhat_y,xhat_z");
+   fprintf (fp, ",yhat_x,yhat_y,yhat_z");
+   fprintf (fp, ",zhat_x,zhat_y,zhat_z");
+   fprintf (fp, ",n_x,n_y,n_z");
+   fprintf (fp, ",l_x,l_y,l_z");
+   fprintf (fp, ",d_x,d_y,d_z");
+   fprintf (fp, ",n_dot_x");
+   fprintf (fp, "\n");
+
    g = module->gratings;
    num = 0;
    while (g != NULL)
      {
+	fprintf (fp, "%d,%.12g,%.12g,%.12g,%.12g,%.12g",
+		 num, g->origin.x, g->origin.y, g->origin.z, g->xlen, g->ylen);
+	fprintf (fp, ",%.12g,%.12g,%.12g", g->xhat.x, g->xhat.y, g->xhat.z);
+	fprintf (fp, ",%.12g,%.12g,%.12g", g->yhat.x, g->yhat.y, g->yhat.z);
+	fprintf (fp, ",%.12g,%.12g,%.12g", g->zhat.x, g->zhat.y, g->zhat.z);
+	fprintf (fp, ",%.12g,%.12g,%.12g", g->n.x, g->n.y, g->n.z);
+	fprintf (fp, ",%.12g,%.12g,%.12g", g->l.x, g->l.y, g->l.z);
+	fprintf (fp, ",%.12g,%.12g,%.12g", g->d.x, g->d.y, g->d.z);
+	fprintf (fp, ",%.12g", -JDMv_dot_prod (g->n, JDMv_unit_vector (g->origin)));
+	fprintf (fp, "\n");
+
 	num++;
 	g = g->next;
      }
-   fprintf (stderr, " num facets: %u\n", num);
+   (void) fclose (fp);
 }
 
 static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_Type *right_geff)
@@ -1152,8 +1181,8 @@ static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_
    if (-1 == add_support_structure (The_Left_Gratings.gratings))
      return -1;
 
-   print_grating_configuration (&The_Left_Gratings, "Left");
-   print_grating_configuration (&The_Right_Gratings, "Right");
+   print_grating_configuration (&The_Left_Gratings, "Left.dat");
+   print_grating_configuration (&The_Right_Gratings, "Right.dat");
 
    return 0;
 }
