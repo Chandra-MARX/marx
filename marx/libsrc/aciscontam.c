@@ -74,7 +74,7 @@
  */
 
 #define MAX_LAYERS 5
-typedef struct
+typedef struct Single_Component_Contam_Type
 {
    unsigned int num_layers;
    double tau_0s[MAX_LAYERS];
@@ -82,7 +82,10 @@ typedef struct
    float *mus[MAX_LAYERS];
    float *energies[MAX_LAYERS];
    unsigned int num_mus[MAX_LAYERS];
+
+   /* if fxy == NULL, use fxy_vals as a lookup table. */
    double (*fxy)(double, double);
+   float *fxy_vals[MAX_LAYERS];
 }
 Single_Component_Contam_Type;
 
@@ -93,14 +96,36 @@ static double compute_contamination (Single_Component_Contam_Type *c,
    unsigned int i;
    double v;
 
-   fxy = (*c->fxy)(cx, cy);
-   v = 0.0;
-   for (i = 0; i < c->num_layers; i++)
+   if (c->fxy != NULL)
      {
-	double mu;
+	fxy = (*c->fxy)(cx, cy);
 
-	mu = JDMinterpolate_f (en, c->energies[i], c->mus[i], c->num_mus[i]);
-	v += mu*(c->tau_0s[i] + c->tau_1s[i]*fxy);
+	v = 0.0;
+	for (i = 0; i < c->num_layers; i++)
+	  {
+	     double mu;
+
+	     mu = JDMinterpolate_f (en, c->energies[i], c->mus[i], c->num_mus[i]);
+	     v += mu*(c->tau_0s[i] + c->tau_1s[i]*fxy);
+	  }
+     }
+   else
+     {
+	unsigned int ofs;
+
+	if ((cx < 0) || (cx >= 1024) || (cy < 0) || (cy >= 1024))
+	  return 0.0;
+	ofs = 1024 * (unsigned int) cy + (unsigned int) cx;
+	v = 0.0;
+
+	for (i = 0; i < c->num_layers; i++)
+	  {
+	     double mu;
+
+	     mu = JDMinterpolate_f (en, c->energies[i], c->mus[i], c->num_mus[i]);
+	     fxy = c->fxy_vals[i][ofs];
+	     v += mu*(c->tau_0s[i] + c->tau_1s[i]*fxy);
+	  }
      }
    return exp (-v);
 }
@@ -114,12 +139,13 @@ static double fxy_acis_i (double x, double y, double x_0, double y_0)
    double dy = y - y_0;
    double r = ArcMin_Per_Pixel * sqrt(dx*dx + dy*dy);
 #if 0
-   double gamma = 2.0, a = pow (8.07, gamma), b = pow (3.24, gamma);
-   return (pow (r, gamma) - b)/(a-b);
-#else
+   /* This was for the N0005 contam model */
    /* for gamma=2 */
    double a = 8.07*8.07, b=3.24*3.24;
    return (r*r - b)/(a-b);
+#else
+   r /= 8.07;
+   return 1.29*r*r;      /* N0006 model */
 #endif
 }
 
@@ -176,7 +202,8 @@ CONTAM_FUN(contam_8, 8)
 CONTAM_FUN(contam_9, 9)
 
 #define NUM_CONTAM_COLUMNS	8
-static char *Contam_File_Columns[NUM_CONTAM_COLUMNS] =
+#define NUM_CONTAM_OPT_COLUMNS	1
+static char *Contam_File_Columns[NUM_CONTAM_COLUMNS+NUM_CONTAM_OPT_COLUMNS] =
 {
 #define COMPONENT_COLUMN	0
    "i:component",
@@ -193,7 +220,11 @@ static char *Contam_File_Columns[NUM_CONTAM_COLUMNS] =
 #define TAU0_COLUMN		6
    "f:tau0",
 #define TAU1_COLUMN		7
-   "f:tau1"
+   "f:tau1",
+
+   /* optional columns go here */
+#define FXY_COLUMN		8
+   "f:fxy",
 };
 
 static void compute_tau_values (Single_Component_Contam_Type *contam,
@@ -237,23 +268,80 @@ static void free_contam_table_entry (int ccd)
 	  marx_free ((char *) c->mus[layer]);
 	if (c->energies[layer] != NULL)
 	  marx_free ((char *) c->energies[layer]);
+	if (c->fxy_vals[layer] != NULL)
+	  marx_free ((char *) c->fxy_vals[layer]);
      }
    memset ((char *)c, 0, sizeof(Single_Component_Contam_Type));
 }
+
+static int find_binary_table_callback (void *cd, JDFits_Type *ft)
+{
+   int ccd;
+   char extname[32];
+   char *val;
+   int ival;
+
+   ccd = *(int *) cd;
+
+   if (-1 == jdfits_read_keyword_string (ft, "EXTNAME", &val))
+     return 0;
+   /* Files distribued with marx use ACIS$ccd_CONTAM as extnam.
+    * The Chandra CALDB uses AXAF_CONTAM, with CCD_ID keyword in header.
+    */
+   sprintf (extname, "ACIS%d_CONTAM", ccd);
+   if (0 == jdfits_strcasecmp (val, extname))
+     {
+	jdfits_free (val);
+	return 1;
+     }
+
+   if (0 != jdfits_strcasecmp (val, "AXAF_CONTAM"))
+     {
+	jdfits_free (val);
+	return 0;
+     }
+   jdfits_free (val);
+
+   if (-1 == jdfits_read_keyword_int (ft, "CCD_ID", &ival))
+     return 0;
+
+   if (ival == ccd)
+     return 1;
+
+   return 0;
+}
+
 
 static int read_contam_file_for_ccd (char *file, int ccd)
 {
    JDFits_Type *f;
    JDFits_Row_Type *r;
    JDFits_Col_Data_Type *c;
-   unsigned int num_layers, layer;
-   char extname[16];
+   unsigned int num_layers, layer, num_columns;
    Single_Component_Contam_Type *contam;
+   int has_fxy;
 
    free_contam_table_entry (ccd);
 
    contam = Single_Component_Contam_Table+ccd;
-   switch (ccd)
+
+   marx_message ("Reading ACIS%d Contamination File\n", ccd);
+   marx_message ("\t%s\n", file);
+
+   if (NULL == (f = jdfits_find_binary_table (file, find_binary_table_callback, (void *)&ccd)))
+     {
+	marx_error ("Unable to open acis contam file %s for CCD %d", file, ccd);
+	return -1;
+     }
+
+   has_fxy = (1 == jdfits_bintable_column_exists (f, "fxy"));
+   num_columns = NUM_CONTAM_COLUMNS;
+   if (has_fxy)
+     {
+	num_columns++;
+	contam->fxy = NULL;
+     }
+   else switch (ccd)
      {
       case 0: contam->fxy = fxy_acis0; break;
       case 1: contam->fxy = fxy_acis1; break;
@@ -264,28 +352,18 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	contam->fxy = fxy_acis456789;
      }
 
-   sprintf (extname, "ACIS%d_CONTAM", ccd);
-
-   marx_message ("Reading ACIS%d Contamination File\n", ccd);
-   marx_message ("\t%s[%s]\n", file, extname);
-
-   if (NULL == (f = jdfits_open_binary_table (file, extname)))
-     {
-	marx_error ("Unable to open acis contam file %s[%s]", file, extname);
-	return -1;
-     }
-   r = jdfits_bintable_aopen_rows (f, NUM_CONTAM_COLUMNS, Contam_File_Columns);
+   r = jdfits_bintable_aopen_rows (f, num_columns, Contam_File_Columns);
    if (r == NULL)
      {
-	marx_error ("Error processing ACIS contam table %s[%s]", file, extname);
+	marx_error ("Error processing ACIS contam table %s for CCD=%d", file, ccd);
 	jdfits_close_file (f);
 	return -1;
      }
    num_layers = r->num_rows;
    if (num_layers > MAX_LAYERS)
      {
-	marx_error ("The number of layers %s[%s] is larger than supported",
-		    file, extname);
+	marx_error ("The number of layers in %s for CCD=%d is larger than supported",
+		    file, ccd);
 	jdfits_close_file (f);
 	return -1;
      }
@@ -301,7 +379,7 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 
 	if (1 != jdfits_read_next_row (f, r))
 	  {
-	     marx_error ("Unexpected end of binary table", file, extname);
+	     marx_error ("Unexpected end of binary table %s", file);
 	     goto return_error_bad_row;
 	  }
 	c = r->col_data;
@@ -309,7 +387,7 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	/* This implementation assumes a single component */
 	if (0 != c[COMPONENT_COLUMN].data.i[0])
 	  {
-	     marx_error ("Expecting COMPONENT=0", file, extname);
+	     marx_error ("Expecting COMPONENT=0 in %s for CCD=%d", file, ccd);
 	     goto return_error_bad_row;
 	  }
 	n_time = (unsigned int) c[N_TIME_COLUMN].data.i[0];
@@ -362,6 +440,19 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 	memcpy ((char *)contam->energies[layer], energies, n_energy*sizeof(float));
 	memcpy ((char *)contam->mus[layer], mus, n_energy*sizeof(float));
 	contam->num_mus[layer] = n_energy;
+
+	if (has_fxy)
+	  {
+	     if (1024*1024 != c[FXY_COLUMN].repeat)
+	       {
+		  marx_error ("The FXY column is expected to have 1024*1024 values");
+		  goto return_error_bad_row;
+	       }
+	     if (NULL == (contam->fxy_vals[layer] = (float *)marx_malloc(sizeof(float)*1024*1024)))
+	       goto return_error_bad_row;
+	     memcpy ((char *)contam->fxy_vals[layer],
+		     (char *)c[FXY_COLUMN].data.f, 1024*1024*sizeof(float));
+	  }
      }
 
    jdfits_bintable_close_rows (r);
@@ -370,8 +461,8 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 
 return_error_bad_row:
 
-   marx_error ("Error encountered reading row %d of %s[%s]",
-	       layer+1, file, extname);
+   marx_error ("Error encountered reading row %d of %s for CCD=%d",
+	       layer+1, file, ccd);
    jdfits_bintable_close_rows (r);
    jdfits_close_file (f);
    return -1;
