@@ -4,6 +4,9 @@
 # Then the reference arfs are created using the pcad and marx event file as
 # input.
 
+runciao="runciaoxtool.sh"
+# $runciaox is a script that runs a ciaotool in its own environment
+
 outdir="point"
 datadir=".."
 bindir="../../src/objs"
@@ -39,7 +42,7 @@ obsfile="$evtfile"
 
 echo asphist infile="$asolfile" outfile="$aspfile" evtfile="$evtfile" \
   verbose=0 mode=h clobber=yes
-asphist infile="$asolfile" outfile="$aspfile" evtfile="$evtfile" \
+$runciao asphist infile="$asolfile" outfile="$aspfile" evtfile="$evtfile" \
   verbose=0 mode=h clobber=yes
 
 X=4096.5 Y=4096.5
@@ -51,7 +54,7 @@ do
     outfile="$outfile" engrid="$engrid" asphistfile="$aspfile" \
     sourcepixelx=$X sourcepixely=$Y obsfile="$evtfile" \
     maskfile=NONE pbkfile=NONE dafile=NONE verbose=1 mode=h clobber=yes
-  mkarf mirror="hrma;shell=$shell" detsubsys="$detname" grating="$grating" \
+  $runciao mkarf mirror="hrma;shell=$shell" detsubsys="$detname" grating="$grating" \
     outfile="$outfile" engrid="$engrid" asphistfile="$aspfile" \
     sourcepixelx=$X sourcepixely=$Y obsfile="$evtfile" \
     maskfile=NONE pbkfile=NONE dafile=NONE verbose=1 mode=h clobber=yes

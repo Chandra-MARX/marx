@@ -38,7 +38,7 @@ static int read_pipe (FILE *fp, unsigned int *num_detectedp, unsigned int *num_i
 
 	if (1 != fread (&num_sorted, sizeof (unsigned int), 1, fp))
 	  return 0;
-	
+
 	if ((1 != fread (&num_input, sizeof (unsigned int), 1, fp))
 	    || (1 != fread (&tstart, sizeof (double), 1, fp))
 	    || (1 != fread (&duration, sizeof (double), 1, fp)))
@@ -53,7 +53,7 @@ static int read_pipe (FILE *fp, unsigned int *num_detectedp, unsigned int *num_i
 	while (num_sorted != 0)
 	  {
 	     Marx_Photon_Attr_Type a;
-	     
+
 	     if (1 != fread (&a, sizeof (Marx_Photon_Attr_Type), 1, fp))
 	       {
 		  fprintf (stderr, "Error reading from marx pipe\n");
@@ -65,9 +65,6 @@ static int read_pipe (FILE *fp, unsigned int *num_detectedp, unsigned int *num_i
      }
 }
 
-		    
-	
-
 int main (int argc, char **argv)
 {
    unsigned int num_detected, num_input;
@@ -75,8 +72,8 @@ int main (int argc, char **argv)
 
    if (-1 == read_pipe (stdin, &num_detected, &num_input, &total_time))
      return 1;
-   
-   fprintf (stdout, "%u\t%u\t%g\n", num_input, num_detected, total_time);
+
+   fprintf (stdout, "%u\t%u\t%.16g\n", num_input, num_detected, total_time);
    return 0;
 }
 

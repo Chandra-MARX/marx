@@ -9,8 +9,10 @@ Marx_Args += " GratingType=NONE Verbose=no";
 Marx_Args += " DetectorType=NONE";
 Marx_Args += " SourceFlux=1.0";
 % If HRMA_Use_Scale_Factors is yes, then prefix the output filename
-% with "scaled_".
-Marx_Args += " HRMA_Use_Scale_Factors=no";
+% with "scaled".
+private variable Use_Scale_Factors = 1;
+private variable Prefix = Use_Scale_Factors ? "scaled" : "";
+Marx_Args += " HRMA_Use_Scale_Factors=" + (Use_Scale_Factors ? "yes" : "no");
 
 putenv ("MARX_DATA_DIR=..");
 
@@ -40,24 +42,24 @@ private define run_marx_sim (numrays, en_lo, en_hi, file, shell)
 
 define slsh_main ()
 {
-   variable de = 0.003;
+   variable de = 0.003;		       %  if changed, update mkcorr.sl
    variable en_lo = [0.03:12.0:de];
    variable en_hi = en_lo + de;
-   
+
    () = system ("cp ../../par/marx.par .");
 
    foreach ([1, 3, 4, 6])
      {
 	variable shell = ();
 	variable i;
-	variable Out_Dat = sprintf ("hrma_ea_%d.dat", shell);
+	variable Out_Dat = "${Prefix}_hrma_ea_${shell}.dat"$;
 	() = remove (Out_Dat);
-	variable numrays = 500000;
+	variable numrays = -100000;
 	for (i = 0; i < length (en_lo); i++)
 	  {
 	     variable fp = fopen (Out_Dat, "a");
 	     if (en_lo[i] > 6.0)
-	       numrays = 1000000;
+	       numrays = 5000000;
 	     () = fprintf (fp, "%g\t%g\t", en_lo[i], en_hi[i]);
 	     () = fclose (fp);
 	     run_marx_sim (numrays, en_lo[i], en_hi[i], Out_Dat, shell);
@@ -65,4 +67,3 @@ define slsh_main ()
      }
 }
 
-	

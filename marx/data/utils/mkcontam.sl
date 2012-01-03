@@ -10,26 +10,26 @@ define slsh_main ()
      }
    variable infile = __argv[1];
    variable outfile = __argv[2];
-   
+
    variable fp = fits_open_file (outfile, "c");
    fits_create_image_hdu (fp, NULL, Char_Type, Int_Type[0]);
    fits_write_history (fp, sprintf ("This file was created using the marx script `%s %s %s`",
 				    __argv[0], __argv[1], __argv[2]));
-   
+
    variable keywords = struct
      {
 	mission = "AXAF",
 	instrum = "ACIS",
 	detnam,
 	ccd_id,
-	marxvers = 4.5,
+	marxvers = 5.0,
      };
 
    _for (0, 9, 1)
      {
 	variable ccd = ();
 	variable vfile = sprintf ("%s[AXAF_CONTAM%d]", infile, ccd+1);
-	variable t = fits_read_table (vfile, 
+	variable t = fits_read_table (vfile,
 				      ["component", "n_energy", "energy", "mu",
 				       "n_time", "time", "tau0", "tau1"]);
 	keywords.detnam = "ACIS-$ccd"$;

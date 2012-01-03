@@ -46,7 +46,8 @@ LIBEXECS = \
  marx/src/$(ARCH)objs/dumpwfold \
  marx/src/$(ARCH)objs/detinfo \
  marx/src/$(ARCH)objs/bestfocus \
- tools/scripts/xspec2marx
+ tools/scripts/xspec2marx \
+ tools/scripts/marxflux
 
 STATIC_LIBS = \
  pfile/src/$(ARCH)objs/libpfile.a \

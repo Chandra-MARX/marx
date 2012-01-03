@@ -5,7 +5,9 @@ require ("fits");
 define slsh_main ()
 {
    variable file = "mirror.csv";
-   variable header_start = "shell,";
+   file = "/aluche/d1/xrtdesigns/axsio/axsio_prescription_10mFL_pbr_062211design.csv";
+
+   variable header_start = "\"shell\",";
    variable header_start_len = strlen (header_start);
    variable comments = "";
 
@@ -28,7 +30,7 @@ define slsh_main ()
 	header_line = line;
 	break;
      }
-   then 
+   then
      {
 	() = fprintf (stderr, "Unable to locate a line beginning with %s\n", header_start);
 	exit (1);
@@ -36,11 +38,11 @@ define slsh_main ()
 
    % convert the comments to ascii
    comments = strtrans (comments, "^\\7", "?");
-   
+
    variable col_names, col_data;
-   
-  
+
    header_line = strtrans (header_line, " ", "_");
+   header_line = strtrans (header_line, "\"", "");
    col_names = strchop (header_line, ',', 0);
    % The column names are of the forms:
    %   name
@@ -85,13 +87,14 @@ define slsh_main ()
    colstruct.shell = nint(colstruct.shell);
    variable nrows = length (colstruct.shell);
 
-   colstruct.zmin = Double_Type[nrows] + 20025.0;
-   colstruct.zmax = Double_Type[nrows] + 20225.0;
-   colstruct.h_zmin = Double_Type[nrows] + 19775.0;
-   colstruct.h_zmax = Double_Type[nrows] + 19975.0;
+   variable flen = 10000, plen = 225, hlen = 225, gap=50;
+   colstruct.zmin = Double_Type[nrows] + flen + 0.5*gap;
+   colstruct.zmax = Double_Type[nrows] + flen + plen;
+   colstruct.h_zmin = Double_Type[nrows] + flen - hlen;
+   colstruct.h_zmax = Double_Type[nrows] + flen - 0.5*gap;
 
-   variable outfile = "ixomirror.fits";
+   variable outfile = "axsiomirror.fits";
    fits_write_binary_table (outfile, "IXO_MIRROR_GEOM",
-			    colstruct, tunit_struct, 
+			    colstruct, tunit_struct,
 			    struct {comment = comments});
 }
