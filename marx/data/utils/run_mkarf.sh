@@ -1,5 +1,5 @@
 #!/bin/sh
-# This scripts creates the reference arfs.  First it runs marx to create an
+# This script creates the reference arfs.  First it runs marx to create an
 # on-axis simulation.  From that, a pcad file is created.
 # Then the reference arfs are created using the pcad and marx event file as
 # input.

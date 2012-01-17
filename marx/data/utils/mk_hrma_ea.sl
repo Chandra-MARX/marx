@@ -10,7 +10,8 @@ Marx_Args += " DetectorType=NONE";
 Marx_Args += " SourceFlux=1.0";
 % If HRMA_Use_Scale_Factors is yes, then prefix the output filename
 % with "scaled".
-private variable Use_Scale_Factors = 1;
+
+private variable Use_Scale_Factors = 0;
 private variable Prefix = Use_Scale_Factors ? "scaled" : "";
 Marx_Args += " HRMA_Use_Scale_Factors=" + (Use_Scale_Factors ? "yes" : "no");
 

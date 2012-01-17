@@ -4,11 +4,11 @@ require ("histogram");
 require ("xfig");
 
 private variable Flux = 1.0;	       %  simulation SourceFlux value
-private variable Prefix = "scaled_";
+private variable Prefix = "scaled";
 
 define read_file (shell)
 {
-   variable file = "${Prefix}hrma_ea_$shell.dat"$;
+   variable file = "${Prefix}_hrma_ea_$shell.dat"$;
    variable e, n, t;
    () = readascii (file, &e, &n, &t; cols=[1,4,5]);
    %(e,n,t) = readcol (file, 1, 4, 5);
