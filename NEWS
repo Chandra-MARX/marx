@@ -1,3 +1,55 @@
+============================================================================
+Marx 5.0 Release Notes
+============================================================================
+
+The primary goal of marx 5.0 was to add detector subpixel support to
+marx2fits to match that of the EDSER algorithm used by CIAO's
+acis_process_events.  This change necessitated a complete rewrite of
+the marx dither code and corresponding changes to marx2fits and
+marxasp.  For this reason, marx 5.0 is not just an incremental release
+of the 4.X series.
+
+* The marx.par "DitherBlur" parameter has been removed and a new
+  parameter called "AspectBlur" was added.  This is not simply a name
+  change.  Previously, the DitherBlur value included not just the
+  aspect uncertainty, but also the effects of pixel randomization.
+  Pixel randomization is now handled by marx2fits, and the AspectBlur
+  value includes only the contribution from the aspect uncertainty.
+  One consequence of this change is that marx 4.X parameter files
+  cannot be used with marx 5.0.
+
+* marx2fits now supports 4 different types of detector pixel
+  randomization methods, which are selectable using the --pixadj
+  switch:
+
+    --pixadj=EDSER       Use a subpixel algorithm (default)
+    --pixadj=RANDOMIZE   Randomize within a detector pixel
+    --pixadj=NONE        Do not randomize withing a detector pixel
+    --pixadj=EXACT       Use exact chip coordinates
+
+  Previously, marx2fits employed a single method: RANDOMIZE.  Now
+  the default is to use the EDSER randomization algorithm.
+
+* Use of the EDSER subpixel algorithm with SAOTrace/Chart ray files
+  requires that the rays be dithered.  As of January 2012 no
+  publically released versions of SAOTrace generate dithered rays.
+  However, marx 5.0 has been tested with rays produced by development
+  versions of SAOTrace that can produce dithered rays.  For
+  non-dithered SAOTrace rays, use `marx2fits --pixadj=RANDOMIZE`.
+
+* The marxasp.par RA_Sigma, Dec_Sigma, and Roll_Sigma parameters have
+  been removed.
+
+* The marx HRMA blur parameters have been retuned to match the
+  widths of the LSFs in the Chandra CALDB.  This recalibration was
+  necessary because the marx 4.X DitherBlur parameter value was
+  tweaked to get the marx PSF to better match Chandra grating line
+  profiles.
+
+* The marx calibration data have been brought up to date with CALDB
+  4.4.7.
+
+============================================================================
 What's NEW for marx 4.5.0?
 
 * The MARX ACIS spatial contamination model has been updated to be
