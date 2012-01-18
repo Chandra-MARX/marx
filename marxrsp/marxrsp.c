@@ -248,8 +248,8 @@ static int check_simulation_parameters (void)
      }
 
    if ((CCD_Id != -1)
-       && ((CCD_Id < det->first_chip_id)
-	   || (CCD_Id > det->last_chip_id)))
+       && ((CCD_Id < det->first_facet_id)
+	   || (CCD_Id > det->last_facet_id)))
      {
 	fprintf (stderr, "Your `--chip' parameter is out of range for the detector\n");
 	return -1;
