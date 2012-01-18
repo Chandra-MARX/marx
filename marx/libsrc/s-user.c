@@ -40,11 +40,10 @@
 
 #include "marx.h"
 #include "_marx.h"
+#include "source.def"
 
 #if MARX_HAS_DYNAMIC_LINKING
 #include <dlfcn.h>
-
-#include "source.def"
 
 #ifndef isspace
 #define isspace(x) (((x)==' ')||((x)=='\t')||((x)=='\n'))
