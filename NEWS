@@ -32,7 +32,7 @@ of the 4.X series.
 
 * Use of the EDSER subpixel algorithm with SAOTrace/Chart ray files
   requires that the rays be dithered.  As of January 2012 no
-  publically released versions of SAOTrace generate dithered rays.
+  publicly released versions of SAOTrace generate dithered rays.
   However, marx 5.0 has been tested with rays produced by development
   versions of SAOTrace that can produce dithered rays.  For
   non-dithered SAOTrace rays, use `marx2fits --pixadj=RANDOMIZE`.
@@ -40,8 +40,8 @@ of the 4.X series.
 * The marxasp.par RA_Sigma, Dec_Sigma, and Roll_Sigma parameters have
   been removed.
 
-* The marx HRMA blur parameters have been retuned to match the
-  widths of the LSFs in the Chandra CALDB.  This recalibration was
+* The marx HRMA blur parameters have been re-tuned to match the
+  widths of the LSFs in the Chandra CALDB.  This re-calibration was
   necessary because the marx 4.X DitherBlur parameter value was
   tweaked to get the marx PSF to better match Chandra grating line
   profiles.
