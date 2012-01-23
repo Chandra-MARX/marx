@@ -27,6 +27,10 @@ location of where libcfitsio is located to the configure line, e.g.,
      --with-cfitsiolib=DIR   cfitsio library in DIR
      --with-cfitsioinc=DIR   cfitsio include files in DIR
 
+   NOTE: If you used "--with-cfitsio=$HEADAS" to link to the version
+   of CFITSIO distributed with HEASOFT, then see the important note
+   below in the MARXRSP section of this document.
+
 The configure step may take a few minutes to complete, depending upon
 the speed of your system.  This script probes your system to see what
 tools and libraries are available, and then creates the necessary
@@ -63,15 +67,37 @@ Note: You do not need marxrsp to run marx.  This program is optional!!
 To build marxrsp, you first need to get the CFITSIO library if you do
 not already have it.  It is not included in this distribution because
 you probably already have it if you have ftools.  In any case, after
-locating your cfitsio distribution, or building and installing
+locating your CFITSIO distribution, or building and installing
 CFITSIO, and running configure as described above, then do:
 
    make marxrsp
    make install
 
-If marxrsp failed to build, then most likely you do not have cfitsio
-properly installed, or you specified the wrong cfitsio location when
+If marxrsp failed to build, then most likely you do not have CFITSIO
+properly installed, or you specified the wrong CFITSIO location when
 you configured marx.
+
+Note to HEASOFT users:
+
+  If you tried to compile against the version of CFITSIO distributed
+  with HEASOFT, you should be aware that the CFITSIO library
+  distributed with it has been renamed to include the version number
+  in the name of the library.  The reason for this is that shared
+  versions of the CFITSIO library are generally not backward binary
+  compatible with one another.  In this case, you will need to edit
+  marxrsp/Makefile and explicitly add the version number.  For
+  example, if you used
+
+     --with-cfitsio=$HEADAS
+
+  then look in the $HEADAS directory to see what libcfitsio is called.
+  Let's assume that you see something like libcfitsio_3.27.dylib in
+  the $HEADAS directory.  Then in marxrsp/Makefile change "-lcfitsio" to
+  "-lcfitsio_3.27".  Keep in mind that after doing this, marxrsp will be
+  tied to this particular version of the CFITSIO library, and you will
+  not be able to update HEASOFT without breaking marxrsp.  For this
+  reason, it is recommended that you download CFITSIO from
+  http://heasarc.nasa.gov/ and install it separately.
 
 ====================================================================
 PROBLEMS

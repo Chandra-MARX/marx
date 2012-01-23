@@ -2,6 +2,8 @@
 Marx 5.0 Release Notes
 ============================================================================
 
+(See <http://space.mit.edu/cxc/marx/news.html> for additional details)
+
 The primary goal of marx 5.0 was to add detector subpixel support to
 marx2fits to match that of the EDSER algorithm used by CIAO's
 acis_process_events.  This change necessitated a complete rewrite of
@@ -59,7 +61,7 @@ What's NEW for marx 4.5.0?
 * If the marx.par parameter NumRays is set to a negative value, then
   the simulation will continue until at least |NumRays| photons have
   been detected.
-  
+
 * Misc bug fixes.  See the ChangeLog files for details.
 
 What's NEW for marx 4.4.0?
@@ -78,7 +80,7 @@ What's NEW for marx 4.4.0?
   directory.  Previously, unless a hidden parameter was marked to be
   "learned" (mode="hl"), the value used for the simulation was not
   reflected in the output marx.par file.
-  
+
 * It was discovered that in interpreting the acis response FEF, marx
   was using standard normalized gaussians, whereas mkrmf uses
   unnormalized gaussians.  This difference caused the marx response to
@@ -96,7 +98,7 @@ What's NEW for marx 4.3.0?
 * Added large file support to allow the creation of files exceeding 2 GB.
 
 * Marx has been ported to MacOSX and Cygwin.  There were mixed results
-  with these platforms in previous versions.  4.3.0 is the first version of 
+  with these platforms in previous versions.  4.3.0 is the first version of
   marx to officially support these systems.
 
 * The `pileup` program has been renamed `marxpileup`.
