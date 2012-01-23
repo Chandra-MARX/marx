@@ -1703,6 +1703,7 @@ int _marx_letg_init (Param_File_Type *pf)
 {
    Grating_Type *g;
    unsigned int i;
+   char buf[PF_MAX_LINE_LEN];
 
    Sim_Use_LETG = 1;
 
@@ -1732,6 +1733,19 @@ int _marx_letg_init (Param_File_Type *pf)
 	     Gratings [i] = g;
 	     g->num_refs += 1;
 	  }
+     }
+
+   if (-1 == pf_get_string (pf, "DetectorType", buf, sizeof (buf)))
+     return -1;
+   if (0 == strncmp (buf, "ACIS", 4))
+     {
+	double delta_theta;
+	/* Ugly hack to account for aspect-focal plane misalignmnent problem */
+	if (-1 == pf_get_double (pf, "LETG_ACIS_dTheta", &delta_theta))
+	  return -1;
+	delta_theta *= PI/180.0;
+	for (i = 0; i < MARX_NUM_MIRRORS; i++)
+	  Gratings[i]->dispersion_angle += delta_theta;
      }
 
    if ((LEG_Fine_Grating_Info.num_orders)
