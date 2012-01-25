@@ -65,6 +65,7 @@ static int Pixel_Adjust = PIX_ADJ_EDSER;
 
 static Marx_Subpix_Table_Type *Acis_Subpixel_Object;
 
+static int Simulation_Used_ACIS;
 static int Simulation_Detector_Type;   /* bitmapped */
 #define DETECTOR_NONE	0x00
 #define DETECTOR_ACIS_S	0x01
@@ -1349,7 +1350,7 @@ static int open_marx_chip_file (Data_Def_Type *ddt)
    if (status == -1)
      return -1;
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	ddt->ddt_min_max_type = 'I';
 	ddt->ddt_min_int_value = 2;
@@ -1413,7 +1414,7 @@ static int open_data_def_table (void) /*{{{*/
 	    || ((flags & DDT_NEED_PILEUP) && (Pileup_Mode == 0))
 
 	    || ((flags & DDT_NEED_ACIS)
-		&& (0 == (Simulation_Detector_Type & DETECTOR_ACIS)))
+		&& (0 == Simulation_Used_ACIS))
 
 	    || ((flags & DDT_NEED_HRC)
 		&& (0 == (Simulation_Detector_Type & DETECTOR_HRC)))
@@ -1576,7 +1577,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
    if (0 == strcmp (ttype, "TDETX")) /*{{{*/
      {
 	ddt->ddt_min_max_type = 'J';
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  {
 	     ddt->ddt_min_int_value = 2;
 	     ddt->ddt_max_int_value = 8191;
@@ -1599,7 +1600,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
    if (0 == strcmp (ttype, "TDETY")) /*{{{*/
      {
 	ddt->ddt_min_max_type = 'J';
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  {
 	     ddt->ddt_min_int_value = 2;
 	     ddt->ddt_max_int_value = 8191;
@@ -1627,7 +1628,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
 	ddt->ddt_min_max_type = 'D';
 	ddt->ddt_min_float_value = 0.5;
 
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  ddt->ddt_max_float_value = 8192.5;
 	else
 	  {
@@ -1646,7 +1647,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
    if (0 == strcmp (ttype, "CHIPX")) /*{{{*/
      {
 	ddt->ddt_min_max_type = 'I';
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  {
 	     ddt->ddt_min_int_value = 2;
 	     ddt->ddt_max_int_value = 1023;
@@ -1668,7 +1669,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
    if (0 == strcmp (ttype, "CHIPY")) /*{{{*/
      {
 	ddt->ddt_min_max_type = 'I';
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  {
 	     ddt->ddt_min_int_value = 2;
 	     ddt->ddt_max_int_value = 1023;
@@ -1687,7 +1688,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
    if (0 == strcmp (ttype, "PHA")) /*{{{*/
      {
 	ddt->ddt_min_max_type = 'I';
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  {
 	     ddt->ddt_min_int_value = 0;
 	     ddt->ddt_max_int_value = 36855;
@@ -1705,7 +1706,7 @@ static void patch_min_max_values (Data_Def_Type *ddt)
    if (0 == strcmp (ttype, "PI")) /*{{{*/
      {
 	ddt->ddt_min_max_type = 'I';
-	if (Simulation_Detector_Type & DETECTOR_ACIS)
+	if (Simulation_Used_ACIS)
 	  {
 	     ddt->ddt_min_int_value = 1;
 	     ddt->ddt_max_int_value = 1024;
@@ -1872,6 +1873,7 @@ static double Int_0 = 0;
 static double Int_1 = 1;
 /* static double Int_2 = 2; */
 static double Int_1024 = 1024;
+static double FP_Temp = 153.0;
 
 static Fits_Header_Table_Type CC_NULL_Component [] =
 {
@@ -2008,6 +2010,10 @@ static Fits_Header_Table_Type Acis_Obs_Info_Component [] =
 {
    {1,"DATAMODE",	H_FILE,	NULL,	"telemetry mode"},
    {1,"CYCLE",		H_STR,	"P",	"Events from Primary exposures"},
+   {1,"CTI_CORR",	H_LOG,	(void*)0, "CTI correction not applied"},
+   {1,"CTI_APP",	H_STR,	"NNNNNNNNNN", "To ANY chips"},
+   {1,"CTIFILE",	H_STR,	"NONE", NULL},
+   {1,"FP_TEMP",	H_PFLT,	&FP_Temp, "[K] focal plane temperature"},
    {0, NULL, 0, NULL, NULL}
 };
 
@@ -2343,6 +2349,8 @@ static int get_marx_pfile_info (void) /*{{{*/
    else if (0 == strcmp (DetectorType, "HRC-I"))
      Simulation_Detector_Type = DETECTOR_HRC_I;
 
+   Simulation_Used_ACIS = Simulation_Detector_Type & DETECTOR_ACIS;
+
   if (0 == strcmp (GratingType, "HETG"))
      Simulation_Grating_Type = MARX_GRATING_HETG;
    else if (0 == strcmp (GratingType, "LETG"))
@@ -2375,7 +2383,7 @@ static int get_marx_pfile_info (void) /*{{{*/
 	  Simulation_Used_Dither = 1;
      }
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
 	unsigned int i;
@@ -2445,7 +2453,7 @@ static int get_marx_pfile_info (void) /*{{{*/
 	  return -1;
      }
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	Frame_Exposure_Time = TimeDel = ACIS_Exposure_Time;
 	if ((ACIS_Exposure_Time > 0.0)
@@ -2632,7 +2640,7 @@ static int init_marx_fits_file (JDFits_Type *ft) /*{{{*/
    if (-1 == write_extra_headers (ft, Timing_Component, 2))
      return -1;
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Timing_Component, 2))
 	  return -1;
@@ -2641,7 +2649,7 @@ static int init_marx_fits_file (JDFits_Type *ft) /*{{{*/
    if (-1 == write_extra_headers (ft, Obs_Info_Component, 2))
      return -1;
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Obs_Info_Component, 2))
 	  return -1;
@@ -2684,7 +2692,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
    if (-1 == write_extra_headers (ft, Timing_Component, 3))
      return -1;
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Timing_Component, 3))
 	  return -1;
@@ -2693,7 +2701,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
    if (-1 == write_extra_headers (ft, Obs_Info_Component, 3))
      return -1;
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Obs_Info_Component, 3))
 	  return -1;
@@ -2711,7 +2719,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
 	  return -1;
      }
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	if (-1 == write_extra_headers (ft, Acis_Faint_Header_Keywords, 3))
 	  return -1;
@@ -2745,7 +2753,7 @@ static int marx2fits (JDFits_Type *ft) /*{{{*/
    if (-1 == jdfits_end_header (ft))
      return -1;
 
-   if (0 == (Simulation_Detector_Type & DETECTOR_ACIS))
+   if (0 == Simulation_Used_ACIS)
      Data_Table.dtt_update_dither = 1;
 
    i = Num_Marx_File_Rows;
@@ -3057,7 +3065,7 @@ static int add_goodtime_extensions (JDFits_Type *f)
 {
    int imin, imax, i;
 
-   if (0 == (Simulation_Detector_Type & DETECTOR_ACIS))
+   if (0 == Simulation_Used_ACIS)
      return add_goodtime_extension_n (f, -1);
 
    if (Simulation_Detector_Type & DETECTOR_ACIS_I)
@@ -3087,7 +3095,7 @@ static int usage (void) /*{{{*/
    fprintf (stderr, "  --pileup             Process a marxpileup simulation\n");
    fprintf (stderr, "  --pixadj=EDSER       Use a subpixel algorithm (default)\n");
    fprintf (stderr, "  --pixadj=RANDOMIZE   Randomize within a detector pixel\n");
-   fprintf (stderr, "  --pixadj=NONE        Do not randomize withing a detector pixel\n");
+   fprintf (stderr, "  --pixadj=NONE        Do not randomize within a detector pixel\n");
    fprintf (stderr, "  --pixadj=EXACT       Use exact chip coordinates\n");
 
    return 1;
@@ -3177,13 +3185,13 @@ int main (int argc, char **argv) /*{{{*/
      return 1;
 
    if (Pileup_Mode
-       && (0 == (Simulation_Detector_Type & DETECTOR_ACIS)))
+       && (0 == Simulation_Used_ACIS))
      {
 	fprintf (stderr, "The simulation does not appear to be an ACIS simulation\n");
 	return 1;
      }
 
-   if (Simulation_Detector_Type & DETECTOR_ACIS)
+   if (Simulation_Used_ACIS)
      {
 	if (Pixel_Adjust == PIX_ADJ_EDSER)
 	    {
@@ -3644,6 +3652,14 @@ static int compute_status (Data_Def_Type *ddt) /*{{{*/
    (void) ddt;
 
    Data_Table.dtt_status = 0;
+
+   if (Simulation_Used_ACIS)
+     {
+	if (((Data_Table.dtt_chipx<2.0)||(Data_Table.dtt_chipx>=1024.0))
+	    || ((Data_Table.dtt_chipy<2.0)||(Data_Table.dtt_chipy>=1024.0)))
+	  Data_Table.dtt_status |= 0x0001;
+     }
+
    return 0;
 }
 
