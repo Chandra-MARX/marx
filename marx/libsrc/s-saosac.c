@@ -43,10 +43,15 @@
 
 static JDFits_BTable_Read_Type *Saosac_Bin_Table;
 static int File_Has_Time_Column;
+
+#define SCALE_SAOSAC_WEIGHTS 0
+#if SCALE_SAOSAC_WEIGHTS
 static double Wgts_Scale_Factor = 1.0;
+#endif
 
 static int Use_Color_Rays = 0;
 
+#if SCALE_SAOSAC_WEIGHTS
 static int compute_weights_scale_factor (char *file, double *wp)
 {
    JDFits_BTable_Read_Type *bt;
@@ -86,6 +91,7 @@ static int compute_weights_scale_factor (char *file, double *wp)
    marx_message ("Scaling SAOSAC Weights by %g\n", *wp);
    return 0;
 }
+#endif
 
 static JDFits_BTable_Read_Type *open_saosac_fits_file (char *file)
 {
@@ -194,7 +200,10 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	if (-1 == jdfits_simple_d_read_btable (bt, buf))
 	  break;
 
-	w = buf[7] * Wgts_Scale_Factor;
+	w = buf[7];
+#if SCALE_SAOSAC_WEIGHTS
+	w *= Wgts_Scale_Factor;
+#endif
 	if (JDMrandom () >= w)
 	  at->flags |= PHOTON_MIRROR_VBLOCKED;
 
@@ -299,7 +308,9 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 {
    char file [PF_MAX_LINE_LEN];
    JDFits_BTable_Read_Type *bt;
+#if SCALE_SAOSAC_WEIGHTS
    int scale_wgts;
+#endif
    char dither_model[PF_MAX_LINE_LEN];
 
    (void) source_id; (void) name;
@@ -323,16 +334,17 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
      return -1;
 #endif
    Use_Color_Rays = 0;		       /* nolonger supported */
-#if 0
+
+#if SCALE_SAOSAC_WEIGHTS
+   Wgts_Scale_Factor = 1.0;
    if (-1 == pf_get_boolean (p, "SAOSAC_Scale_Wgts", &scale_wgts))
      return -1;
-#endif
-   Wgts_Scale_Factor = 1.0;
    if (scale_wgts)
      {
 	if (-1 == compute_weights_scale_factor (file, &Wgts_Scale_Factor))
 	  return -1;
      }
+#endif
 
    bt = open_saosac_fits_file (file);
    if (bt == NULL)
