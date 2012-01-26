@@ -223,8 +223,8 @@ ArgcArgv_Type Arg_Table [] =
    {"-p", ARGCARGV_STRING, (long) &The_Marx_Par_File, NULL},
    {"--order", ARGCARGV_INTEGER, (long) &The_Order, NULL},
    {"-o", ARGCARGV_INTEGER, (long) &The_Order, NULL},
-   {"--grating", ARGCARGV_STRING, (long) &Grating_Type},
-   {"-g", ARGCARGV_STRING, (long) &Grating_Type},
+   {"--grating", ARGCARGV_STRING, (long) &Grating_Type, NULL},
+   {"-g", ARGCARGV_STRING, (long) &Grating_Type, NULL},
    {NULL}
 };
 
