@@ -323,10 +323,10 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
      return -1;
 #endif
    Use_Color_Rays = 0;		       /* nolonger supported */
-
+#if 0
    if (-1 == pf_get_boolean (p, "SAOSAC_Scale_Wgts", &scale_wgts))
      return -1;
-
+#endif
    Wgts_Scale_Factor = 1.0;
    if (scale_wgts)
      {
