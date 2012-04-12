@@ -66,8 +66,11 @@ void _marx_hrc_blur_position (double *dx, double *dy, double blur)
 
    *dx += r * cos(theta);
    *dy += r * sin (theta);
-   if (*dx < 0.0) *dx = 0.0;
-   if (*dy < 0.0) *dy = 0.0;
+   if (_Marx_Det_Extend_Flag == 0)
+     {
+	if (*dx < 0.0) *dx = 0.0;
+	if (*dy < 0.0) *dy = 0.0;
+     }
 }
 
 short _marx_hrc_compute_pha (double energy)
