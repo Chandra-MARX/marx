@@ -33,7 +33,7 @@ define slsh_main ()
    
    () = readascii (infile,
 		   &d.energy, &d.qe, &d.filter
-		   ; type="%f", cols=[1,3,4]);
+		   ; type="%f", cols=[1,2,3]);
    d.energy *= 0.001f;
 
    variable keys = struct 

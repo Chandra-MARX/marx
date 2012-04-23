@@ -592,7 +592,6 @@ static double Left_Grating_Period, Right_Grating_Period;   /* microns */
 static char *Left_Grating_Eff_File;
 static char *Right_Grating_Eff_File;
 static double Facet_Size = 60.0;
-static double Finite_Facet_Center_Y = 1045.0;	       /* from raytrace */
 static double dP_Over_P_Sigma = 0.0;
 
 static double Support_Period = 5.0;    /* microns */
@@ -770,7 +769,6 @@ static Param_Table_Type IXO_CATGS_Parm_Table [] =
    {"IXO_Left_Dispersion_Angle",PF_REAL_TYPE,	&Left_Dispersion_Angle},
    {"IXO_Right_Dispersion_Angle",PF_REAL_TYPE,	&Right_Dispersion_Angle},
    {"IXO_Grating_Facet_Size", PF_REAL_TYPE,	&Facet_Size},
-   {"IXO_Grating_Facet_Y", 	PF_REAL_TYPE,	&Finite_Facet_Center_Y},
    {"IXO_CATGS_dPoverP",	PF_REAL_TYPE,	&dP_Over_P_Sigma},
    {"IXO_CATGS_Sector_Size",	PF_REAL_TYPE,	&Sector_Size},
    {"IXO_CATGS_Vig",		PF_REAL_TYPE,	&Vignetting},
@@ -822,9 +820,10 @@ static int read_ixo_catgs_parms (Param_File_Type *p)
      }
 
    if ((Min_Sector_Radius < 0) || (Max_Sector_Radius < 0)
+       || (Max_Sector_Radius <= Min_Sector_Radius)
        || (Facet_Gap_Size < 0) || (Facet_Size < 0))
      {
-	marx_error ("%s", "One of more of the facet/sector parameters is negative");
+	marx_error ("%s", "One of more of the facet/sector parameters is negative/invalid");
 	return -1;
      }
 
@@ -1175,14 +1174,13 @@ static void print_grating_configuration (Grating_Module_Type *module, char *name
 
 static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_Type *right_geff)
 {
-   double center_y = Finite_Facet_Center_Y;
    double center_z = 0.0;
    Grating_Module_Type *module;
 
    module = &The_Left_Gratings;
    if (NULL == (module->gratings
 		= make_finite_facet_module (Left_Grating_Period, left_geff,
-					    -center_y, center_z)))
+					    -1, center_z)))
      return -1;
    module->dispersion_angle = Left_Dispersion_Angle;
    rotate_grating_module (module, module->dispersion_angle);
@@ -1191,7 +1189,7 @@ static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_
    module = &The_Right_Gratings;
    if (NULL == (module->gratings
 		= make_finite_facet_module (Right_Grating_Period, right_geff,
-					    center_y, center_z)))
+					    1, center_z)))
      return -1;
    module->dispersion_angle = Right_Dispersion_Angle;
    rotate_grating_module (module, module->dispersion_angle);

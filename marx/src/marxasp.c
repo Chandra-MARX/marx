@@ -866,10 +866,29 @@ static void compute_dither (double t, double *rap, double *decp, double *rollp,
    *dthetap = 0;
 }
 
+static void compute_quaternion (double ra, double dec, double roll, float64 q[4])
+{
+   double cos_ra, cos_dec, cos_roll, sin_ra, sin_dec, sin_roll;
+   double q0, q1, q2, q3, len;
+
+   /* Note the use of PI/360.  This is because we need cos(ra/2), etc.... */
+   ra *= PI/360; dec *= PI/360; roll = (180.0-roll)*PI/360.0;
+
+   cos_ra = cos(ra); cos_dec = cos(dec); cos_roll = cos(roll);
+   sin_ra = sin(ra); sin_dec = sin(dec); sin_roll = sin(roll);
+
+   q0 = cos_ra*cos_dec*cos_roll + sin_ra*sin_dec*sin_roll;
+   q1 = sin_ra*cos_dec*cos_roll - cos_ra*sin_dec*sin_roll;
+   q2 = cos_ra*sin_dec*cos_roll + sin_ra*cos_dec*sin_roll;
+   q3 = cos_ra*cos_dec*sin_roll - sin_ra*sin_dec*cos_roll;
+   len = sqrt(q0*q0+q1*q1+q2*q2+q3*q3);
+   q[0] = q0/len; q[1] = q1/len; q[2] = q2/len; q[3] = q3/len;
+}
+
 static int write_marxasp (JDFits_Type *ft)
 {
    unsigned int num, i;
-   JDFits_BTable_Keyword_Type columns[7+1];   /* last is NULL */
+   JDFits_BTable_Keyword_Type columns[8+1];   /* last is NULL */
 
    memset ((char *) columns, 0, sizeof (columns));
 
@@ -900,6 +919,9 @@ static int write_marxasp (JDFits_Type *ft)
    columns[6].ttype = "dtheta";
    columns[6].tform = "1E";
    columns[6].tunit = "degrees";
+
+   columns[7].ttype = "q_att";
+   columns[7].tform = "4D";
 
    num = (Time_Stop - Time_Start + 1.0) / Delta_Time;
 
@@ -955,9 +977,8 @@ static int write_marxasp (JDFits_Type *ft)
      {
 	double ra, dec, roll, dy, dz, dtheta;
 	double t;
-	float64 v64[4];
+	float64 v64[4], q64[4];
 	float32 v32[3];
-
 	t = i * Delta_Time;
 
 	compute_dither (t, &ra, &dec, &roll, &dy, &dz, &dtheta);
@@ -969,8 +990,11 @@ static int write_marxasp (JDFits_Type *ft)
 	v32 [1] = (float32) dz;
 	v32 [2] = (float32) dtheta;
 
+	compute_quaternion (ra, dec, roll, q64);
+
 	if ((-1 == jdfits_write_float64 (ft, v64, 4))
-	    || (-1 == jdfits_write_float32 (ft, v32, 3)))
+	    || (-1 == jdfits_write_float32 (ft, v32, 3))
+	    || (-1 == jdfits_write_float64 (ft, q64, 4)))
 	  {
 	     fprintf (stderr, "Error writing row to fits file\n");
 	     return -1;
