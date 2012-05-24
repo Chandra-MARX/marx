@@ -137,7 +137,8 @@ static int Use_Blur_Factors = 1;
 static double IXO_Mirror_Blur = 0.0;
 static double Az_Blur_Sigma = 0.0;
 static double El_Blur_Sigma = 0.0;
-static double Lateral_Disp_Blur_Sigma = 0;
+static double Lateral_Disp_Y_Blur_Sigma = 0;   /* marx Y, osac X */
+static double Lateral_Disp_Z_Blur_Sigma = 0;   /* marx Z, osac Y */
 static double Defocus_Blur_Sigma = 0;
 static char *Mirror_Sector_String;
 static Marx_Range_Type *Mirror_Sector_Ranges;
@@ -154,7 +155,8 @@ static Param_Table_Type IXOMirror_Parm_Table [] =
    {"IXOMirror_Geometry_File",	PF_FILE_TYPE,		&Geometry_File},
    {"IXOMirror_Az_Blur",	PF_REAL_TYPE,		&Az_Blur_Sigma},
    {"IXOMirror_El_Blur",	PF_REAL_TYPE,		&El_Blur_Sigma},
-   {"IXOMirror_Lateral_Blur",	PF_REAL_TYPE,		&Lateral_Disp_Blur_Sigma},
+   {"IXOMirror_Lateral_Y_Blur",	PF_REAL_TYPE,		&Lateral_Disp_Y_Blur_Sigma},
+   {"IXOMirror_Lateral_Z_Blur",	PF_REAL_TYPE,		&Lateral_Disp_Z_Blur_Sigma},
    {"IXOMirror_Defocus_Blur",	PF_REAL_TYPE,		&Defocus_Blur_Sigma},
    {"IXOMirror_Sectors",	PF_STRING_TYPE,		&Mirror_Sector_String},
    {NULL, 0, NULL}
@@ -790,12 +792,12 @@ static int read_mirror_geometry_file (char *file)
 	shell_info->osac_az_h = Az_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_el_h = El_Blur_Sigma * JDMgaussian_random();
 
-	shell_info->osac_x0_p += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
-	shell_info->osac_y0_p += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_x0_p += Lateral_Disp_Y_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_y0_p += Lateral_Disp_Z_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_z0_p += Defocus_Blur_Sigma * JDMgaussian_random();
 
-	shell_info->osac_x0_h += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
-	shell_info->osac_y0_h += Lateral_Disp_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_x0_h += Lateral_Disp_Y_Blur_Sigma * JDMgaussian_random();
+	shell_info->osac_y0_h += Lateral_Disp_Z_Blur_Sigma * JDMgaussian_random();
 	shell_info->osac_z0_h += Defocus_Blur_Sigma * JDMgaussian_random();
 	shell_info++;
      }

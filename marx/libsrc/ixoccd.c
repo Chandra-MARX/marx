@@ -457,6 +457,10 @@ int _marx_ixoccd_init (Param_File_Type *p)
    Marx_Detector_Type *d;
    Marx_Detector_Geometry_Type *g;
 
+   if ((0 == CatGS_Init_Called)
+       && (-1 == _marx_catgs_init (p)))/* need this initialized */
+     return -1;
+
    if (-1 == read_ixo_ccd_parms (p))
      return -1;
 

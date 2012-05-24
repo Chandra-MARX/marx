@@ -1207,10 +1207,13 @@ static int make_finite_facet_gratings (Grating_Eff_Type *left_geff, Grating_Eff_
    return 0;
 }
 
+static int CatGS_Init_Called = 0;
 int _marx_catgs_init (Param_File_Type *pf)
 {
    Grating_Eff_Type *left_geff, *right_geff;
    int ret;
+
+   CatGS_Init_Called++;
 
    marx_message ("Initializing CATGS...\n");
 
