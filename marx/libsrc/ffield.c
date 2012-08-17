@@ -106,6 +106,8 @@ int _marx_ff_mirror_reflect (Marx_Photon_Type *pt) /*{{{*/
 	project_photon (at, source_distance);
      }
 
+   pt->history |= MARX_MIRROR_SHELL_OK;
+
    return 0;
 }
 

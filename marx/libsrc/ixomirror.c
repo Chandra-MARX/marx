@@ -657,9 +657,18 @@ static void blur_normal (JDMVector_Type *n, double blur, double energy) /*{{{*/
     * Rotate n about perp by gaussian distributed angle.
     */
 
-   phi = blur * (1.0 / 3600.0 *  PI / 180.0);    /* 1 arc sec */
-   phi = phi * JDMgaussian_random ();
+   blur = blur * (1.0 / 3600.0 *  PI / 180.0);    /* 1 arc sec */
+#if 1
+   phi = blur * JDMgaussian_random ();
+#else
+   do
+     {
+	phi = JDMrandom ();
+     }
+   while (phi == 0.0);
 
+   phi = blur * sqrt (-log (phi));
+#endif
    *n = JDMv_rotate_unit_vector (*n, perp, phi);
 }
 
