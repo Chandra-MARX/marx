@@ -3202,7 +3202,8 @@ int main (int argc, char **argv) /*{{{*/
 		 }
 	    }
      }
-   else Pixel_Adjust = PIX_ADJ_RANDOMIZE;
+   else if (Pixel_Adjust == PIX_ADJ_EDSER)
+     Pixel_Adjust = PIX_ADJ_RANDOMIZE;
 
    if (NULL == (Obs_Par_Parms = read_obspar_file ()))
      {

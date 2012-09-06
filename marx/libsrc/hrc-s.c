@@ -62,7 +62,7 @@ JDMVector_Type _Marx_HRC_Geometric_Center;
  * HRC-S CCD Geometry parameters
  *
  *---------------------------------------------------------------------------*/
-static double HRC_S_Blur;
+static Marx_HRC_Blur_Parm_Type *HRC_S_Blur_Parms;
 static Marx_Detector_Geometry_Type *HRC_S_MCPs;
 
 static double Shield_OffsetT;   /* mm */
@@ -82,7 +82,6 @@ static double Shield_Z_Center;
 
 static Param_Table_Type HRC_Parm_Table [] = /*{{{*/
 {
-   {"HRC-S-BlurSigma",	PF_REAL_TYPE,		&HRC_S_Blur},
    {"HRC-S-QEFile0",	PF_FILE_TYPE,		&MCP_QEs[0].file},
    {"HRC-S-QEFile1",	PF_FILE_TYPE,		&MCP_QEs[1].file},
    {"HRC-S-QEFile2",	PF_FILE_TYPE,		&MCP_QEs[2].file},
@@ -97,6 +96,15 @@ static Param_Table_Type HRC_Parm_Table [] = /*{{{*/
 };
 
 /*}}}*/
+
+static int read_hrc_s_blur_parms (Param_File_Type *p)
+{
+   if (NULL == (HRC_S_Blur_Parms = _marx_hrc_blur_open (p, 'S')))
+     return -1;
+
+   return 0;
+}
+
 
 /* This routine is based on a memo dated March 14 1996 from Mike Juda with
  * title: New HRC UV/Ion Shields.   This memo shows the following figure:
@@ -278,7 +286,7 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 	  }
 	else
 	  {
-	     _marx_hrc_blur_position (&dx, &dy, HRC_S_Blur);
+	     _marx_hrc_blur_position (HRC_S_Blur_Parms, &dx, &dy);
 
 	     at->ccd_num = d->id;
 	     (void) _marx_hrc_s_compute_pixel (at->ccd_num, dx, dy, &dx, &dy,
@@ -386,6 +394,10 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
 	return -1;
      }
    marx_free (file);
+
+   /* The blur init must come after the geometry */
+   if (-1 == read_hrc_s_blur_parms (p))
+     return -1;
 
    if (NULL == (hrc = marx_get_detector_info ("HRC-S")))
      return -1;

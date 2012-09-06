@@ -43,34 +43,22 @@
 static _Marx_HRC_QE_Type MCP_QEs [_MARX_NUM_HRC_I_CHIPS];
 static _Marx_HRC_QE_Type Filter_QEs [NUM_FILTER_REGIONS];
 
-static double HRC_I_Blur;
+static Marx_HRC_Blur_Parm_Type *HRC_I_Blur_Parms;
 static Marx_Detector_Geometry_Type *HRC_I_MCP;
 
 static Param_Table_Type Parm_Table [] =
 {
-   {"HRC-I-BlurSigma",	PF_REAL_TYPE,		&HRC_I_Blur},
    {"HRC-I-QEFile",	PF_FILE_TYPE,		&MCP_QEs[0].file},
    {"HRC-I-UVISFile",	PF_FILE_TYPE,		&Filter_QEs[0].file},
    {NULL, 0, NULL}
 };
 
-void _marx_hrc_blur_position (double *dx, double *dy, double blur)
+static int read_hrc_i_blur_parms (Param_File_Type *p)
 {
-   double r, theta;
+   if (NULL == (HRC_I_Blur_Parms = _marx_hrc_blur_open (p, 'I')))
+     return -1;
 
-   if (_Marx_Det_Ideal_Flag)
-     return;
-
-   theta = (2.0 * PI) * JDMrandom ();
-   r = blur * JDMgaussian_random ();
-
-   *dx += r * cos(theta);
-   *dy += r * sin (theta);
-   if (_Marx_Det_Extend_Flag == 0)
-     {
-	if (*dx < 0.0) *dx = 0.0;
-	if (*dy < 0.0) *dy = 0.0;
-     }
+   return 0;
 }
 
 short _marx_hrc_compute_pha (double energy)
@@ -174,7 +162,7 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	  }
 	else
 	  {
-	     _marx_hrc_blur_position (&dx, &dy, HRC_I_Blur);
+	     _marx_hrc_blur_position (HRC_I_Blur_Parms, &dx, &dy);
 
 	     at->ccd_num = d->id;
 
@@ -206,6 +194,10 @@ _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
      return -1;
 
    if (-1 == _marx_hrc_i_geom_init (p))
+     return -1;
+
+   /* The blur init must come after the geometry */
+   if (-1 == read_hrc_i_blur_parms (p))
      return -1;
 
    if (NULL == (hrc = marx_get_detector_info ("HRC-I")))

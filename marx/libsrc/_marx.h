@@ -91,8 +91,14 @@ _Marx_HRC_QE_Type;
 extern int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *);
 extern int _marx_hrc_s_geom_init (Param_File_Type *);
 extern int _marx_hrc_i_geom_init (Param_File_Type *);
+extern int _marx_hrc_i_get_pixel_size (double *dx, double *dy);
+extern int _marx_hrc_s_get_pixel_size (double *dx, double *dy);
 
-extern void _marx_hrc_blur_position (double *, double *, double);
+typedef struct _Marx_HRC_Blur_Parm_Type Marx_HRC_Blur_Parm_Type;
+extern Marx_HRC_Blur_Parm_Type *_marx_hrc_blur_open (Param_File_Type *p, int det);
+extern void _marx_hrc_blur_close (Marx_HRC_Blur_Parm_Type *bt);
+extern void _marx_hrc_blur_position (Marx_HRC_Blur_Parm_Type *bt, double *dx, double *dy);
+
 extern short _marx_hrc_compute_pha (double);
 
 extern int _marx_acis_apply_qe_and_pha (_Marx_Acis_Chip_Type *, Marx_Photon_Attr_Type *);

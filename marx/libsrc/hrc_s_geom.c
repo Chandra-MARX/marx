@@ -393,6 +393,12 @@ int _marx_hrc_s_compute_pixel (int id, double dx, double dy,
    return 0;
 }
 
+int _marx_hrc_s_get_pixel_size (double *dx, double *dy)
+{
+   *dx = U_Pixel_Size;
+   *dy = V_Pixel_Size;
+   return 0;
+}
 static _Marx_Simple_Data_Type Array_Data_Table [] =
 {
    {"V_Pixel_Size",	1, &V_Pixel_Size,	1.0, 0},

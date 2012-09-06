@@ -1,3 +1,8 @@
+Note: This file is obsolte.  See the git commit messages for change
+information.
+
+--------------------------------------------------------------------
+
 Changes since 4.4.0:
 1.  Updated the contamination model to match the HM+AV hybrid model.
 2.  When using SAOSAC rays, the ray X coordinate is 0.01675 mm.

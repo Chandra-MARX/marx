@@ -153,6 +153,13 @@ int _marx_hrc_i_compute_pixel (double dx, double dy,
    return 0;
 }
 
+int _marx_hrc_i_get_pixel_size (double *dx, double *dy)
+{
+   *dx = X_Pixel_Size;
+   *dy = Y_Pixel_Size;
+   return 0;
+}
+
 static _Marx_Simple_Data_Type Array_Data_Table [] =
 {
    {"HRC_I_X_Pixel_Size",	1, &X_Pixel_Size,	1.0, 0},
