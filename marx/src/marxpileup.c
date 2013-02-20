@@ -447,6 +447,12 @@ typedef struct
    unsigned int num_photons;
    float island_benergy;
    unsigned int island_num_photons;
+   float x, y;
+   /* The xpixel values are energy weighted as follows:
+    *    X_k = (e0*x0 + e1*x1 + ... + ek*xk)/E_k
+    *    E_k = e0+e1+...e_k
+    *    X_{k+1} = (E_k*X_k + e_{k+1}*x_{k+1})/(E_k+e_{k+1})
+    */
 }
 CCD_Pixel_Type;
 
@@ -678,7 +684,7 @@ event_detect (Input_Event_Type *event_list, unsigned int frame)
 	CCD_Pixel_Type *xy0, *xy1, *xy2;
 	unsigned int island_num_photons;
 	double island_benergy, benergy;
-	unsigned int x, y;
+	double x, y;
 
 	if (0 == evt->can_be_center)
 	  {
@@ -715,12 +721,22 @@ event_detect (Input_Event_Type *event_list, unsigned int frame)
 
 	if (island_num_photons >= 2)
 	  {
+	     unsigned int i;
 	     if (will_grade_migrate (island_num_photons))
 	       {
 		  evt = evt->next;
 		  continue;
 	       }
-	     /* FIXME: Update (x,y), perhaps by using a weighted average */
+	     /* Compute a weighted average */
+	     x = 0; y = 0;
+	     for (i = 0; i < 3; i++)
+	       {
+		  x += xy0[i].x*xy0[i].benergy; y += xy0[i].y*xy0[i].benergy;
+		  x += xy1[i].x*xy1[i].benergy; y += xy1[i].y*xy1[i].benergy;
+		  x += xy2[i].x*xy2[i].benergy; y += xy2[i].y*xy2[i].benergy;
+	       }
+	     x /= xy1[1].island_benergy;
+	     y /= xy1[1].island_benergy;
 	  }
 
 	if (-1 == write_event (evt->ccdid, x, y, island_benergy, frame,
@@ -745,8 +761,9 @@ static int store_event (Input_Event_Type *evt, int *is_duplicatep)
 
    if (evt->can_be_center)
      {
-	double e;
+	double e, cent_e;
 	double cent, corn, side;
+	CCD_Pixel_Type *cp;
 
 #if USE_RMF_CODE
 	e = evt->energy;
@@ -765,11 +782,19 @@ static int store_event (Input_Event_Type *evt, int *is_duplicatep)
 	xy1 = xy0 + NUM_X_PIXELS;
 	xy2 = xy1 + NUM_X_PIXELS;
 
-	*is_duplicatep = (xy1[1].num_photons != 0);
-	xy1[1].num_photons += 1;
+	cp = xy1+1;
+	*is_duplicatep = (cp->num_photons != 0);
+	cp->num_photons += 1;
+
+	cent_e = cent * e;
+	cp->x = cp->x*cp->benergy + cent_e*evt->x;
+	cp->y = cp->y*cp->benergy + cent_e*evt->y;
+	cp->benergy += cent_e;
+	cp->x /= cp->benergy;
+	cp->y /= cp->benergy;
 
 	xy0[0].benergy += corn*e; xy0[1].benergy += side*e; xy0[2].benergy += corn*e;
-	xy1[0].benergy += side*e; xy1[1].benergy += cent*e; xy1[2].benergy += side*e;
+	xy1[0].benergy += side*e;                           xy1[2].benergy += side*e;
 	xy2[0].benergy += corn*e; xy2[1].benergy += side*e; xy2[2].benergy += corn*e;
 
 	return 0;
