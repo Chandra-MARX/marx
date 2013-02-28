@@ -86,6 +86,7 @@ typedef struct Single_Component_Contam_Type
    /* if fxy == NULL, use fxy_vals as a lookup table. */
    double (*fxy)(double, double);
    float *fxy_vals[MAX_LAYERS];
+   unsigned int blocking_factor;
 }
 Single_Component_Contam_Type;
 
@@ -115,7 +116,10 @@ static double compute_contamination (Single_Component_Contam_Type *c,
 
 	if ((cx < 0) || (cx >= 1024) || (cy < 0) || (cy >= 1024))
 	  return 0.0;
-	ofs = 1024 * (unsigned int) cy + (unsigned int) cx;
+	cx /= c->blocking_factor;
+	cy /= c->blocking_factor;
+	ofs = (1024/c->blocking_factor) * (unsigned int) cy
+	  + (unsigned int) cx;
 	v = 0.0;
 
 	for (i = 0; i < c->num_layers; i++)
@@ -443,15 +447,34 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 
 	if (has_fxy)
 	  {
-	     if (1024*1024 != c[FXY_COLUMN].repeat)
+	     JDFits_Keyword_Type *k;
+	     unsigned int repeat = 1024*1024;
+	     contam->blocking_factor = 1;
+
+	     if (NULL != (k = jdfits_find_keyword (f, "fxyblk")))
 	       {
-		  marx_error ("The FXY column is expected to have 1024*1024 values");
+		  int b;
+		  if (-1 == jdfits_extract_integer (k, &b))
+		    goto return_error_bad_row;
+		  if ((b <= 0) || (b * (1024/b) != 1024))
+		    {
+		       marx_error ("Invalid fxyblk value");
+		       goto return_error_bad_row;
+		    }
+		  contam->blocking_factor = b;
+		  repeat = (1024/b) * (1024/b);
+	       }
+
+	     if (repeat != c[FXY_COLUMN].repeat)
+	       {
+		  marx_error ("The FXY column is expected to have %u * %u values",
+			      1024/contam->blocking_factor, 1024/contam->blocking_factor);
 		  goto return_error_bad_row;
 	       }
-	     if (NULL == (contam->fxy_vals[layer] = (float *)marx_malloc(sizeof(float)*1024*1024)))
+	     if (NULL == (contam->fxy_vals[layer] = (float *)marx_malloc(sizeof(float)*repeat)))
 	       goto return_error_bad_row;
 	     memcpy ((char *)contam->fxy_vals[layer],
-		     (char *)c[FXY_COLUMN].data.f, 1024*1024*sizeof(float));
+		     (char *)c[FXY_COLUMN].data.f, repeat*sizeof(float));
 	  }
      }
 
