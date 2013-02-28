@@ -153,6 +153,7 @@ extern int _Marx_Dither_Mode;
 
 void _marx_undither_detector (Marx_Dither_Type *);
 void _marx_dither_detector (Marx_Dither_Type *);
+void _marx_dither_set_ray_tstart (double);
 #endif
 
 extern int _marx_init_mirror_blur (Param_File_Type *);
