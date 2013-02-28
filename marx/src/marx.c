@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2012 Massachusetts Institute of Technology
+    Copyright (C) 2002-2013 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -118,7 +118,7 @@ static void message_copyright (FILE *fp)
    if (Marx_Verbose == 0)
      return;
 
-   fprintf (fp, "MARX version %s, Copyright (C) 2002-2012 Massachusetts Institute of Technology\n\n",
+   fprintf (fp, "MARX version %s, Copyright (C) 2002-2013 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 

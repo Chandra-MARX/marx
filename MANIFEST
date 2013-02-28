@@ -277,6 +277,7 @@ marx/libsrc/hrc-i.c
 marx/libsrc/hrc_i_geom.c
 marx/libsrc/hrc-s.c
 marx/libsrc/hrc_s_geom.c
+marx/libsrc/hrcblur.c
 marx/libsrc/hrma.c
 marx/libsrc/interp.c
 marx/libsrc/Makefile.in
