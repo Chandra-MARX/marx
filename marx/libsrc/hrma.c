@@ -309,7 +309,7 @@ static int get_rdb_value (Marx_RDB_File_Type *rdb, int row,
 
    if (1 != sscanf (s, "%lf", value))
      {
-	marx_error ("Error parsing field %s as a double", value);
+	marx_error ("Error parsing field %s as a double", colname);
 	return -1;
      }
 

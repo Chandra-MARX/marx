@@ -1,6 +1,6 @@
 #! /bin/sh
 #set -v
-#MARX_DATA_DIR=../data; export MARX_DATA_DIR
+MARX_DATA_DIR=../data; export MARX_DATA_DIR
 
 use_valgrind=1
 use_gdb=0
@@ -13,7 +13,7 @@ bindir=./objs
 #bindir=/nfs/cxc/h1/davis/sys/linux/test/bin
 #bindir=/nfs/cxc/h1/davis/sys/linux-x86_64/opt/marx5.0/bin
 
-output_dir="/tmp/marxout1"
+output_dir="/tmp/marxout"
 mkdir $output_dir
 mkdir $output_dir/uparm
 valgrind_dir=$output_dir/valgrind

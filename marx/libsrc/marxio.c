@@ -78,7 +78,7 @@ static unsigned char MagicChars [4] = /*{{{*/
 
 int marx_close_write_dump_file (FILE *fp, unsigned long n)
 {
-   char *errfmt = "marx_close_write_dump_file: %s (errno = %d)";
+#define MCWDF_ERRFMT "marx_close_write_dump_file: %s (errno = %d)"
    int ret = 0;
    int32 i32;
 
@@ -93,18 +93,18 @@ int marx_close_write_dump_file (FILE *fp, unsigned long n)
 #endif
    if (-1 == FSEEK (fp, NUM_ROWS_OFFSET, SEEK_SET))
      {
-	marx_error (errfmt, "seek error", errno);
+	marx_error (MCWDF_ERRFMT, "seek error", errno);
 	ret = -1;
      }
    else if (1 != JDMwrite_int32 (&i32, 1, fp))
      {
-	marx_error (errfmt, "write error", errno);
+	marx_error (MCWDF_ERRFMT, "write error", errno);
 	ret = -1;
      }
 
    if (EOF == fclose (fp))
      {
-	marx_error (errfmt, "write error", errno);
+	marx_error (MCWDF_ERRFMT, "write error", errno);
 	ret = -1;
      }
 

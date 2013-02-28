@@ -271,7 +271,7 @@ Marx_Subpix_Table_Type *marx_open_acis_subpix (void)
    if (NULL == (file = _marx_caldb_get_file ("ACISSUBPIX")))
      return NULL;
 
-   marx_message ("Reading subpix file\n", file);
+   marx_message ("Reading subpix file %s\n", file);
    stt = read_subpixel_file (file);
    marx_free (file);
    return stt;

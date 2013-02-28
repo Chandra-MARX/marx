@@ -105,10 +105,10 @@ UserSourceArgs,s,a,"pnts.dat",,,"Enter user source parameter"
 #
 # SAOSAC Source parameters
 # 
-#      This option allows SAOSAC FITS raytrace files to read.
+#      This option allows SAOSAC FITS raytrace files to be used.
 #
 SAOSACFile,s,a,"saosac.fits",,,"Enter marx input source/output ray filename"
-SAOSAC_Color_Rays,b,a,no,,,"Color SAOSAC rays?"
+SAOSAC_Color_Rays,b,a,no,,,"This option is no longer supported"
 #---------------------------------------------------------------------------
 #
 # Dither/Aspect Parameters

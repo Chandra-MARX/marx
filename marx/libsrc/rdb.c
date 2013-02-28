@@ -380,7 +380,7 @@ char *marx_rdb_get_value (Marx_RDB_File_Type *rdb,
    if (r->num_fields <= col)
      {
 	marx_error ("RDB file %s row %u does not have %u columns",
-		    row, col);
+		    rdb->filename, row, col);
 	return NULL;
      }
 
