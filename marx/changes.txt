@@ -1,4 +1,4 @@
-Note: This file is obsolte.  See the git commit messages for change
+Note: This file is obsolete.  See the git commit messages for change
 information.
 
 --------------------------------------------------------------------
