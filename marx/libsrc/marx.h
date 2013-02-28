@@ -27,7 +27,7 @@
 #include <pfile.h>
 
 #define MARX_VERSION 50100
-#define MARX_VERSION_STRING "pre5.1.0"
+#define MARX_VERSION_STRING "5.1.0"
 
 #ifndef SIGNED_CHAR
 # define SIGNED_CHAR signed char
@@ -321,8 +321,15 @@ extern double marx_compute_grating_efficiency (double, int,
 extern void marx_get_random_event (double *, double *, unsigned int,
 				   double *, unsigned int);
 
-extern void marx_error (char *,...);
-extern void marx_message (char *,...);
+#ifdef __GNUC__
+# define MARX_ATTRIBUTE_(x) __attribute__ (x)
+#else
+# define MARX_ATTRIBUTE_(x)
+#endif
+#define MARX_ATTRIBUTE_PRINTF(a,b) MARX_ATTRIBUTE_((format(printf,a,b)))
+
+extern void marx_error (char *,...) MARX_ATTRIBUTE_PRINTF(1,2);
+extern void marx_message (char *,...) MARX_ATTRIBUTE_PRINTF(1,2);
 extern char *marx_make_version_string (void);
 extern void *marx_realloc (void *, unsigned int);
 extern void *marx_malloc (unsigned int);

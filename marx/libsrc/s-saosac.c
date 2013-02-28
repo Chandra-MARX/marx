@@ -267,7 +267,10 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	     if (File_Has_Time_Column)
 	       {
 		  if (Start_Time == 0)
-		    Start_Time = buf[8];
+		    {
+		       Start_Time = buf[8];
+		       _marx_dither_set_ray_tstart (Start_Time);
+		    }
 		  this_time = buf[8] - Start_Time;
 	       }
 	     else
@@ -325,7 +328,7 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    if (0 == strcmp (dither_model, "FILE"))
      {
 	/* Initialized from marx.c from the aspect file.  Yes this is ugly. */
-	Start_Time = _Marx_TStart_MJDsecs;
+	Start_Time = 0*_Marx_TStart_MJDsecs;
      }
    else Start_Time = 0;
 

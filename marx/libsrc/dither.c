@@ -671,3 +671,12 @@ int marx_get_pointing (double *ra, double *dec, double *roll)
 
    return 0;
 }
+
+/* This function is called by the SAOSAC source model.  It gives the value
+ * of the time of the first ray in the ray file.  Use it instead of the
+ * TSTART value in the asol file.
+ */
+void _marx_dither_set_ray_tstart (double val)
+{
+   Start_Time = val;
+}

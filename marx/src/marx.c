@@ -288,9 +288,9 @@ static int setup_tstart (Param_File_Type *pf)
    double tstart, yrs_tstart;
    time_t time_t_mjdref;
    struct tm tm;
+#if 0
    char *asol_file = NULL;
    char buf[2048];
-
    if (-1 == pf_get_string (pf, "SourceType", buf, sizeof(buf)))
      return -1;
    if (0 == jdfits_strcasecmp (buf, "SAOSAC"))
@@ -304,25 +304,10 @@ static int setup_tstart (Param_File_Type *pf)
 	     asol_file = buf;
 	  }
      }
-   if (asol_file == NULL)
-     {
-	if (-1 == pf_get_double (pf, "TStart", &tstart))
-	  return -1;
-     }
-   else
-     {
-	JDFits_Type *ft;
+#endif
 
-	marx_message ("For dithered SAOSAC rays, the TSTART value will be taken from %s\n", asol_file);
-	if (NULL == (ft = jdfits_open_binary_table (asol_file, "ASPSOL")))
-	  return -1;
-	if (-1 == jdfits_read_keyword_dbl (ft, "TSTART", &tstart))
-	  {
-	     (void) jdfits_close_file (ft);
-	     return -1;
-	  }
-	(void) jdfits_close_file (ft);
-     }
+   if (-1 == pf_get_double (pf, "TStart", &tstart))
+     return -1;
 
    if (tstart < 1999)
      {
@@ -341,6 +326,35 @@ static int setup_tstart (Param_File_Type *pf)
 	/* assume tstart is secs from mjdref */
 	yrs_tstart = MJDref_Years + tstart/secs_per_year;
      }
+#if 0
+   if (asol_file != NULL)
+     {
+	JDFits_Type *ft;
+	double t0, t1;
+
+	marx_message ("For dithered SAOSAC rays, the TSTART value will be taken from %s\n", asol_file);
+	if (NULL == (ft = jdfits_open_binary_table (asol_file, "ASPSOL")))
+	  return -1;
+
+	if ((-1 == jdfits_read_keyword_dbl (ft, "TSTART", &t0))
+	    || (-1 == jdfits_read_keyword_dbl (ft, "TSTOP", &t1)))
+	  {
+	     (void) jdfits_close_file (ft);
+	     return -1;
+	  }
+	(void) jdfits_close_file (ft);
+	if ((tstart < t0) || (tstart >= t1))
+	  {
+	     marx_error ("\
+*** ERROR: For dithered SAOSAC rays, the marx.par TStart value must be in\n\
+           the range %.17g <= TStart < %.17g.\n\
+           The value in the marx.par file lies outside this range.\n\
+",
+			 t0, t1);
+	  }
+	return -1;
+     }
+#endif
 
    memset ((char *) &tm, 0, sizeof (tm));
    tm.tm_sec = 0;
@@ -510,7 +524,7 @@ int main (int argc, char **argv) /*{{{*/
 	num_to_detect = (unsigned long) (-Num_Rays_Marx_Par);
 	if ((unsigned long)Num_Rays_Per_Iteration > num_to_detect)
 	  Num_Rays_Per_Iteration = num_to_detect;
-	marx_message ("Starting simulation.  NumRays to detect = %u, dNumRays = %u\n",
+	marx_message ("Starting simulation.  NumRays to detect = %lu, dNumRays = %u\n",
 		      num_to_detect, Num_Rays_Per_Iteration);
      }
    else
@@ -518,7 +532,7 @@ int main (int argc, char **argv) /*{{{*/
 	num_to_collect = (unsigned long) Num_Rays_Marx_Par;
 	if ((unsigned long)Num_Rays_Per_Iteration > num_to_collect)
 	  Num_Rays_Per_Iteration = num_to_collect;
-	marx_message ("Starting simulation.  NumRays to collect = %u, dNumRays = %u\n",
+	marx_message ("Starting simulation.  NumRays to collect = %lu, dNumRays = %u\n",
 		      num_to_collect, Num_Rays_Per_Iteration);
      }
 
