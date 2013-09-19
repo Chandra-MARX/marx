@@ -1,5 +1,6 @@
 #!/usr/bin/env isis-script
 require ("fits");
+require ("linearfit");
 
 if (__argc != 5)
 {
@@ -15,9 +16,9 @@ private variable Chip_Y = atof (__argv[4]);
 private define compute_fef (t, p, kth)
 {
    variable i, imax = 10;
-   
+
    variable y = Double_Type[length (kth),length(p)];
-   
+
    for (i = 1; i <= imax; i++)
      {
 	variable sigma = get_struct_field (t, sprintf ("g%d_fwhm", i))[kth]
@@ -27,9 +28,9 @@ private define compute_fef (t, p, kth)
 	variable k0=0;
 	vmessage ("[%d %d]: fwhm=%S, pos=%S, ampl=%S (regnum=%d)", i, k0, sigma[k0], pos[k0], amp[k0],
 		  t.regnum[kth[0]]);
-	
+
 	variable j;
-	
+
 	_for (0, length (kth)-1,1)
 	  {
 	     j = ();
@@ -58,7 +59,7 @@ private define read_fef (file, ccdid, x, y)
 		       and (t.chipy_lo <= y)
 		       and (t.chipy_hi >= y)
 		       and (t.ccd_id == ccdid));
-   
+
    variable p = [-4096:4096];
    variable e;
    (e,y) = compute_fef (t, p, i);
@@ -67,9 +68,16 @@ private define read_fef (file, ccdid, x, y)
    ylabel ("PHA");
    xlabel ("ENERGY");
    xrange (0.0, 10.0);
-   connect_points (0);
-   plot (t.energy[i], t.channel[i]);
+   connect_points (1);
+   %variable m, b;
+   pointstyle(3);
+   %ylog;
+   variable m, b;
+   (m, b) = linear_fit (t.energy[i], t.channel[i]);
+   plot (t.energy[i], t.channel[i] - (m*t.energy[i]+b));
+   %plot (t.energy[i], 1000.0*t.energy[i]/t.channel[i]);
    plot_pause ();
+   ylin;
 
    connect_points(1);
    variable j;
@@ -80,15 +88,17 @@ private define read_fef (file, ccdid, x, y)
 	variable de = shift (e,1)-e;
 	variable mean_en = sum(yy * e *de)/sum(yy*de);
 	variable mean_chan = sum (p*yy)/sum(yy);
-	variable k = where (yy == max(yy))[0];
-	title (sprintf ("En=%S, Mean En=%S, Peak En=%S, Mean Chan=%S=%S keV", 
+	variable k = wherefirstmax(yy);
+	title (sprintf ("En=%g, Mean En=%g, Peak En=%g, Mean Chan=%g=%g keV",
 			en, mean_en, e[k],
-			mean_chan, 
+			mean_chan,
 			interpol (mean_chan, t.channel[i], t.energy[i])[0]));
 
-	xrange (_max(e[k]-2,0), e[k]+0.4);
-	ylog(); yrange (0.001,);
-	plot (e,yy);
+	xrange (_max(e[k]*0.95,0), e[k]*1.1);
+	%ylog(); yrange (max(yy)/1e6,);
+	variable ipos = where(p>0);
+	yy = cumsum(yy[ipos]); yy/=yy[-1];
+	plot (e[ipos],yy);
 	plot_pause;
      }
    plot_close (id);

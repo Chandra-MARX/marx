@@ -67,6 +67,10 @@ typedef struct
    double dp_over_p;
    double theta_blur;
    double vig;			       /* vignetting */
+
+   int flags;
+#define GRATING_EFF_CORRECTED		0x1
+#define GRATING_DTHETA_CORRECTED	0x2
 }
 Grating_Type;
 
@@ -360,7 +364,7 @@ double marx_compute_grating_efficiency (double energy, int order,
  * A separate routine is used to initialize the grating structure when the
  * efficiencies are read from a file.
  */
-static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info, int use_this_order)    /*{{{*/
+static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info, int use_this_order, int use_unit_eff)    /*{{{*/
 {
    unsigned int i, order_number, j;
    unsigned int num_orders, num_energies;
@@ -430,7 +434,7 @@ static Grating_Type *init_one_grating (Marx_Grating_Info_Type *info, int use_thi
 
 	for (order_number = 0; order_number < num_orders; order_number++)
 	  {
-	     if (Use_Unit_Efficiencies)
+	     if (use_unit_eff)
 	       sum += (1.0 / num_orders);
 	     else
 	       sum += compute_efficiency (g->order_list [order_number],
@@ -1681,10 +1685,10 @@ int _marx_hetg_init (Param_File_Type *pf)
 	return init_file_efficiencies (pf, "HETG", 1.0);
      }
 
-   if (NULL == (heg = init_one_grating (&HEG_Grating_Info, Use_This_Order)))
+   if (NULL == (heg = init_one_grating (&HEG_Grating_Info, Use_This_Order, Use_Unit_Efficiencies)))
      return -1;
 
-   if (NULL == (meg = init_one_grating (&MEG_Grating_Info, Use_This_Order)))
+   if (NULL == (meg = init_one_grating (&MEG_Grating_Info, Use_This_Order, Use_Unit_Efficiencies)))
      {
 	free_grating (heg);
 	return -1;
@@ -1720,12 +1724,13 @@ int _marx_letg_init (Param_File_Type *pf)
 
    if (Use_File_Efficiencies)
      {
+	LEG_Eff_Scale_Factor = 1;
 	if (-1 == init_file_efficiencies (pf, "LETG", LEG_Eff_Scale_Factor))
 	  return -1;
      }
    else
      {
-	if (NULL == (g = init_one_grating (&LEG_Grating_Info, Use_This_Order)))
+	if (NULL == (g = init_one_grating (&LEG_Grating_Info, Use_This_Order, Use_Unit_Efficiencies)))
 	  return -1;
 
 	for (i = 0; i < MARX_NUM_MIRRORS; i++)
@@ -1745,17 +1750,94 @@ int _marx_letg_init (Param_File_Type *pf)
 	  return -1;
 	delta_theta *= PI/180.0;
 	for (i = 0; i < MARX_NUM_MIRRORS; i++)
-	  Gratings[i]->dispersion_angle += delta_theta;
+	  {
+	     if (Gratings[i]->flags & GRATING_DTHETA_CORRECTED)
+	       continue;
+	     Gratings[i]->dispersion_angle += delta_theta;
+	     Gratings[i]->flags |= GRATING_DTHETA_CORRECTED;
+	  }
      }
 
    if ((LEG_Fine_Grating_Info.num_orders)
-       && (NULL == (LEG_Fine_Grating = init_one_grating (&LEG_Fine_Grating_Info, 0))))
+       && (NULL == (LEG_Fine_Grating = init_one_grating (&LEG_Fine_Grating_Info, 0, 0))))
      return -1;
 
    if ((LEG_Coarse_Grating_Info.num_orders)
-       && (NULL == (LEG_Coarse_Grating = init_one_grating (&LEG_Coarse_Grating_Info, 0))))
+       && (NULL == (LEG_Coarse_Grating = init_one_grating (&LEG_Coarse_Grating_Info, 0, 0))))
      return -1;
 
+   if ((Use_File_Efficiencies == 0) && (Use_Unit_Efficiencies == 0))
+     return 0;
+
+   /* Now correct the LEG primary efficiencies to account for loss by the
+    * support orders.  The idea here is that the file-based efficiencies represents
+    * the efficiency for the primary order without regard for support structures.
+    * In other words, let P(1,*) be the tabulated efficiency for first order.
+    * The "*" here means any support order.  Then:
+    *   P(1,*) = P(1) \sum_i p_i
+    * where P(1) is efficiency of the primary grating, and p_i are the efficiencies
+    * of the others.  Note that \sum_i p_i may not add to 1 to indicate absorbtion.
+    * Hence, we need to use
+    *   P(1) = P(1,*)/\sum_i p_i
+    */
+
+   /* We diffract from the fine grating once, and the coarse gratings 3 times. */
+   for (i = 0; i < MARX_NUM_MIRRORS; i++)
+     {
+	unsigned int num_energies, num_orders, j, k;
+	float **cum_efficiencies, *energies;
+
+	g = Gratings[i];
+
+	if (g->flags & GRATING_EFF_CORRECTED)
+	  continue;
+	g->flags |= GRATING_EFF_CORRECTED;
+
+	num_orders = g->num_orders;
+	num_energies = g->num_energies;
+	energies = g->energies;
+	cum_efficiencies = g->cum_efficiencies;
+
+	if (LEG_Fine_Grating->num_orders)
+	  {
+	     float *support_effs, *support_ens;
+	     unsigned num_support_ens;
+
+	     support_effs = LEG_Fine_Grating->cum_efficiencies[LEG_Fine_Grating->num_orders-1];
+	     support_ens = LEG_Fine_Grating->energies;
+	     num_support_ens = LEG_Fine_Grating->num_energies;
+
+	     for (j = 0; j < num_energies; j++)
+	       {
+		  float factor = JDMinterpolate_f (energies[j], support_ens, support_effs, num_support_ens);
+		  factor = 1.0/factor;
+		  if (factor <= 0)
+		    continue;
+		  for (k = 0; k < num_orders; k++)
+		    cum_efficiencies[k][j] *= factor;
+	       }
+	  }
+	if (LEG_Coarse_Grating->num_orders)
+	  {
+	     float *support_effs, *support_ens;
+	     unsigned num_support_ens;
+
+	     support_effs = LEG_Coarse_Grating->cum_efficiencies[LEG_Coarse_Grating->num_orders-1];
+	     support_ens = LEG_Coarse_Grating->energies;
+	     num_support_ens = LEG_Coarse_Grating->num_energies;
+
+	     for (j = 0; j < num_energies; j++)
+	       {
+		  float factor = JDMinterpolate_f (energies[j], support_ens, support_effs, num_support_ens);
+		  factor = factor*factor*factor;   /* 3 supp gratings */
+		  if (factor <= 0)
+		    continue;
+		  factor = 1.0/factor;
+		  for (k = 0; k < num_orders; k++)
+		    cum_efficiencies[k][j] *= factor;
+	       }
+	  }
+     }
    return 0;
 }
 

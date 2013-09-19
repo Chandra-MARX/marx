@@ -21,16 +21,24 @@ static int dump_response_file (char *file, /*{{{*/
 
    rsp = cfits_open_rmf_response_file (file, 0);
    if (rsp == NULL) return -1;
-   
+
    num_rows = rsp->num_rows;
    ft = rsp->ft;
-   
+
    fprintf (stdout, "#NUM ROWS: %ld\n", num_rows);
-   
+
    if (dump_stats)
      {
 	fprintf (stdout, "#%19s %10s %10s %10s\n",
 		 "Energy", "Norm", "Peak-Chan", "Mean");
+     }
+
+   if (summary)
+     {
+	(void) fprintf (stdout, "#%19s\t%s\t%s\t%s\t%s\t%20s\t%s\n",
+		       "ENERG_LO", "NGRPS", "MINCHAN", "MAXCHAN",
+			"XXX", "INTEG_RESP", "MEANCHAN"
+		       );
      }
 
    for (i = 1; i <= num_rows; i++)
@@ -41,10 +49,10 @@ static int dump_response_file (char *file, /*{{{*/
 	unsigned int min_chan, max_chan;
 	double max_chan_value;
 	unsigned int max_val_chan;
-	
+
 	if (-1 == cfits_read_column_doubles (ft, rsp->energ_lo_col, i, 1, &emin, 1))
 	  break;
-	
+
 	if (-1 == cfits_read_column_doubles (ft, rsp->energ_hi_col, i, 1, &emax, 1))
 	  break;
 
@@ -55,30 +63,40 @@ static int dump_response_file (char *file, /*{{{*/
 	     if (emin > energy)
 	       return 0;
 	  }
-	
+
 	if (-1 == cfits_read_response_vector (rsp, i, &rv))
 	  {
 	     cfits_close_response_file (rsp);
 	     return -1;
 	  }
 
-	if (rv.num_grps == 0) continue;
-	
+	if (rv.num_grps == 0)
+	  {
+	     if (dump_stats)
+	       fprintf (stdout, "%20.14e\t0\t-1\t0\n", 0.5*(emin+emax));
+	     else if (summary)
+	       fprintf (stdout, "%20.14e\t0\t-1\t-1\t-1\t0\t-1\n", emin);
+	     else
+	       fprintf (stdout, "\n#ENERG_LO: %20.14e\tENERG_HI: %20.14e\tN_GRP: %d\n",
+			emin, emax, rv.num_grps);
+	     continue;
+	  }
+
 	elem = rv.elem;
 	elem_max = elem + rv.num_grps;
-	
+
 	min_chan = elem->first_channel;
 	max_chan = (elem_max - 1)->first_channel + (elem_max - 1)->num_channels - 1;
-	
+
 	if (min_channel >= 0)
 	  {
 	     if (max_chan < (unsigned int) min_channel)
 	       continue;
-	     
+
 	     if ((unsigned int) min_channel > min_chan)
 	       min_chan = min_channel;
 	  }
-	
+
 	if (max_channel >= 0)
 	  {
 	     if (min_chan > (unsigned int) max_channel)
@@ -86,7 +104,6 @@ static int dump_response_file (char *file, /*{{{*/
 	     if (max_chan > (unsigned int) max_channel)
 	       max_chan = max_channel;
 	  }
-
 
 	if (dump_stats)
 	  fprintf (stdout, "%20.14e", 0.5*(emin+emax));
@@ -96,8 +113,6 @@ static int dump_response_file (char *file, /*{{{*/
 	else
 	  fprintf (stdout, "\n#ENERG_LO: %20.14e\tENERG_HI: %20.14e\tN_GRP: %d\n",
 		   emin, emax, rv.num_grps);
-	
-	
 
 	sum = 0.0;
 	sum1 = 0.0;
@@ -108,9 +123,9 @@ static int dump_response_file (char *file, /*{{{*/
 	  {
 	     double *val, *val_max;
 	     unsigned int chan_num;
-	     
+
 	     chan_num = elem->first_channel;
-	     
+
 	     if (chan_num + (elem->num_channels - 1) < min_chan)
 	       {
 		  elem++;
@@ -119,17 +134,17 @@ static int dump_response_file (char *file, /*{{{*/
 
 	     if (chan_num > max_chan)
 	       break;
-	     
+
 	     val = elem->response;
 	     val_max = elem->response + elem->num_channels;
 
 	     if (summary || dump_stats)
 	       {
-		  while (val < val_max) 
+		  while (val < val_max)
 		    {
 		       if (chan_num > max_chan)
 			 break;
-		       
+
 		       if (chan_num >= min_chan)
 			 {
 			    if (*val > max_chan_value)
@@ -151,7 +166,7 @@ static int dump_response_file (char *file, /*{{{*/
 		    {
 		       if (chan_num > max_chan)
 			 break;
-		       
+
 		       if (chan_num >= min_chan)
 			 fprintf (stdout, "\t%04u\t%20.14e\n", chan_num, *val);
 
@@ -159,7 +174,7 @@ static int dump_response_file (char *file, /*{{{*/
 		       chan_num++;
 		    }
 	       }
-	     
+
 	     elem++;
 	  }
 
@@ -173,9 +188,9 @@ static int dump_response_file (char *file, /*{{{*/
 	else
 	  fputc ('\n', stdout);
      }
-   
+
    cfits_close_response_file (rsp);
-   
+
    return 0;
 }
 
@@ -202,10 +217,10 @@ static ArgcArgv_Type ArgcArgv_Table [] = /*{{{*/
 static void usage (char *pgm) /*{{{*/
 {
    ArgcArgv_Type *a;
-   
+
    fprintf (stderr, "Usage:\n%s [--integrate] [--energy E] [--min-chan f] [--max-chan l] rsp-file\n",
 	    pgm);
-   
+
    a = ArgcArgv_Table;
    while (a->name != NULL)
      {
@@ -220,24 +235,23 @@ static void usage (char *pgm) /*{{{*/
 
 /*}}}*/
 
-
 int main (int argc, char **argv) /*{{{*/
 {
    char *rsp_file;
    char *pgm;
-   
+
    pgm = argv[0];
    argv++; argc--;
-   
+
    if ((-1 == argcargv (&argc, &argv, ArgcArgv_Table))
        || (argc != 1))
      usage (pgm);
 
    rsp_file = argv[argc - 1];
-   
+
    if (-1 == dump_response_file (rsp_file, Opt_Summary, Opt_Energy, Opt_Min_Chan, Opt_Max_Chan, Opt_Stats))
      return 1;
-       
+
    return 0;
 }
 

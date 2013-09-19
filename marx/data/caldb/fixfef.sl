@@ -16,7 +16,12 @@ define slsh_main ()
    struct_filter (tbl, array_sort(tbl.energy));
    struct_filter (tbl, array_sort(tbl.regnum));
 
-   fits_write_binary_table (outfile, "FUNCTION", tbl, NULL,
+   variable keys = struct
+     {
+	function = fits_read_key (infile, "FUNCTION"),
+     };
+
+   fits_write_binary_table (outfile, "FUNCTION", tbl, keys,
 			    sprintf ("This file differs from %s in that it is sorted differently",
 				     infile));
 }
