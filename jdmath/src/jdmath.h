@@ -18,7 +18,7 @@
 #ifndef JDMATH_H_INCLUDED
 #define JDMATH_H_INCLUDED
 
-#define JDMATH_VERSION 182	       /* 1.81 */
+#define JDMATH_VERSION 182	       /* 1.82 */
 #include <stdio.h>
 #include <math.h>
 
@@ -129,8 +129,24 @@ extern int JDMcheck_types (unsigned long, unsigned long, unsigned long, unsigned
 #define JDMATH_CORRUPT_FILE_ERROR	7
 #define JDMATH_DIVIDE_ZERO_ERROR	8
 
-#if defined(__GNUC__)
+/* clang defines GNUC, but used c99 sematics for extern inline.  This implementation
+ * assume GNU semantics.
+ * Unfortunately, older versoin of gcc don't define __GNUC_GNU_INLINE__
+ * so we need to take care of that first.
+ */
+#if defined __GNUC__ && !defined __GNUC_STDC_INLINE__ && !defined __GNUC_GNU_INLINE__ && !defined __clang__
+# define __GNUC_GNU_INLINE__ 1
+#endif
+#if __GNUC_GNU_INLINE__
 # define JDMATH_HAS_INLINE 1
+# define GNU_INLINE __inline__
+#else
+# if !defined __GNUC_STDC_INLINE__
+#  define JDMATH_HAS_INLINE 0      /* non-gcc compilers */
+# else                       /* modern gcc with __GNUC_GNU_INLINE__ false */
+#  define JDMATH_HAS_INLINE 1
+#  define GNU_INLINE __inline__ __attribute__((gnu_inline))
+# endif
 #endif
 
 extern int JDMath_Error;
@@ -396,7 +412,7 @@ extern void JDMc_inc (JDMComplex_Type *, JDMComplex_Type);   /* *z += z1 */
 extern double JDMc_abs (JDMComplex_Type);     /* |z| */
 
 #if JDMATH_HAS_INLINE
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_add (JDMComplex_Type z1, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -405,7 +421,7 @@ JDMComplex_Type JDMc_add (JDMComplex_Type z1, JDMComplex_Type z2)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_mul (JDMComplex_Type z1, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -414,7 +430,7 @@ JDMComplex_Type JDMc_mul (JDMComplex_Type z1, JDMComplex_Type z2)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_sub (JDMComplex_Type z1, JDMComplex_Type z2)
 {
    JDMComplex_Type z;
@@ -423,7 +439,7 @@ JDMComplex_Type JDMc_sub (JDMComplex_Type z1, JDMComplex_Type z2)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_smul (double a, JDMComplex_Type z1)
 {
    JDMComplex_Type z;
@@ -433,7 +449,7 @@ JDMComplex_Type JDMc_smul (double a, JDMComplex_Type z1)
 }
 
 /* Multiple by imaginary scalar */
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_imul (double a, JDMComplex_Type z1)
 {
    JDMComplex_Type z;
@@ -442,7 +458,7 @@ JDMComplex_Type JDMc_imul (double a, JDMComplex_Type z1)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_sadd (double a, JDMComplex_Type z1)
 {
    JDMComplex_Type z;
@@ -451,7 +467,7 @@ JDMComplex_Type JDMc_sadd (double a, JDMComplex_Type z1)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMComplex (double a, double b)
 {
    JDMComplex_Type z;
@@ -460,7 +476,7 @@ JDMComplex_Type JDMComplex (double a, double b)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_a_bz (double a, double b, JDMComplex_Type z1)
 {
    JDMComplex_Type z;
@@ -469,7 +485,7 @@ JDMComplex_Type JDMc_a_bz (double a, double b, JDMComplex_Type z1)
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 JDMComplex_Type JDMc_az1_bz2 (double a, JDMComplex_Type z1,
 			      double b, JDMComplex_Type z2)
 {
@@ -479,32 +495,32 @@ JDMComplex_Type JDMc_az1_bz2 (double a, JDMComplex_Type z1,
    return z;
 }
 
-extern __inline__
+extern GNU_INLINE
 void JDMc_inc (JDMComplex_Type *z, JDMComplex_Type dz)
 {
    z->r += dz.r;
    z->i += dz.i;
 }
 
-extern __inline__
+extern GNU_INLINE
 int JDMc_eqs (JDMComplex_Type a, JDMComplex_Type b)
 {
    return ((a.r == b.r) && (a.i == b.i));
 }
 
-extern __inline__
+extern GNU_INLINE
 int JDMc_neqs (JDMComplex_Type a, JDMComplex_Type b)
 {
    return ((a.r != b.r) || (a.i != b.i));
 }
 
-extern __inline__
+extern GNU_INLINE
 double JDMc_real (JDMComplex_Type a)
 {
    return a.r;
 }
 
-extern __inline__
+extern GNU_INLINE
 double JDMc_imag (JDMComplex_Type a)
 {
    return a.i;
@@ -519,7 +535,7 @@ typedef struct
 }
 JDMVector_Type;
 
-/* Many of these can can be inlined. */
+/* Many of these can be inlined. */
 extern double JDMv_length (JDMVector_Type);
 extern JDMVector_Type JDMv_vector (double, double, double);
 extern JDMVector_Type JDMv_smul (double, JDMVector_Type);
@@ -547,17 +563,17 @@ extern void JDMv_spherical_to_triad (double theta, double phi,
 			      JDMVector_Type *phi_hat);
 
 #if JDMATH_HAS_INLINE
-extern __inline__ JDMVector_Type JDMv_vector (double x, double y, double z)
+extern GNU_INLINE JDMVector_Type JDMv_vector (double x, double y, double z)
 {
    JDMVector_Type v;  v.x = x; v.y = y; v.z = z; return v;
 }
 
-extern __inline__ JDMVector_Type JDMv_smul (double t, JDMVector_Type v)
+extern GNU_INLINE JDMVector_Type JDMv_smul (double t, JDMVector_Type v)
 {
    v.x *= t; v.y *= t; v.z *= t; return v;
 }
 
-extern __inline__ JDMVector_Type JDMv_cross_prod (JDMVector_Type a, JDMVector_Type b)
+extern GNU_INLINE JDMVector_Type JDMv_cross_prod (JDMVector_Type a, JDMVector_Type b)
 {
    JDMVector_Type c;
    c.z = a.x * b.y - a.y * b.x;
@@ -567,7 +583,7 @@ extern __inline__ JDMVector_Type JDMv_cross_prod (JDMVector_Type a, JDMVector_Ty
    return c;
 }
 
-extern __inline__ JDMVector_Type JDMv_pcross_prod (JDMVector_Type *a, JDMVector_Type *b)
+extern GNU_INLINE JDMVector_Type JDMv_pcross_prod (JDMVector_Type *a, JDMVector_Type *b)
 {
    JDMVector_Type c;
    c.z = a->x * b->y - a->y * b->x;
@@ -577,7 +593,7 @@ extern __inline__ JDMVector_Type JDMv_pcross_prod (JDMVector_Type *a, JDMVector_
    return c;
 }
 
-extern __inline__ JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1,
+extern GNU_INLINE JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1,
 					       double b, JDMVector_Type x2)
 {
    JDMVector_Type c;
@@ -589,7 +605,7 @@ extern __inline__ JDMVector_Type JDMv_ax1_bx2 (double a, JDMVector_Type x1,
    return c;
 }
 
-extern __inline__ JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1,
+extern GNU_INLINE JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1,
 						   double b, JDMVector_Type x2,
 						   double c, JDMVector_Type x3)
 {
@@ -602,7 +618,7 @@ extern __inline__ JDMVector_Type JDMv_ax1_bx2_cx3 (double a, JDMVector_Type x1,
    return d;
 }
 
-extern __inline__ JDMVector_Type JDMv_pax1_bx2 (double a, JDMVector_Type *x1,
+extern GNU_INLINE JDMVector_Type JDMv_pax1_bx2 (double a, JDMVector_Type *x1,
 						double b, JDMVector_Type *x2)
 {
    JDMVector_Type c;
@@ -614,17 +630,17 @@ extern __inline__ JDMVector_Type JDMv_pax1_bx2 (double a, JDMVector_Type *x1,
    return c;
 }
 
-extern __inline__ double JDMv_dot_prod (JDMVector_Type a, JDMVector_Type b)
+extern GNU_INLINE double JDMv_dot_prod (JDMVector_Type a, JDMVector_Type b)
 {
    return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-extern __inline__ double JDMv_pdot_prod (JDMVector_Type *a, JDMVector_Type *b)
+extern GNU_INLINE double JDMv_pdot_prod (JDMVector_Type *a, JDMVector_Type *b)
 {
    return a->x * b->x + a->y * b->y + a->z * b->z;
 }
 
-extern __inline__ void JDMv_normalize (JDMVector_Type *a)
+extern GNU_INLINE void JDMv_normalize (JDMVector_Type *a)
 {
    double len;
 
@@ -636,13 +652,13 @@ extern __inline__ void JDMv_normalize (JDMVector_Type *a)
      }
 }
 
-extern __inline__ JDMVector_Type JDMv_unit_vector (JDMVector_Type a)
+extern GNU_INLINE JDMVector_Type JDMv_unit_vector (JDMVector_Type a)
 {
    JDMv_normalize (&a);
    return a;
 }
 
-extern __inline__ JDMVector_Type JDMv_sum (JDMVector_Type x1, JDMVector_Type x2)
+extern GNU_INLINE JDMVector_Type JDMv_sum (JDMVector_Type x1, JDMVector_Type x2)
 {
    JDMVector_Type c;
 
@@ -653,7 +669,7 @@ extern __inline__ JDMVector_Type JDMv_sum (JDMVector_Type x1, JDMVector_Type x2)
    return c;
 }
 
-extern __inline__ JDMVector_Type JDMv_diff (JDMVector_Type x1, JDMVector_Type x2)
+extern GNU_INLINE JDMVector_Type JDMv_diff (JDMVector_Type x1, JDMVector_Type x2)
 {
    JDMVector_Type c;
 
@@ -664,7 +680,7 @@ extern __inline__ JDMVector_Type JDMv_diff (JDMVector_Type x1, JDMVector_Type x2
    return c;
 }
 
-extern __inline__ double JDMv_distance (JDMVector_Type a, JDMVector_Type b)
+extern GNU_INLINE double JDMv_distance (JDMVector_Type a, JDMVector_Type b)
 {
    a.x -= b.x;
    a.y -= b.y;
