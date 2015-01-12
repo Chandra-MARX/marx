@@ -30,7 +30,7 @@ private define exit_usage ()
       "The optional script may define the model if needed.\n",
       "If the energy grid is not specified, '[0.03:10:0.001]' will be used.\n",
       "\nExample:\n",
-      "$pgm --energy '[0.01:12.0:0.03] powerlaw.p flux.dat\n"$,
+      "$pgm --energy '[0.01:12.0:0.03]' powerlaw.p flux.dat\n"$,
      ];
 
    foreach (opts)
