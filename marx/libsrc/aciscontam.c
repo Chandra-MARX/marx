@@ -99,6 +99,7 @@ static double compute_contamination (Single_Component_Contam_Type *c,
 
    if (c->fxy != NULL)
      {
+        /* This lines assumes the fxy is the same for every i */
 	fxy = (*c->fxy)(cx, cy);
 
 	v = 0.0;

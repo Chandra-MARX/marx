@@ -39,7 +39,7 @@ CALDB_FILES = telD1999-07-23geomN0006.fits \
  acisD1997-04-17qeN0006.fits \
  letgD1996-11-01greffpr001N0007.fits \
  hetgD1996-11-01greffpr001N0007.fits \
- acisD1999-08-13contamN0007_marx.fits \
+ acisD1999-08-13contamN0009_marx.fits \
  acisD1999-07-22subpixN0001_marx.fits \
  acisfef.fits fixfef.sl
 
