@@ -1,0 +1,11 @@
+*bak
+*~
+
+*html
+
+*.png
+*.ps
+
+*.pyc
+build
+build_figures
