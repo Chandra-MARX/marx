@@ -76,7 +76,7 @@ def block_imgs(imgstack, rel_tolerance=0.01, abs_tolerance=0.01):
 
     for i in range(n_comp):
         maxb[i] = max_block_image(imgstack[i,:,:], rel_tolerance, abs_tolerance)
-    maxb = np.min(maxb)
+    maxb = int(np.min(maxb))
 
     newstack = np.zeros((n_comp, imgstack.shape[1] / maxb, imgstack.shape[2] / maxb))
     for i in range(n_comp):
