@@ -62,6 +62,9 @@ static int Simulation_Grating_Type;    /* 0==>NONE, 1==>HETG, 2==>LETG */
 #define PIX_ADJ_EDSER		2
 #define PIX_ADJ_EXACT		3
 static int Pixel_Adjust = PIX_ADJ_EDSER;
+static char Pix_Adj_Str[10] = "EDSER";
+static char *Pix_Adj = Pix_Adj_Str;
+static double Rand_Sky = 0.0;
 
 static Marx_Subpix_Table_Type *Acis_Subpixel_Object;
 
@@ -1820,8 +1823,8 @@ static int create_btable_keywords (void) /*{{{*/
 typedef struct /*{{{*/
 {
    unsigned int location;	       /* a bitmapped quantity */
-#define FULL_COMPONENT	1
-#define SHORT_COMPONENT	2
+#define FULL_COMPONENT 1
+#define SHORT_COMPONENT        2
 
    char *keyword;
    int type;
@@ -1928,7 +1931,7 @@ static Fits_Header_Table_Type Timing_Component [] =
      {3,"DATE-OBS",	H_FILE,	NULL,		"TT, with clock correction if CLOCKAPP"},
      {3,"DATE-END",	H_FILE,	NULL,		"TT, with clock correction if CLOCKAPP"},
      {3,"TIMESYS",	H_STR,	"TT",		"AXAF time will be Terrestrial Time"},
-     {3,"MJDREF",		H_FILE,	NULL,		"MJD of clock start"},
+     {3,"MJDREF",	H_FILE,	NULL,		"MJD of clock start"},
 
      {3,"TIMEZERO",	H_FILE,	NULL,	"Clock Correction"},
      {3,"TIMEUNIT",	H_STR,	"s",	"seconds"},
@@ -1967,6 +1970,10 @@ static Fits_Header_Table_Type Acis_Timing_Component [] =
 
 static double Defocus = 0.0;
 static char *Canonical_Detname;
+static char *Dither_File;
+static char *Geom_File;
+static char *Aimpts_File;
+static char *Subpix_File;
 
 static Fits_Header_Table_Type Obs_Info_Component [] =
 {
@@ -1974,6 +1981,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {1,"OBSERVER",	H_ENV,	"USER",		"Observer or PI"},
      {1,"TITLE",	H_FILE,	NULL,	"Title of Observation"},
      {3,"OBS_ID",	H_STR,	"0",		"Observation ID (*)"},
+     {3,"SEQ_NUM",      H_STR,  "0", "Sequence number"},
      {3,"MISSION",	H_STR,	"AXAF",	"Advanced X-ray Astrophysics Facility"},
      {3,"TELESCOP",	H_STR,	"CHANDRA",	"Telescope used"},
      {3,"INSTRUME",	H_PSTR,	&Instrum_Name,	NULL},
@@ -2002,7 +2010,17 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
      {1,"EQUINOX",	H_FILE,	NULL,		"Equinox"},
      {1,"RADECSYS",	H_STR,	"ICRS",		"WCS system"},
      {1,"DATACLAS",	H_STR,	"SIMULATED",	"File contains simulated data produced by MARX"},
-
+     {1,"DY_AVG",	H_FILE,	NULL,		"[mm] Mean DY during observation"},
+     {1,"DZ_AVG",	H_FILE,	NULL,		"[mm] Mean DZ during observation"},
+     {1,"DTH_AVG",	H_FILE,	NULL,		"[deg] Mean DTHETA during observation"},
+     {1, "ASOLFILE",    H_PSTR, &Dither_File, NULL},
+   {1,"AIMPFILE",       H_PSTR, &Aimpts_File, NULL},
+   {1,"GEOMFILE",       H_PSTR, &Geom_File, NULL},
+   {1,"SKYFILE",       H_STR, "/dev/null", NULL},
+   {1,"TDETFILE",       H_STR, "/dev/null", NULL},
+   {1,"SHELLFIL",       H_STR, "mirror.dat (MARX)", NULL}, 
+     {1,"RAND_PI",      H_STR, "1.0000000000000E+00", NULL},
+     {1,"RUN_ID",       H_STR, "1", "Science run index"},
      {0,NULL, 0, NULL, NULL}
 };
 
@@ -2014,6 +2032,15 @@ static Fits_Header_Table_Type Acis_Obs_Info_Component [] =
    {1,"CTI_APP",	H_STR,	"NNNNNNNNNN", "To ANY chips"},
    {1,"CTIFILE",	H_STR,	"NONE", NULL},
    {1,"FP_TEMP",	H_PFLT,	&FP_Temp, "[K] focal plane temperature"},
+   /* Added in CIAO 4.6, used to be part of pbk file */
+   {1,"OCLKPAIR",       H_STR, "8", "# of pairs of overclock pixels per output"},
+   {1,"ORC_MODE",       H_STR, "0", "Output register clocking mode"},
+   {1,"SUM_2X2",        H_STR, "0", "On-chip summing. 0:None; 1:Sum 2x2"},
+   {1,"MASKFILE",       H_STR, "/dev/null", NULL},
+   {1,"PBKFILE",        H_STR, "/dev/null", NULL},
+   {1,"PIX_ADJ",        H_PSTR, &Pix_Adj, "Subpixel adjustment algorithm"},
+   {1,"RAND_SKY",       H_PFLT, &Rand_Sky, NULL},
+   {1,"SUBPIXFL",       H_PSTR, &Subpix_File, NULL},
    {0, NULL, 0, NULL, NULL}
 };
 
@@ -2059,6 +2086,12 @@ static Fits_Header_Table_Type Acis_S_Obs_Info_Component [] =
    {1,"4DSREF3",	H_STR,	":GTI6",	NULL},
    {1,"5DSREF3",	H_STR,	":GTI8",	NULL},
    {1,"6DSREF3",	H_STR,	":GTI9",	NULL},
+   /* added in CIAO 4.6. Used to be part of asol file. 
+    * Used for dead area calibration, so technically this shoul not be used
+    * because MARX does not simulate the dead area, but it is required for 
+    * many CIAO tools.
+    */
+   {1,"FEP_CCD",        H_STR,   "475689", "CCD to FEPID mapping, fep0 is left most digit"},
 
    {0, NULL, 0, NULL, NULL}
 };
@@ -2091,6 +2124,13 @@ static Fits_Header_Table_Type Acis_I_Obs_Info_Component [] =
    {1,"2DSREF3",	H_STR,	":GTI0",	NULL},
    {1,"3DSREF3",	H_STR,	":GTI1",	NULL},
    {1,"4DSREF3",	H_STR,	":GTI2",	NULL},
+   /* added in CIAO 4.6. Used to be part of asol file. 
+    * Used for dead area calibration, so technically this should not be used
+    * because MARX does not simulate the dead area, but it is required for 
+    * many CIAO tools.
+    */
+   {1,"FEP_CCD",        H_STR,   "0123xx", "CCD to FEPID mapping, fep0 is left most digit"},
+
    {0, NULL, 0, NULL, NULL}
 };
 
@@ -2100,6 +2140,7 @@ static Fits_Header_Table_Type Acis_Coord_Sys_Component [] =
    {3,"ACSYS2",	H_STR,	"TDET:AXAF-ACIS-2.2","Ref for tiled det cood system"},
    {3,"ACSYS3",	H_STR,	"DET:ASC-FP-1.1","Ref for focal plane coord system"},
    {3,"ACSYS4",	H_STR,	"SKY:ASC-FP-1.1","Ref for sky coord system"},
+   {3,"ACSYS5", H_STR,  "GDP:ASC-GDP-1.1","Grating coordinate system"},
    {0, NULL, 0, NULL, NULL},
 };
 
@@ -2223,6 +2264,7 @@ static Param_Table_Type Parm_Table [] = /*{{{*/
      {"DetOffsetY",	PF_DOUBLE_TYPE,		&DetOffset_Y},
      {"DetOffsetZ",	PF_DOUBLE_TYPE,		&DetOffset_Z},
      {"DitherModel",	PF_STRING_TYPE,		&Dither_Model},
+     {"DitherFile",     PF_STRING_TYPE,         &Dither_File},
      {"MirrorType",	PF_STRING_TYPE,		&Mirror_Type},
      {"FocalLength",	PF_DOUBLE_TYPE,		&Focal_Length},
 
@@ -2383,6 +2425,25 @@ static int get_marx_pfile_info (void) /*{{{*/
 	  Simulation_Used_Dither = 1;
      }
 
+   if (0 == strcmp (Dither_Model, "NONE"))
+     {
+       Dither_File = "/dev/null";
+     }
+   else if (0 == strcmp (Dither_Model, "INTERNAL"))
+     {
+       Dither_File = "MARX Internal Model";
+     }
+   else if (0 == strcmp(Dither_Model,"FILE"))
+     {
+       // Dither_File keeps the value in marx.par
+     }
+   else
+     {
+       marx_error("*** Dithermodel %sa not supported.\n", Dither_Model);
+     }
+
+
+
    if (Simulation_Used_ACIS)
      {
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
@@ -2462,7 +2523,18 @@ static int get_marx_pfile_info (void) /*{{{*/
 
 	if (ACIS_Exposure_Time > 0)
 	  DT_Corr = ACIS_Exposure_Time / TimeDel;
+
+        if (NULL == (Subpix_File = marx_caldb_get_filename ("ACISSUBPIX")))
+          return -1;
+
      }
+
+
+   if (NULL == (Geom_File = marx_caldb_get_filename ("GEOM")))
+     return -1;
+
+   if (NULL == (Aimpts_File = marx_caldb_get_filename ("AIMPTS")))
+     return -1;
 
    return 0;
 }
@@ -3150,24 +3222,32 @@ int main (int argc, char **argv) /*{{{*/
 		  || (0 == strcmp (arg, "RANDOMIZE"))))
 	       {
 		  Pixel_Adjust = PIX_ADJ_RANDOMIZE;
+		  Pix_Adj = "RANDOMIZE";
+		  Rand_Sky = 0.5;
 		  continue;
 	       }
 	     if ((0 == strcmp (arg, "NONE")
 		  || (0 == strcmp (arg, "none"))))
 	       {
 		  Pixel_Adjust = PIX_ADJ_NONE;
+		  Pix_Adj = "NONE";
+		  Rand_Sky = 0.;
 		  continue;
 	       }
 	     if ((0 == strcmp (arg, "EDSER")
 		  || (0 == strcmp (arg, "edser"))))
 	       {
 		  Pixel_Adjust = PIX_ADJ_EDSER;
+		  Pix_Adj = "EDSER";
+		  Rand_Sky = 0.;
 		  continue;
 	       }
 	     if ((0 == strcmp (arg, "EXACT")
 		  || (0 == strcmp (arg, "exact"))))
 	       {
 		  Pixel_Adjust = PIX_ADJ_EXACT;
+		  Pix_Adj = "EXACT";
+		  Rand_Sky = 0.;
 		  continue;
 	       }
 	     fprintf (stderr, "***** Unsupported --pixadj option: %s\n", arg);

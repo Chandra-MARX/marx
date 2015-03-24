@@ -79,6 +79,9 @@ static char *Dither_File_Name;
  */
 static int (*Get_Dither_Function)(double, Marx_Dither_Type *, double *, double *, double *);
 
+
+static int (*Get_Dither_Par_Means)(double, double *, double *, double *);
+
 static Param_Table_Type Dither_Parm_Table [] =
 {
      {"DitherModel",		PF_STRING_TYPE, &Dither_Model},
@@ -151,6 +154,16 @@ static int setup_pointing_ra_dec (void)
    return 0;
 }
 
+static int get_dither_par_means_0(double t, double *dy, double *dz, double *dtheta)
+{
+  *dy = 0;
+  *dz = 0;
+  *dtheta = 0;
+
+  return 1;
+}
+
+
 static int get_internal_dither (double t, Marx_Dither_Type *d,
 				double *rap, double *decp, double *rollp)
 {
@@ -199,7 +212,7 @@ static int init_internal_dither (int dither_flag)
 	Get_Dither_Function = get_internal_dither;
 	marx_message ("[Using INTERNAL dither model]\n");
      }
-
+   Get_Dither_Par_Means = get_dither_par_means_0;
    if (-1 == setup_pointing_ra_dec ())
      return -1;
 
@@ -211,7 +224,7 @@ static int init_no_dither (int dither_flags)
    (void) dither_flags;
    _Marx_Dither_Mode = _MARX_DITHER_MODE_NONE;
    Get_Dither_Function = NULL;
-
+   Get_Dither_Par_Means = get_dither_par_means_0;
    Pointing_Roll = 0.0;
 
    if (-1 == setup_pointing_ra_dec ())
@@ -228,6 +241,8 @@ typedef struct
    JDFits_BTable_Read_Type *bt;
    double t0, ra0, dec0, roll0, dy0, dz0, dtheta0;
    double t1, ra1, dec1, roll1, dy1, dz1, dtheta1;
+  double sum_dy, sum_dz, sum_dtheta;
+  int num_steps;
 }
 Aspsol_Type;
 
@@ -242,6 +257,12 @@ static void close_aspsol (void)
      }
 }
 
+/** Read the next point in the asol fits file and set variable Aspsol to it.
+  * There is no randomn access, this will always read exactly the next line
+  * in the fits file.
+  * Aspsol is a module level variable that is defined when the FILE dither
+  * model is in use.
+  */ 
 static int get_single_aspsol_point (void)
 {
    double buf[7];
@@ -268,6 +289,12 @@ static int get_single_aspsol_point (void)
    Aspsol.dy1 = buf[4];
    Aspsol.dz1 = buf[5];
    Aspsol.dtheta1 = buf[6] * (PI/180.0);
+
+   /* Keep cumulative sum, because we eventually need the mean of those values*/
+   Aspsol.num_steps++;
+   Aspsol.sum_dy += Aspsol.dy1;
+   Aspsol.sum_dz += Aspsol.dz1;
+   Aspsol.sum_dtheta += Aspsol.dtheta1;
 
    /* We need to convert the ra/dec information to the unrolled values
     * since in the unrolled frame they are equivalent to yaw/pitch.  Note
@@ -324,6 +351,23 @@ static int get_aspsol_dither (double t, Marx_Dither_Type *d,
    d->dtheta = Aspsol.dtheta0 + dt * (Aspsol.dtheta1 - Aspsol.dtheta0);
 
    return 1;
+}
+
+
+static int get_aspsol_dither_mean(double total_time, double *dy, double *dz, double *dtheta)
+{
+  // Make sure we read the file up to the total exposure time
+   if (-1 == get_aspsol_point (total_time))
+     return -1;
+
+   if ( 0 == Aspsol.num_steps)
+     {
+       marx_error("Exposure is too short to calculate mean ASPSOL values.");
+       return -1;
+     }
+   *dy = Aspsol.sum_dy / Aspsol.num_steps;
+   *dz = Aspsol.sum_dz / Aspsol.num_steps;
+   *dtheta = Aspsol.sum_dtheta / Aspsol.num_steps;
 }
 
 /* Record the dither state but do not actually dither the rays, which are
@@ -422,6 +466,7 @@ static int init_aspsol_dither (int dither_flag)
    else
      Get_Dither_Function = get_aspsol_dither;
 
+   Get_Dither_Par_Means = get_aspsol_dither_mean;
    marx_message ("[Using ASPSOL dither model]\n");
 
    return 0;
@@ -437,6 +482,7 @@ int _marx_init_dither (Param_File_Type *pf, int dither_flags, double *yoff, doub
 {
    _Marx_Dither_Mode = _MARX_DITHER_MODE_NONE;
    Get_Dither_Function = NULL;
+   Get_Dither_Par_Means = NULL;
 
    if (-1 == pf_get_parameters (pf, Dither_Parm_Table))
      {
@@ -638,7 +684,7 @@ void _marx_ray_to_sky_ra_dec (Marx_Photon_Attr_Type *at, double *ra, double *dec
    double flen;
    JDMVector_Type p;
 
-   /* I am ging to cheat by using the xpos,ypos, and zpos coordinates, and
+   /* I am going to cheat by using the xpos,ypos, and zpos coordinates, and
     * assume a focal length.  The marx origin is at the nominal focal point.
     */
    flen = Marx_Focal_Length;
@@ -679,4 +725,13 @@ int marx_get_pointing (double *ra, double *dec, double *roll)
 void _marx_dither_set_ray_tstart (double val)
 {
    Start_Time = val;
+}
+
+int marx_average_dither(double t, double *dy, double *dz, double *dtheta)
+{
+  int status;
+  status = (*Get_Dither_Par_Means)(t, dy, dz, dtheta);
+
+   if (status != 1)
+     return status;
 }
