@@ -614,11 +614,11 @@ int main (int argc, char **argv) /*{{{*/
        && (status == 0))
      status = -1;
 
-   if ((-1 == marx_close_source (st))
+   if ((-1 == (*close_function)(total_time))
        && (status == 0))
      status = -1;
 
-   if ((-1 == (*close_function)(total_time))
+   if ((-1 == marx_close_source (st))
        && (status == 0))
      status = -1;
 
@@ -987,6 +987,14 @@ static double normalize_angle (double theta)
    return theta;
 }
 
+/** Write a set of observation parameters to file obs.par
+ *  These parameters will later be used to populate the fits
+ *  header keywords when marx2fits is called.
+ *  Some keywords have constant values and are just selected based on the 
+ *  detector and grating used. Those are loaded from mode dependent parameter
+ *  files that are part of marx (e.g. acis_s_obs_par). Others are taken from
+ *  global parameters that are set elsewhere (e.g. the nominal pointing).
+ */
 static int write_obs_par (double total_time)
 {
    char *obs_file;
@@ -995,6 +1003,7 @@ static int write_obs_par (double total_time)
    Param_File_Type *pf;
    double ra_nom, dec_nom, roll_nom;
    double ra_pnt, dec_pnt, roll_pnt;
+   double dy, dz, dtheta;
    char *detector, *grating;
    char *observer;
    struct tm *tms;
@@ -1134,6 +1143,13 @@ static int write_obs_par (double total_time)
 	    1900 + tms->tm_year, tms->tm_mon + 1, tms->tm_mday,
 	    tms->tm_hour, tms->tm_min, tms->tm_sec);
 
+   dy=0.;
+   dz=0.;
+   dtheta=0.;
+
+   if (-1 == marx_average_dither(total_time, &dy, &dz, &dtheta))
+      return -1;
+
    if ((-1 == pf_learn_double (pf, "ra_nom", ra_nom))
        || (-1 == pf_learn_double (pf, "roll_nom", roll_nom))
        || (-1 == pf_learn_double (pf, "dec_nom", dec_nom))
@@ -1158,6 +1174,10 @@ static int write_obs_par (double total_time)
        || (-1 == pf_learn_double (pf, "sim_z", sim_z))
        || (-1 == pf_learn_double (pf, "defocus", DetOffset_X))
 
+       || (-1 == pf_learn_double (pf, "DY_AVG", dy))
+       || (-1 == pf_learn_double (pf, "DZ_AVG", dz))
+       || (-1 == pf_learn_double (pf, "DTH_AVG", dtheta))
+
        /* Marx specific additions */
        || (-1 == pf_learn_double (pf, "MJD-OBS", TStart_MJDref/86400.0 + MJDref))
        || (-1 == pf_learn_double (pf, "LIVETIME", total_time))
@@ -1175,6 +1195,8 @@ static int write_obs_par (double total_time)
    return 0;
 }
 
+/** call write_obs_par, which write obs.par that stores info later needed for fits headers
+ */
 static int write_fits_info (double total_time)
 {
    if (-1 == write_obs_par (total_time))

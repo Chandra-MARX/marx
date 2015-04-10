@@ -37,7 +37,7 @@
 
 /* These 6 quantities are used to specify the orientation of the optical
  * axis, as well as the detector offset and angle.  They are derived from
- * the aspect soloution.
+ * the aspect solution.
  */
 typedef struct
 {
@@ -291,6 +291,10 @@ extern int marx_create_photons (Marx_Source_Type *,
 				Marx_Photon_Type *,
 				unsigned int,
 				unsigned int *, double *);
+
+extern int marx_average_dither(double, double *, double *, double *);
+
+extern char *marx_caldb_get_filename (char *object);
 
 /*}}}*/
 

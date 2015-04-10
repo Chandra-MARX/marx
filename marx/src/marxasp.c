@@ -114,8 +114,8 @@ static Param_File_Type *Obs_Par_Parms;
 typedef struct
 {
    unsigned int location;	       /* a bitmapped quantity */
-#define FULL_COMPONENT	1
-#define SHORT_COMPONENT	2
+#define FULL_COMPONENT 1
+#define SHORT_COMPONENT        2
 
    char *keyword;
    int type;
@@ -583,6 +583,9 @@ static int get_date (char *str)
    return 0;
 }
 
+
+/** Copy a single value h from a parameter file p to a fits file f.
+ */
 static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
 				Fits_Header_Table_Type *h)
 {
@@ -597,7 +600,7 @@ static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
    if ((p == NULL)
        || (-1 == (type = pf_get_type (p, name))))
      {
-	fprintf (stderr, "**Warning: %s not found obs.par file.\n", name);
+	fprintf (stderr, "**Warning: %s not found in obs.par file.\n", name);
 	return 0;
      }
 
@@ -637,6 +640,11 @@ static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
    return ret;
 }
 
+/** Write some keywords in h to fitsfile ft 
+ *  The mask integer selects which keywords are written.
+ *  It is combined with the location as the keywords as defined in h; only
+ *  keywords where location & mask are true will be written.
+ */
 static int write_extra_headers (JDFits_Type *ft,
 				Fits_Header_Table_Type *h,
 				unsigned int mask) /*{{{*/
@@ -796,6 +804,7 @@ static int add_goodtime_extension (JDFits_Type *ft)
    return jdfits_end_data (ft);
 }
 #endif
+
 static void compute_dither (double t, double *rap, double *decp, double *rollp,
 			    double *dyp, double *dzp, double *dthetap)
 {

@@ -97,6 +97,12 @@ static int init_caldb (void)
    return 0;
 }
 
+/** Return the filename and path of a caldb data product from marxcaldb.par
+  * MARX includes a few CalDB files. The filename to be used is defined 
+  * in marxcaldb.par. This function looks for a key in that parameter file
+  * and returns the filename (e.g. _marx_caldb_get_file("GEOM")
+  * The return value includes the full, absolute path to the file.
+  */
 char *_marx_caldb_get_file (char *object)
 {
    Param_Table_Type *t;
@@ -125,6 +131,38 @@ char *_marx_caldb_get_file (char *object)
    marx_error ("Unable to find %s caldb file", object);
    return NULL;
 }
+
+/** Return the filename of a caldb data product from marxcaldb.par
+  * MARX includes a few CalDB files. The filename to be used is defined 
+  * in marxcaldb.par. This function looks for a key in that parameter file
+  * and returns the filename, e.g. marx_caldb_get_filename("GEOM") .
+  */
+char *marx_caldb_get_filename (char *object)
+{
+   Param_Table_Type *t;
+
+   if (-1 == init_caldb ())
+     return NULL;
+
+   t = Caldb_Parm_Table;
+   while (t->name != NULL)
+     {
+	char *file;
+
+	if (0 != strcmp (t->name, object))
+	  {
+	     t++;
+	     continue;
+	  }
+
+	file = *(char **) t->value;
+	return file;
+     }
+
+   marx_error ("Unable to find %s caldb file", object);
+   return NULL;
+}
+
 
 static int is_keyword_str (JDFits_Type *ft, char *key, char *val)
 {

@@ -29,6 +29,10 @@ dither_z_amp,r,h,0.005556,,,"Dither Z amplitude"
 dither_z_freq,r,h,0.468400,,,"Dither Z frequency"
 dither_z_phase,r,h,0.000000,,,"Dither Z phase"
 #
+DY_AVG,r,h,0.00,,,"[mm] Mean DY during observation"
+DZ_AVG,r,h,0.00,,,"[mm] Mean DZ during observation"
+DTH_AVG,r,h,0.00,,,"[deg] Mean DTHETA during observation"
+#
 ascdsver,s,h,"R4CU3UPD24.3",,,"Processing system revision"
 dec_pnt,r,h,)dec_nom,,,"Pointing Dec"
 maneuver,s,h,"N",,,"Sky maneuver"
