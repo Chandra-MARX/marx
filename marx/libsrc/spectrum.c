@@ -74,6 +74,11 @@ static int compute_cumulated_vector (double *cum,
 	cum[i] = tot;
 	prev_x = this_x;
      }
+   if (tot == 0.0)
+     {
+       marx_error("Your file spectrum seems to have zero flux in it. MARX needs a positive integrated flux for a spectrum.");
+       return -1;
+     }
 
    if (total != NULL)
      {
