@@ -1,4 +1,22 @@
 ============================================================================
+Marx 5.1 Release Notes
+============================================================================
+
+The changes consist mainly of some minor enhancements,
+calibration updates, and bug fixes.  
+
+Two major points are:
+
+Enhanced support for dithered SAOTrace files
+--------------------------------------------
+
+Bug Fixes
+---------
+|marx| now compiles with ``clang``, the compiler shipped with Max OS X.
+(Apple installs an alias ``gcc`` which points to ``clang``.)
+
+
+============================================================================
 Marx 5.0 Release Notes
 ============================================================================
 

@@ -1,7 +1,7 @@
 -*- text -*-
 
 MARX Installation Notes.  For details, see
-<http://space.mit.edu/cxc/marx/install.html>.
+<http://space.mit.edu/ASC/marx/inbrief/install.html>.
 
 Before building marx, you need to decide where you want to install it.
 A good choice for a multi-user system is under /usr/local/.  If you
@@ -98,36 +98,3 @@ Note to HEASOFT users:
   not be able to update HEASOFT without breaking marxrsp.  For this
   reason, it is recommended that you download CFITSIO from
   http://heasarc.nasa.gov/ and install it separately.
-
-====================================================================
-PROBLEMS
-====================================================================
-
-NeXT Problems
--------------
-For some reason, rfl refuses to compile under NeXT.  I think it is
-a bug in the linker on this system.  If you run into a problem, edit
-marx/Makefile to skip building rfl.
-
-Ultrix Problems
----------------
-Ultrix cc has a bug in the optimizer causing it to generate bad
-assembly code, which the assembler (as) trips over and coredumps.  On
-this system, it is recommended that before configuring, set the CFLAGS
-environment variable to -g.  That is, do:
-
-   # setenv CFLAGS -g
-   # ./configure
-
-Solaris
--------
-There appears to be a bug in the libc function `qsort'.  We have not
-actually experienced any problems with the bug but `purify' does report an
-``uninitialized memory read'' in the qsort function.  This is __NOT__ a
-result of a bug in MARX.  If you do experience a coredump of MARX and
-the dump occurs while the qsort function is executing, let me know and
-I will supply a custom bug-free version of qsort in the next MARX release.
-
-
-John E. Davis
-davis@space.mit.edu
