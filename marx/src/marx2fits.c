@@ -254,6 +254,7 @@ static int open_marx_chip_file (Data_Def_Type *);
 static int open_detxy (Data_Def_Type *);
 static int close_detxy (Data_Def_Type *);
 
+static int marx_fit_long_filename_in_fits (char *a);
 /*}}}*/
 
 #define MAX_BTABLE_COLUMNS 64
@@ -2329,6 +2330,20 @@ static int read_pileup_parms (void)
    return 0;
 }
 
+/** Shorten string so that it fits into the value field of a fits header
+ */
+static int marx_fit_long_filename_in_fits (char *a)
+{
+  char buf[67];
+  if (strlen(a) > 67)
+    {
+      strncpy(buf, a, 63);
+      strncat(buf, "...", 63);
+      strcpy(a, buf);
+    }
+  return 0;
+}
+
 #if 0
 static
 int _marx_strcasecmp (char *a, char *b)
@@ -2436,6 +2451,8 @@ static int get_marx_pfile_info (void) /*{{{*/
    else if (0 == strcmp(Dither_Model,"FILE"))
      {
        // Dither_File keeps the value in marx.par
+       // But if some user has Dither_File names too long to fit into fits:
+       marx_fit_long_filename_in_fits(Dither_File);
      }
    else
      {
@@ -2532,9 +2549,11 @@ static int get_marx_pfile_info (void) /*{{{*/
 
    if (NULL == (Geom_File = marx_caldb_get_filename ("GEOM")))
      return -1;
+   marx_fit_long_filename_in_fits(Geom_File);
 
    if (NULL == (Aimpts_File = marx_caldb_get_filename ("AIMPTS")))
      return -1;
+   marx_fit_long_filename_in_fits(Aimpts_File);
 
    return 0;
 }
