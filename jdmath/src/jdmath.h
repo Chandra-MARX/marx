@@ -129,25 +129,8 @@ extern int JDMcheck_types (unsigned long, unsigned long, unsigned long, unsigned
 #define JDMATH_CORRUPT_FILE_ERROR	7
 #define JDMATH_DIVIDE_ZERO_ERROR	8
 
-/* clang defines GNUC, but used c99 sematics for extern inline.  This implementation
- * assume GNU semantics.
- * Unfortunately, older versoin of gcc don't define __GNUC_GNU_INLINE__
- * so we need to take care of that first.
- */
-#if defined __GNUC__ && !defined __GNUC_STDC_INLINE__ && !defined __GNUC_GNU_INLINE__ && !defined __clang__
-# define __GNUC_GNU_INLINE__ 1
-#endif
-#if __GNUC_GNU_INLINE__
-# define JDMATH_HAS_INLINE 1
-# define GNU_INLINE __inline__
-#else
-# if !defined __GNUC_STDC_INLINE__
-#  define JDMATH_HAS_INLINE 0      /* non-gcc compilers */
-# else                       /* modern gcc with __GNUC_GNU_INLINE__ false */
-#  define JDMATH_HAS_INLINE 1
-#  define GNU_INLINE __inline__ __attribute__((gnu_inline))
-# endif
-#endif
+# define JDMATH_HAS_INLINE 0
+
 
 extern int JDMath_Error;
 extern int JDMUser_Break;
