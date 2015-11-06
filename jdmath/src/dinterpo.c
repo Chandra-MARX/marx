@@ -27,9 +27,6 @@
 
 #include "jdmath.h"
 
-#if JDMATH_HAS_INLINE
-__inline__
-#endif
 unsigned int JDMbinary_search_d (double x, double *xp, unsigned int n)
 {
    unsigned int n0, n1, n2;
