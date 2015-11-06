@@ -206,10 +206,13 @@ Data_Def_Type;
 /*{{{ static function declarations */
 
 static int write_int32 (Data_Def_Type *, JDFits_Type *);
+static int write_int32_as_int16 (Data_Def_Type *, JDFits_Type *);
+static int write_int16_as_int32 (Data_Def_Type *, JDFits_Type *);
 static int write_int16 (Data_Def_Type *, JDFits_Type *);
 static int write_float32 (Data_Def_Type *, JDFits_Type *);
 static int write_float32_as_int16 (Data_Def_Type *, JDFits_Type *);
 static int write_float64 (Data_Def_Type *, JDFits_Type *);
+static int write_float64_as_float32 (Data_Def_Type *, JDFits_Type *);
 static int write_time (Data_Def_Type *, JDFits_Type *);
 static int read_int16 (Data_Def_Type *);
 static int read_int32 (Data_Def_Type *);
@@ -671,7 +674,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0				       /* ddt_max_int_value */
    },
    {
-      'J',			       /* type */
+      'I',			       /* type */
       &Data_Table.dtt_pha,	       /* pointer to value */
       "pha.dat",		       /* filename */
 #if 1
@@ -681,12 +684,12 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
 #endif
       "PHA",			       /* colname */
       "Total PHA for event",	       /* comment */
-      "J",			       /* type */
+      "I",			       /* type */
       "adu",			       /* units */
       NULL,			       /* WCS CTYPE */
       13,			       /* column_number */
       read_int16_to_int32,	       /* compute_value */
-      write_int32,		       /* write_value */
+      write_int32_as_int16,		       /* write_value */
       open_marx_int16_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
@@ -1016,18 +1019,18 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
    },
    /* compute_detxy assumes next two entries are sequential */
    {
-      'D',			       /* type */
+      'E',			       /* type */
       &Data_Table.dtt_detx,	       /* pointer to value */
       NULL,			       /* filename */
       DDT_REQUIRED,		       /* flags */
       "DETX",			       /* colname */
       "Focal Plane X",		       /* comment */
-      "D",			       /* type */
+      "E",			       /* type */
       "pixel",			       /* units */
       NULL,			       /* WCS CTYPE */
       8,			       /* column_number */
       compute_detxy,		       /* compute_value */
-      write_float64,		       /* write_value */
+      write_float64_as_float32,	       /* write_value */
       open_detxy,			       /* open */
       close_detxy,			       /* close */
       NULL,			       /* cdt */
@@ -1038,18 +1041,18 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0				       /* ddt_max_int_value */
    },
    {
-      'D',			       /* type */
+      'E',			       /* type */
       &Data_Table.dtt_dety,	       /* pointer to value */
       NULL,			       /* filename */
       DDT_REQUIRED,		       /* flags */
       "DETY",			       /* colname */
       "Focal Plane Y",		       /* comment */
-      "D",			       /* type */
+      "E",			       /* type */
       "pixel",			       /* units */
       NULL,			       /* WCS CTYPE */
       9,			       /* column_number */
       NULL,			       /* compute_value */
-      write_float64,		       /* write_value */
+      write_float64_as_float32,		       /* write_value */
       NULL,			       /* open */
       NULL,			       /* close */
       NULL,			       /* cdt */
@@ -1061,18 +1064,18 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
    },
    /* compute_xy_sky assumes next two are sequential */
    {
-      'D',			       /* type */
+      'E',			       /* type */
       &Data_Table.dtt_xsky,	       /* pointer to value */
       NULL,			       /* filename */
       DDT_REQUIRED,		       /* flags */
       "X",			       /* colname */
       "sky X pixel",		       /* comment */
-      "D",			       /* type */
+      "E",			       /* type */
       "pixel",			       /* units */
       "RA---TAN",		       /* WCS CTYPE */
       10,			       /* column_number */
       compute_xy_sky,		       /* compute_value */
-      write_float64,		       /* write_value */
+      write_float64_as_float32,		       /* write_value */
       NULL,			       /* open */
 	NULL,			       /* close */
 	NULL,			       /* cdt */
@@ -1083,18 +1086,18 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       0				       /* ddt_max_int_value */
    },
    {
-      'D',			       /* type */
+      'E',			       /* type */
       &Data_Table.dtt_ysky,	       /* pointer to value */
       NULL,			       /* filename */
       DDT_REQUIRED,		       /* flags */
       "Y",			       /* colname */
       "sky Y pixel",		       /* comment */
-      "D",			       /* type */
+      "E",			       /* type */
       "pixel",			       /* units */
       "DEC--TAN",			       /* WCS CTYPE */
       11,			       /* column_number */
       NULL,			       /* compute_value */
-      write_float64,		       /* write_value */
+      write_float64_as_float32,		       /* write_value */
       NULL,			       /* open */
       NULL,			       /* close */
       NULL,			       /* cdt */
@@ -1225,12 +1228,12 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       DDT_REQUIRED,		       /* flags */
       "STATUS",			       /* colname */
       "status flags",		       /* comment */
-      "16X",			       /* type */
+      "32X",			       /* type */
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
 	19,			       /* column_number */
       compute_status,			       /* compute_value */
-      write_int16,		       /* write_value */
+      write_int16_as_int32,		       /* write_value */
       NULL,			       /* open */
       NULL,			       /* close */
       NULL,			       /* cdt */
@@ -3375,6 +3378,28 @@ static int write_float32_as_int16 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
 {
    int16 x = *(float32 *)ddt->ddt_value_ptr;
    return jdfits_write_int16 (ft, &x, 1);
+}
+/*}}}*/
+
+static int write_int32_as_int16 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
+{
+   int16 x = *(int32 *)ddt->ddt_value_ptr;
+   return jdfits_write_int16 (ft, &x, 1);
+}
+/*}}}*/
+
+static int write_int16_as_int32 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
+{
+   int32 x = *(int16 *)ddt->ddt_value_ptr;
+   return jdfits_write_int32 (ft, &x, 1);
+}
+/*}}}*/
+
+
+static int write_float64_as_float32 (Data_Def_Type *ddt, JDFits_Type *ft) /*{{{*/
+{
+   float32 x = *(float64 *)ddt->ddt_value_ptr;
+   return jdfits_write_float32 (ft, &x, 1);
 }
 /*}}}*/
 
