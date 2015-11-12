@@ -424,6 +424,7 @@ extern void JDMv_spherical_to_triad (double theta, double phi,
 			      JDMVector_Type *r_hat, JDMVector_Type *theta_hat,
 			      JDMVector_Type *phi_hat);
 
+typedef double JDM_3Matrix_Type [3][3];
 /* These define ACTIVE rotations of the coordinate system.  */
 extern void JDM3m_rot_x_matrix (JDM_3Matrix_Type, double);
 extern void JDM3m_rot_y_matrix (JDM_3Matrix_Type, double);
