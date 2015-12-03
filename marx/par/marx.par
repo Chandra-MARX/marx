@@ -218,8 +218,8 @@ HRMA_P6H6_XOffset,r,h,-0.541755,,,"HRMA P6H6 X offset (mm)"
 #
 #    adjusted to agree with flight data
 #
-PointingOffsetY,r,h,-21,,,"Optical-Axis/Pointing Y Misalignment (arcsec)"
-PointingOffsetZ,r,h,12,,,"Optical-Axis/Pointing Z Misalignment (arcsec)"
+PointingOffsetY,r,h,0,,,"Optical-Axis/Pointing Y Misalignment (arcsec)"
+PointingOffsetZ,r,h,0,,,"Optical-Axis/Pointing Z Misalignment (arcsec)"
 #----------------------------------------------------------------------------
 #
 # EA Mirror Setup
