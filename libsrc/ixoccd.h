@@ -1,8 +1,9 @@
-/*-*-c-*-*/
+#ifndef _MARX_IXOCCD_H_INCLUDED
+#define _MARX_IXOCCD_H_INCLUDED
 /*
     This file is part of MARX
 
-    Copyright (C) 1999 Massachusetts Institute of Technology
+    Copyright (C) 2011-2013 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -22,37 +23,16 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/* Define this if have stdlib.h */
-#undef HAVE_STDLIB_H
+typedef struct _IXO_CCD_QE_Type IXO_CCD_QE_Type;
+static double Rowland_R, Rowland_Theta;
+static int CatGS_Init_Called;
 
-/* Define this if you have unistd.h */
-#undef HAVE_UNISTD_H
+static void _marx_catgs_init_variables (void);
 
-/* Define if you have dlfcn.h for dynamic linking support */
-#undef HAVE_DLFCN_H
+#define MARX_DET_FACET_PRIVATE_DATA		\
+   IXO_CCD_QE_Type *qeinfo; \
+   double read_noise; \
+   double energy_gain; \
+   double fano_factor;
 
-#undef HAVE_TIMEGM
-
-/* Set these to the appropriate values */
-#undef SIZEOF_SHORT
-#undef SIZEOF_INT
-#undef SIZEOF_LONG
-#undef SIZEOF_FLOAT
-#undef SIZEOF_DOUBLE
-
-#undef HAVE_FSEEKO
-
-#undef off_t
-
-/* The following set defines may be necessary to activate long file support */
-#undef _FILE_OFFSET_BITS
-#undef _LARGE_FILES
-#undef _LARGEFILE_SOURCE
-
-#ifdef HAVE_FSEEKO
-# define FSEEK(a,b,c) fseeko(a,b,c)
-# define FTELL(a) ftello(a)
-#else
-# define FSEEK(a,b,c) fseek(a,b,c)
-# define FTELL(a) ftell(a)
-#endif
+#endif				       /* _MARX_IXOCCD_H_INCLUDED */

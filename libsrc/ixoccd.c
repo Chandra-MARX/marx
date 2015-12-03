@@ -20,6 +20,26 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
+#include "config.h"
+#include "marx-feat.h"
+
+#include <stdio.h>
+#include <math.h>
+
+#ifdef HAVE_STDLIB_H
+# include <stdlib.h>
+#endif
+
+#include <string.h>
+
+#include <jdmath.h>
+#include <pfile.h>
+#include <jdfits.h>
+
+#include "ixoccd.h"
+#include "marx.h"
+#include "_marx.h"
+
 #define MARX_HAS_IXO_CCD_STREAK 0
 #define MAX_NUM_IXO_CCDS	32
 static unsigned int Num_IXO_CCDs = 16;

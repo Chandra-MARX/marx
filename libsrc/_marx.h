@@ -25,6 +25,15 @@
 
 #include <jdfits.h>
 
+
+#ifdef HAVE_FSEEKO
+# define FSEEK(a,b,c) fseeko(a,b,c)
+# define FTELL(a) ftello(a)
+#else
+# define FSEEK(a,b,c) fseek(a,b,c)
+# define FTELL(a) ftell(a)
+#endif
+
 extern JDMVector_Type _Marx_HRC_Geometric_Center;
 
 typedef struct
