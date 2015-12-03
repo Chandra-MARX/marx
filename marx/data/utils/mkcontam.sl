@@ -84,7 +84,7 @@ define slsh_main ()
 	instrum = "ACIS",
 	detnam,
 	ccd_id,
-	marxvers = 5.1,
+	marxvers = 5.2,
 	fxyblk,
      };
 
