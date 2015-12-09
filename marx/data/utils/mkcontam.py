@@ -13,7 +13,7 @@ image values.  Here is his response:
     units of = tau for 0.67 keV at the given date and location).
 
 On 23 Jan 2015, HMG discussed this with Herman Marshall looking at how
-the change the ACIS contamination has changed this picture. While the
+the change of the ACIS contamination has changed this picture. While the
 functional form is still the same, the contamination is now much higher.
 The final uncertainty does not depend linearly on fxy, since the absorption is
 :math: `abs \propto exp(-\tau_1 f(x,y))`.
@@ -80,7 +80,7 @@ def block_imgs(imgstack, rel_tolerance=0.01, abs_tolerance=0.01):
 
     newstack = np.zeros((n_comp, imgstack.shape[1] / maxb, imgstack.shape[2] / maxb))
     for i in range(n_comp):
-        newstack[i,:,:] = rebin_factor(imgstack[i,:,:], maxb)
+        newstack[i, :, :] = rebin_factor(imgstack[i, :, :], maxb)
     return newstack, maxb
 
 
@@ -89,9 +89,9 @@ def marx_contam_file(filein, fileout, rel_tolerance=0.01, abs_tolerance=0.01):
 
     Parameters
     ----------
-    infile : string
+    filein : string
         filename and path to CALDB file
-    outfile : sring
+    fileout : sring
         filename and path where MARX file should be written
     rel_tolerance : float
         Maximum relative tolerance
@@ -105,7 +105,7 @@ def marx_contam_file(filein, fileout, rel_tolerance=0.01, abs_tolerance=0.01):
 
     listhdus = [fits.PrimaryHDU(header=prihdr)]
     for i in range(10):
-        h = hdus[i+1]
+        h = hdus[i + 1]
         data = h.data
 
         if np.any(data['component'] != 0) or np.any(data['weight'] != 1):
@@ -122,7 +122,8 @@ def marx_contam_file(filein, fileout, rel_tolerance=0.01, abs_tolerance=0.01):
         hdr['fxyblk'] = maxb
 
         cols = []
-        for n in ["component", "n_energy", "energy", "mu", "n_time", "time", "tau0", "tau1"]:
+        for n in ["component", "n_energy", "energy", "mu", "n_time", "time",
+                  "tau0", "tau1"]:
 
             if n not in data.dtype.names:
                 raise ValueError('Input file is missing column {0}'.format(n))
@@ -131,10 +132,12 @@ def marx_contam_file(filein, fileout, rel_tolerance=0.01, abs_tolerance=0.01):
         dim1 = newstack.shape[1]
         dim2 = newstack.shape[2]
         cols.append(fits.Column(array=newstack, name='fxy',
-                                format='{0}E'.format(dim1*dim2),
+                                format='{0}E'.format(dim1 * dim2),
                                 dim='({0},{1})'.format(dim1, dim2)))
 
-        tab = fits.BinTableHDU.from_columns(fits.ColDefs(cols), header=hdr, name='ACIS{0}_CONTAM'.format(i))
+        tab = fits.BinTableHDU.from_columns(fits.ColDefs(cols),
+                                            header=hdr,
+                                            name='ACIS{0}_CONTAM'.format(i))
         listhdus.append(tab)
     newhdulist = fits.HDUList(listhdus)
     newhdulist.writeto(fileout)
@@ -149,5 +152,6 @@ if __name__ == "__main__":
                         help='absolute tolerance allowed in rebinning (default=0.01)')
 
     args = parser.parse_args()
-    marx_contam_file(args.infile, args.outfile, rel_tolerance=args.relative_tolerance,
+    marx_contam_file(args.infile, args.outfile,
+                     rel_tolerance=args.relative_tolerance,
                      abs_tolerance=args.absolute_tolerance)
