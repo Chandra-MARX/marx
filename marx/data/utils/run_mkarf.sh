@@ -4,7 +4,7 @@
 # Then the reference arfs are created using the pcad and marx event file as
 # input.
 
-runciao="runciaotool.sh"
+runciao="./runciaotool.sh"
 # $runciaox is a script that runs a ciaotool in its own environment
 
 outdir="point"
