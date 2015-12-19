@@ -57,7 +57,7 @@ for f in marxcaldb:
             diff = FITSDiff(f, f + '_new', ignore_keywords=ignore_key)
         elif fbase.startswith('acisD1999-08-13contamN00'):
             caldbfile = find(fbase.replace('_marx', ''), CALDB)
-            call('../utils/mkcontam.sl {0} {1}_new'.format(caldbfile, f), shell = True)
+            call('python ../utils/mkcontam.py {0} {1}_new'.format(caldbfile, f), shell = True)
             diff = FITSDiff(f, f + '_new', ignore_keywords=ignore_key)
         else:
             print("Don't know how to compare {0} - check manually".format(fbase))

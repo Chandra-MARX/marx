@@ -1,4 +1,26 @@
 ============================================================================
+Marx 5.2 Release Notes
+============================================================================
+
+The changes consist only of some minor enhancements,
+calibration updates, and bug fixes.  
+
+Change in default parameters
+----------------------------
+Set the ``PointingOffsetX/Y`` to 0 to match the values in current Chandra 
+observations.
+This defines the difference between RA/DEC_NOM and RA/DEC_PNT in the 
+fits headers of event files; it is not used in the code except to output 
+the RA/DEC_PNT values by ``marx2fits``.
+
+Bug Fixes
+---------
+Match use of long and double types in fits output to standard CIAO products.
+
+Previously an ASOL file name > 63 characters would crash marx2fits.
+Now, it cuts the pathname to shorten the string.
+
+============================================================================
 Marx 5.1 Release Notes
 ============================================================================
 

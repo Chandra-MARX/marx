@@ -26,8 +26,8 @@
 #include <jdmath.h>
 #include <pfile.h>
 
-#define MARX_VERSION 50100
-#define MARX_VERSION_STRING "5.1.0"
+#define MARX_VERSION 50200
+#define MARX_VERSION_STRING "5.2.0"
 
 #ifndef SIGNED_CHAR
 # define SIGNED_CHAR signed char
