@@ -315,7 +315,7 @@ static int setup_tstart (Param_File_Type *pf)
 	return -1;
      }
 
-   if (tstart < 2020)
+   if (tstart < 2100)
      {
 	/* asssume that tstart is in years */
 	yrs_tstart = tstart;
