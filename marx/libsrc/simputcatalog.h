@@ -22,17 +22,32 @@
 #define SOURCECATALOG_H 1
 
 #include "simput.h"
-#include "source.h"
-
 
 /////////////////////////////////////////////////////////////////
 // Type Declarations.
 /////////////////////////////////////////////////////////////////
+/** Photon energy spectrum of an X-ray source. */
+typedef struct {
+
+  /** Coordinates of source position. */
+  double ra, dec;
+
+  /** Source extension [rad]. */
+  float extension;
+
+  /** Row number of the source in the SimputCtlg. Numbering starts
+      at line 1. */
+  long row;
+
+  /** Time of the emission of the last photon. */
+  double* t_next_photon;
+
+} Source;
 
 
 /** Catalog of different X-ray sources. */
 typedef struct {
-  /** Array containing Source objects for all extended sources. */
+  /** Array containing Source objects for all sources. */
   Source* sources;
 
   /** Number of entries in the linear array of extended sources. */
@@ -64,12 +79,12 @@ SourceCatalog* loadSourceCatalog(const char* const filename,
     time interval. Only sources within the FoV (diameter given in
     [rad]) around the telescope pointing direction are taken into
     account. */
-LinkedPhoListElement* genFoVXRayPhotons(SourceCatalog* const cat, 
-					const Vector* const pointing, 
-					const float fov,
-					const double t0, const double t1,
-					const double mjdref,
-					int* const status);
+/* LinkedPhoListElement* genFoVXRayPhotons(SourceCatalog* const cat,  */
+/* 					const Vector* const pointing,  */
+/* 					const float fov, */
+/* 					const double t0, const double t1, */
+/* 					const double mjdref, */
+/* 					int* const status); */
 
 
 #endif /* SOURCECATALOG_H */

@@ -18,7 +18,7 @@
    Copyright 2007-2014 Christian Schmid, FAU
 */
 
-#include "sourcecatalog.h"
+#include "simputcatalog.h"
 
 
 SourceCatalog* newSourceCatalog(int* const status)
