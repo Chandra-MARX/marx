@@ -587,4 +587,10 @@ extern Marx_Subpix_Table_Type *marx_open_acis_subpix (void);
 extern void marx_close_acis_subpixel (Marx_Subpix_Table_Type *);
 extern int marx_compute_acis_subpix (Marx_Subpix_Table_Type *stt,
 			      int ccd, float energy, int fltgrade, float *dxp, float *dyp);
+
+/* This function computes the azimuth and elevation of the source with
+ * respect to the spacecraft pointing axis, which is generally different
+ * from the optical axis.
+ */
+extern int marx_compute_elaz (double Ra, double Dec, double *azp, double *elp);
 #endif				       /* _MARX_H_ */

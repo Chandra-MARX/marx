@@ -21,11 +21,8 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-// todo: mjdref
-// todo: source.c: 175 makes no sense for this source
 // todo: dynamic linking?
-// todo: make way to get zoff, yoff: Currently hardcoded to 0.
-// todo: star value of arf is currently 0.42. Set to 0.3
+// todo: start value of arf is currently 0.2. How about the HRC?
 // todo: Set SIMPUT random number generator to use the marx function
 /** Set the random number generator, which is used by the simput
     library routines. The generator should return double valued,
@@ -64,8 +61,7 @@
 #if MARX_HAS_DYNAMIC_LINKING
 #include <dlfcn.h>
 
-// TODO: deal with mjdref in some sensible way
-static double mjdref=52000.;
+static double mjdref;
 
 static char Simput_handle[PF_MAX_LINE_LEN];
 static char Simput_Source[PF_MAX_LINE_LEN];
@@ -106,7 +102,6 @@ static Fun_Ptr simput_dlsym (char *name, int is_required)
 }
 
 
-// argv : first arg is SIMPUT filename
 int simput_open_source (Marx_Source_Type *st)
 {
   SimputSrc* const src;
@@ -116,6 +111,8 @@ int simput_open_source (Marx_Source_Type *st)
   double* const dec;
   int status = 0;
   long n_sources;
+
+  mjdref = _Marx_TStart_MJDsecs / (24. * 3600.);
 
   #define READONLY 0
   cat = openSimputCtlg(Simput_Source, READONLY, 0, 0, 0, 0, &status);
@@ -162,7 +159,7 @@ static int simput_close_source (Marx_Source_Type *st)
   return status;
 }
 
-static int simput_generate_ray (Marx_Photon_Attr_Type *at)
+static int simput_generate_ray (Marx_Photon_Attr_Type *at, JDMVector_Type pin)
 {
   unsigned int i = 0;
 
@@ -171,10 +168,9 @@ static int simput_generate_ray (Marx_Photon_Attr_Type *at)
   int status = 0;
   int lightcurve_status;
   long source_index;
-  double Source_Azimuth, Source_Elevation;
-  JDMVector_Type src, pnt, p;
   double ra_pnt, dec_pnt, roll_pnt;
   double az, el;
+  JDMVector_Type p;
 
   lightcurve_status = getSimputPhotonAnySource(cat, next_photons, 
 					       mjdref, &time,
@@ -195,27 +191,10 @@ static int simput_generate_ray (Marx_Photon_Attr_Type *at)
    * All these spherical operations are quite expensive,
    * but for now I'll just make it work - no pre-mature optimization.
    */
-  src = JDMv_spherical_to_vector (1.0, PI/2.0 - dec, ra);
-
-  // the next 2 lines can be moved to init
-  if (-1 == marx_get_pointing (&ra_pnt, &dec_pnt, &roll_pnt)){
-    return -1;
-  }
-  pnt = JDMv_spherical_to_vector (1.0, PI/2.0 - dec_pnt, ra_pnt);
- 
-  src = JDMv_rotate_unit_vector (src, pnt, -roll_pnt);
-  JDMv_unit_vector_to_spherical (src, &el, &az);
-  el = PI/2.0 - el;
-
-  marx_compute_ra_dec_offsets (ra_pnt, dec_pnt, az, el, &az, &el);
-
-  // line can be moved to init?
-  double zoff=0;
-  double yoff=0;
-  p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
+  marx_compute_elaz (ra, dec, &az, &el);
 
   /* Now add offsets via the proper rotations */
-  p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), el);
+  p = JDMv_rotate_unit_vector (pin, JDMv_vector (0, -1, 0), el);
   p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), az);
 
   /* Finally roll it so that this point will be invariant under roll.  That is,
@@ -248,7 +227,7 @@ static int simput_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 
    for (i = 0; i < num; i++)
      {
-	if (-1 == simput_generate_ray (at))
+       if (-1 == simput_generate_ray (at, st->p))
 	  break;
 
 	at->flags = 0;
