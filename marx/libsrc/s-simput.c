@@ -25,6 +25,13 @@
 // todo: source.c: 175 makes no sense for this source
 // todo: dynamic linking?
 // todo: make way to get zoff, yoff: Currently hardcoded to 0.
+// todo: star value of arf is currently 0.42. Set to 0.3
+// todo: Set SIMPUT random number generator to use the marx function
+/** Set the random number generator, which is used by the simput
+    library routines. The generator should return double valued,
+    uniformly distributed numbers in the interval [0,1). */
+//void setSimputRndGen(double(*rndgen)(int* const));
+
 #include <stdio.h>
 #include "config.h"
 
@@ -48,14 +55,11 @@
 #include "source.def"
 
 
-#include "s-simput.h"
-
 #ifndef HEASP_H
 #define HEASP_H 1
 #include "heasp.h"
 #endif
 
-#include "simput.h"
 
 #if MARX_HAS_DYNAMIC_LINKING
 #include <dlfcn.h>
@@ -65,19 +69,18 @@ static double mjdref=52000.;
 
 static char Simput_handle[PF_MAX_LINE_LEN];
 static char Simput_Source[PF_MAX_LINE_LEN];
-static  (*getARF)(int);
-static struct ARF * const arf;
-
 
 static double running_time = 0.;
 
 double ra_nom, dec_nom, roll_nom;
 
-// do something about mjdref
-
-
-static SIMPUT_generated_Photon_Type *next_photons;
+#include "simput.h"
+// real type is SimputCtlg, but I don't want to link to SIMPUT,
+// just pass around the pointer.
+//static void * cat;
+//static void * next_photons;
 static SimputCtlg * cat;
+static SimputPhoton *next_photons;
 
 typedef void (*Fun_Ptr)(void);
 
@@ -103,93 +106,20 @@ static Fun_Ptr simput_dlsym (char *name, int is_required)
 }
 
 
-int precompute_photon (SimputCtlg *cat, long sourcenumber, 
-		       double mjdref, double prevtime)
-{
-  int* status;
-  int lightcurve_status;
-  double* const time;
-  float* const energy;
-  double* const ra;
-  double* const dec;
-  SimputSrc* src;
-  
-  src = getSimputSrc(cat, sourcenumber, status);
-  if (*status!=0){
-    marx_error ("Could not retrieve source from SIMPUT catalog.");
-    return -1;
-  }
-
-  lightcurve_status = getSimputPhoton(cat, src, 
-				  prevtime, mjdref, time, energy, ra, dec, status);
-  if (*status!=0){
-    marx_error ("Error generating photons in SIMPUT module.");
-    return -1;
-  }
-  next_photons[sourcenumber].time = *time;
-  next_photons[sourcenumber].energy = *energy;
-  next_photons[sourcenumber].ra = *ra;
-  next_photons[sourcenumber].dec = *dec;
-  next_photons[sourcenumber].lightcurve_status = lightcurve_status;
-  return 0;
-}
-
-
-/* would be really helpful if this was part of SIMPUT. If it was,
-   I would not have to even define the ARF structure here, I could
-   just pass araound a void pointer.
-*/
-int get_constant_arf(float low_energy, float high_energy, float effarea, struct ARF * const arf)
-{
-  // Make ARF for SIMPUT.
-  // MARX will take care of photons lost along the path itself, 
-  // so all we need here is a constant effective area equal to the opening
-  // of the mirrors.
-  int* const status;
-  //if (NULL == (getARF = (struct ARF(*)(int*)) simput_dlsym ("getARF", 1)))
-  //   return -1;
-
-  arf->NumberEnergyBins=1;
-  if (NULL == (arf->LowEnergy = (float *)marx_malloc(arf->NumberEnergyBins*sizeof(float)))){
-    marx_error ("out of memory");
-    return -1;
-  }
-  arf->LowEnergy[0] = low_energy; // keV
-  if (NULL == (arf->HighEnergy = (float *)marx_malloc(arf->NumberEnergyBins*sizeof(float)))){
-    marx_error ("out of memory");
-    return -1;
-  }
-  arf->HighEnergy[0] = high_energy; // keV
-  if (NULL == (arf->EffArea = (float *)marx_malloc(arf->NumberEnergyBins*sizeof(float)))){
-    marx_error ("out of memory");
-    return -1;
-  }
-  arf->EffArea[0] = effarea;
-
-  strcpy(arf->ARFVersion,"1.0");          /* SPECRESP extension format version */
-  strcpy(arf->Telescope, "Chandra");
-  strcpy(arf->Instrument, "any");
-  strcpy(arf->Detector, "any");
-  strcpy(arf->Filter, "none");
-  strcpy(arf->ARFExtensionName, "none");
-  return 0;
-}
-
-
 // argv : first arg is SIMPUT filename
 int simput_open_source (Marx_Source_Type *st)
 {
   SimputSrc* const src;
-  double mjdref = 52000.;
   double* const time;
   double* const energy;
   double* const ra;
   double* const dec;
-  int* const status;
+  int status = 0;
   long n_sources;
 
-  cat = openSimputCtlg(Simput_Source, READONLY, 0, 0, 0, 0, status);
-  if (*status!=0){
+  #define READONLY 0
+  cat = openSimputCtlg(Simput_Source, READONLY, 0, 0, 0, 0, &status);
+  if (status!=0){
     marx_error ("Error interpreting SIMPUT catalog.");
     return -1;
   }
@@ -202,88 +132,75 @@ int simput_open_source (Marx_Source_Type *st)
   if (-1 == marx_get_nominal_pointing (&ra_nom, &dec_nom, &roll_nom))
     return -1;
 
-  if (-1 == get_constant_arf(0.3, 11., Marx_Mirror_Geometric_Area, arf))
+  setSimputConstantARF(cat, 0.2, 12., Marx_Mirror_Geometric_Area, "Chandra", &status);
+  if (status!=0){
+    marx_error ("SIMPUT could not set ARF.");
     return -1;
-  setSimputARF(cat, arf);
-
-
-  if (NULL == (next_photons = marx_malloc(n_sources * sizeof(*next_photons)))){
+  }
+  
+  next_photons = startSimputPhotonAnySource(cat, mjdref, &status);
+  if (status!=0){
+    marx_error ("SIMPUT photons could not be initialized.");
     return -1;
   }
 
-  // Make one photon for each source and store it.
-  long ii;
-  int lightcurve_status;
-    for (ii=1; ii<(n_sources+1); ii++) {
-    if (-1 == precompute_photon(cat, ii, mjdref, 0.)){
-      return -1;
-    }
-  }
+
+  return 0;
 }
 
 static int simput_close_source (Marx_Source_Type *st)
 {
-  int * const status;
+  int status;
   /* if (Simput_handle != NULL) */
   /*    dlclose (Simput_handle); */
 
   /* Simput_handle = NULL; */
 
-  //(void) free_ARF(*arf);
-  (void) freeSimputCtlg(&cat, status);
-  marx_free (next_photons);
+  (void) freeSimputCtlg(&cat, &status);
+  (void) closeSimputPhotonAnySource(next_photons);
   (void) st;
-  return *status;
+  return status;
 }
 
 static int simput_generate_ray (Marx_Photon_Attr_Type *at)
 {
-  SIMPUT_generated_Photon_Type sp;
-  unsigned int i;
+  unsigned int i = 0;
 
-  double min_time = 1e40;
-  long next_index = 0;
-  long number_valid_photons = 0;
-  double ra, dec;
+  double ra, dec, time, polarization;
+  float energy;
+  int status = 0;
+  int lightcurve_status;
+  long source_index;
   double Source_Azimuth, Source_Elevation;
   JDMVector_Type src, pnt, p;
   double ra_pnt, dec_pnt, roll_pnt;
   double az, el;
 
-  long ii, n_sources;
-
-  // From the list of pre-generated photons, find the next one
-  n_sources = getSimputCtlgNSources(cat);
-
-  for (ii=1; ii < (n_sources+1); ii++) {
-    if ((next_photons[ii].time < min_time) && (next_photons[ii].lightcurve_status == 0)){
-      min_time = next_photons[ii].time;
-      next_index = ii;
-      number_valid_photons++;
-    }
-  }
-  if (number_valid_photons == 0){
-    marx_error("None of the sources in the SIMPUT catalog has a lightcurve defined for this time.");
+  lightcurve_status = getSimputPhotonAnySource(cat, next_photons, 
+					       mjdref, &time,
+					       &energy, &ra, &dec,
+					       &polarization,
+					       &source_index,
+					       &status);  
+  if (lightcurve_status != 0){
+    marx_error("No lightcurve defined for sources in the SIMPUT catalog at this time.");
     return -1;
   }
-
-  sp = next_photons[next_index];
-    
-  // Make a new photons
-  if (-1 == precompute_photon(cat, ii, mjdref, sp.time)){
-    return -1;
+  if (status != 0){
+    marx_error("Error generating photon in SIMPUT. Error code: %d", status);
+      return -1;
   }
-    
   // Bring the selected photon from RA/DEC to MARX system
   /* This might not be the most efficient way to do it.
    * All these spherical operations are quite expensive,
-   * but for now I'll jus make it work - no pre-mature optimization.
+   * but for now I'll just make it work - no pre-mature optimization.
    */
-  src = JDMv_spherical_to_vector (1.0, PI/2.0 - sp.dec, sp.ra);
+  src = JDMv_spherical_to_vector (1.0, PI/2.0 - dec, ra);
 
   // the next 2 lines can be moved to init
-  if (-1 == marx_get_pointing (&ra_pnt, &dec_pnt, &roll_pnt))
+  if (-1 == marx_get_pointing (&ra_pnt, &dec_pnt, &roll_pnt)){
     return -1;
+  }
   pnt = JDMv_spherical_to_vector (1.0, PI/2.0 - dec_pnt, ra_pnt);
  
   src = JDMv_rotate_unit_vector (src, pnt, -roll_pnt);
@@ -306,8 +223,14 @@ static int simput_generate_ray (Marx_Photon_Attr_Type *at)
    * See the apply_dither function.
    */
   at->p = JDMv_rotate_unit_vector (p, JDMv_vector (1, 0, 0), roll_nom);
-  at->energy = sp.energy;
-  at->arrival_time = sp.time;
+
+  /* This vector must point FROM source TO origin. */
+  at->p.x = -at->p.x;
+  at->p.y = -at->p.y;
+  at->p.z = -at->p.z;
+
+  at->energy = (double)energy;
+  at->arrival_time = time;
 
   return 0;
 }
@@ -319,7 +242,7 @@ static int simput_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
    unsigned int i;
    Marx_Photon_Attr_Type *at;
    int (*efun) (Marx_Spectrum_Type *, double *);
-   double t, energy, last_time;
+   double t, last_time;
 
    at = pt->attributes;
 
@@ -330,7 +253,6 @@ static int simput_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 
 	at->flags = 0;
 	at->arrival_time -=pt->start_time;
-	at->energy = energy;
 	at++;
      }
 
