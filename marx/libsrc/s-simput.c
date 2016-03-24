@@ -52,43 +52,50 @@
 #include "source.def"
 
 
-#ifndef HEASP_H
-#define HEASP_H 1
-#include "heasp.h"
-#endif
+//#ifndef HEASP_H
+//#define HEASP_H 1
+//#include "heasp.h"
+//#endif
 
 
 #if MARX_HAS_DYNAMIC_LINKING
 #include <dlfcn.h>
 
 static double mjdref;
-
-static char Simput_handle[PF_MAX_LINE_LEN];
+static char *Simput_Handle;
+static char Simput_library[PF_MAX_LINE_LEN];
 static char Simput_Source[PF_MAX_LINE_LEN];
 
 static double running_time = 0.;
 
 double ra_nom, dec_nom, roll_nom;
 
-#include "simput.h"
+//#include "simput.h"
 // real type is SimputCtlg, but I don't want to link to SIMPUT,
 // just pass around the pointer.
-//static void * cat;
-//static void * next_photons;
-static SimputCtlg * cat;
-static SimputPhoton *next_photons;
+static void * cat;
+static void * next_photons;
+//static SimputCtlg * cat;
+//static SimputPhoton *next_photons;
 
 typedef void (*Fun_Ptr)(void);
 
-//maybe do this later. For now, keep simple and link to SIMPUT at compile time.
+static void * (*openSimputCtlg)(char *, int, int, int, int, int, int *);
+static int (*getSimputCtlgNSources)(void *);
+static void (*setSimputConstantARF)(void *, double, double, double, char *, int*);
+static void * (*startSimputPhotonAnySource)(void *, double, int*);
+static void (*freeSimputCtlg)(void **, int *);
+static void (*closeSimputPhotonAnySource)(void *);
+static int (*getSimputPhotonAnySource)(void *, void *, double, double *, float *, double *, double *, double *, long *, int *);
+
 static Fun_Ptr simput_dlsym (char *name, int is_required)
 {
    Fun_Ptr f;
 
-   if (Simput_handle == NULL)
+   if (Simput_Handle == NULL)
      return NULL;
 
-   f = (Fun_Ptr) dlsym (Simput_handle, name);
+   f = (Fun_Ptr) dlsym (Simput_Handle, name);
    if ((f == NULL) && is_required)
      {
 	char *err = (char *)dlerror ();
@@ -104,7 +111,7 @@ static Fun_Ptr simput_dlsym (char *name, int is_required)
 
 int simput_open_source (Marx_Source_Type *st)
 {
-  SimputSrc* const src;
+  //SimputSrc* const src;
   double* const time;
   double* const energy;
   double* const ra;
@@ -156,6 +163,14 @@ static int simput_close_source (Marx_Source_Type *st)
   (void) freeSimputCtlg(&cat, &status);
   (void) closeSimputPhotonAnySource(next_photons);
   (void) st;
+  openSimputCtlg = NULL;
+  getSimputCtlgNSources = NULL;
+  setSimputConstantARF = NULL;
+  startSimputPhotonAnySource = NULL;
+  freeSimputCtlg = NULL;
+  closeSimputPhotonAnySource = NULL;
+  getSimputPhotonAnySource = NULL;
+
   return status;
 }
 
@@ -255,14 +270,58 @@ static int simput_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 int marx_select_simput_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 			      char *name, unsigned int source_id)
 {
-   (void) source_id;
+  char *handle;
+  (void) source_id;
+  if (-1 == pf_get_file (p, "S-SIMPUT-Library", Simput_library, sizeof(Simput_library)))
+     {
+	marx_error ("Unable to find parameter 'S-SIMPUT-Library'");
+	return -1;
+     }
+
+   marx_message ("Dynamically linking to file %s\n", Simput_library);
+
+   handle = (char *) dlopen (Simput_library, RTLD_LAZY);
+   if (handle == NULL)
+     {
+	char *err;
+
+	err = (char *) dlerror ();
+	if (err == NULL) err = "UNKNOWN";
+
+	marx_error ("Error linking to %s\nReason: %s", Simput_library, err);
+	return -1;
+     }
+
+   Simput_Handle = handle;
+   if (NULL == (openSimputCtlg = (void* (*)(char *, int, int, int, int, int, int *)) simput_dlsym ("openSimputCtlg", 1)))
+     return -1;
+   if (NULL == (getSimputCtlgNSources = (int (*)(void *)) simput_dlsym("getSimputCtlgNSources", 1)))
+     return -1;
+   if (NULL == (setSimputConstantARF = (void (*)(void *, double, double, double, char *, int*)) simput_dlsym("setSimputConstantARF", 1)))
+     return -1;
+   if (NULL == (startSimputPhotonAnySource = (void * (*)(void *, double, int*)) simput_dlsym("startSimputPhotonAnySource", 1)))
+     return -1;
+   if (NULL == (closeSimputPhotonAnySource = (void (*)(void *)) simput_dlsym("closeSimputPhotonAnySource", 1)))
+     return -1;
+   if (NULL == (getSimputPhotonAnySource = (int (*)(void *, void *, double, double *, float *, double *, double *, double *, long *, int *)) simput_dlsym("getSimputPhotonAnySource", 1)))
+   return -1;
+   if (NULL == (freeSimputCtlg = (void (*)(void **, int *)) simput_dlsym("freeSimputCtlg", 1)))
+     return -1;
+
+   //static int (*openSimputCtlg);
+   //static int (*getSimputCtlgNSources)(void *);
+  //static void (*setSimputConstantARF)(void *, double, double, double, char *, int*);
+   //static void * (*startSimputPhotonAnySource)(void *, double, int*);
+   //static void (*freeSimputCtlg)(void **, int *);
+   //static void (*closeSimputPhotonAnySource)(void *);
+   //static int (*getSimputPhotonAnySource)(void *, void *, double, double *, float *, double *, double *, dobule *, long *, int *) 
+
+
    st->open_source = simput_open_source;
    st->create_photons = simput_create_photons;
    st->close_source = simput_close_source;
 
    if (-1 == pf_get_file (p, "S-SIMPUT-Source", Simput_Source, sizeof(Simput_Source)))
-     return -1;
-   if (-1 == pf_get_file (p, "S-SIMPUT-Library", Simput_handle, sizeof(Simput_handle)))
      return -1;
 
    return 0;
