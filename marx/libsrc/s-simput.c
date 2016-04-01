@@ -51,32 +51,26 @@
 #include "_marx.h"
 #include "source.def"
 
-
-//#ifndef HEASP_H
-//#define HEASP_H 1
-//#include "heasp.h"
-//#endif
-
-
 #if MARX_HAS_DYNAMIC_LINKING
 #include <dlfcn.h>
 
 static double mjdref;
 static char *Simput_Handle;
-static char Simput_library[PF_MAX_LINE_LEN];
-static char Simput_Source[PF_MAX_LINE_LEN];
+static char Simput_library [PF_MAX_LINE_LEN];
+static char Simput_Source [PF_MAX_LINE_LEN];
 
 static double running_time = 0.;
 
 double ra_nom, dec_nom, roll_nom;
 
-//#include "simput.h"
-// real type is SimputCtlg, but I don't want to link to SIMPUT,
-// just pass around the pointer.
+/* use void pointers here, so dynamic linking is possible.
+   For references, the real types are:
+   static SimputCtlg * cat;
+   static SimputPhoton *next_photons;
+*/
 static void * cat;
 static void * next_photons;
-//static SimputCtlg * cat;
-//static SimputPhoton *next_photons;
+
 
 typedef void (*Fun_Ptr)(void);
 
@@ -87,6 +81,8 @@ static void * (*startSimputPhotonAnySource)(void *, double, int*);
 static void (*freeSimputCtlg)(void **, int *);
 static void (*closeSimputPhotonAnySource)(void *);
 static int (*getSimputPhotonAnySource)(void *, void *, double, double *, float *, double *, double *, double *, long *, int *);
+static void (*setSimputRndGen)(void *);
+
 
 static Fun_Ptr simput_dlsym (char *name, int is_required)
 {
@@ -109,6 +105,15 @@ static Fun_Ptr simput_dlsym (char *name, int is_required)
 }
 
 
+/* Simput expects a random number generator that returns
+   a number, but also set the "status" parameter.
+   Thus, we need to wrap JDMrandom here. */
+double wrap_JDMrandom(int* const status)
+{
+  *status=0;
+  return JDMrandom();
+}
+
 int simput_open_source (Marx_Source_Type *st)
 {
   //SimputSrc* const src;
@@ -120,6 +125,7 @@ int simput_open_source (Marx_Source_Type *st)
   long n_sources;
 
   mjdref = _Marx_TStart_MJDsecs / (24. * 3600.);
+  setSimputRndGen(&wrap_JDMrandom);
 
   #define READONLY 0
   cat = openSimputCtlg(Simput_Source, READONLY, 0, 0, 0, 0, &status);
@@ -148,7 +154,6 @@ int simput_open_source (Marx_Source_Type *st)
     return -1;
   }
 
-
   return 0;
 }
 
@@ -170,11 +175,12 @@ static int simput_close_source (Marx_Source_Type *st)
   freeSimputCtlg = NULL;
   closeSimputPhotonAnySource = NULL;
   getSimputPhotonAnySource = NULL;
+  setSimputRndGen = NULL;
 
   return status;
 }
 
-static int simput_generate_ray (Marx_Photon_Attr_Type *at, JDMVector_Type pin)
+static int simput_generate_ray (Marx_Photon_Attr_Type *at)
 {
   unsigned int i = 0;
 
@@ -185,7 +191,7 @@ static int simput_generate_ray (Marx_Photon_Attr_Type *at, JDMVector_Type pin)
   long source_index;
   double ra_pnt, dec_pnt, roll_pnt;
   double az, el;
-  JDMVector_Type p;
+  JDMVector_Type p = {.x = -1., .y = 0., .z = 0};
 
   lightcurve_status = getSimputPhotonAnySource(cat, next_photons, 
 					       mjdref, &time,
@@ -209,7 +215,7 @@ static int simput_generate_ray (Marx_Photon_Attr_Type *at, JDMVector_Type pin)
   marx_compute_elaz (ra, dec, &az, &el);
 
   /* Now add offsets via the proper rotations */
-  p = JDMv_rotate_unit_vector (pin, JDMv_vector (0, -1, 0), el);
+  p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), el);
   p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), az);
 
   /* Finally roll it so that this point will be invariant under roll.  That is,
@@ -242,7 +248,7 @@ static int simput_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 
    for (i = 0; i < num; i++)
      {
-       if (-1 == simput_generate_ray (at, st->p))
+       if (-1 == simput_generate_ray (at))
 	  break;
 
 	at->flags = 0;
@@ -272,6 +278,7 @@ int marx_select_simput_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 {
   char *handle;
   (void) source_id;
+
   if (-1 == pf_get_file (p, "S-SIMPUT-Library", Simput_library, sizeof(Simput_library)))
      {
 	marx_error ("Unable to find parameter 'S-SIMPUT-Library'");
@@ -307,15 +314,10 @@ int marx_select_simput_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
    return -1;
    if (NULL == (freeSimputCtlg = (void (*)(void **, int *)) simput_dlsym("freeSimputCtlg", 1)))
      return -1;
+   if (NULL == (setSimputRndGen = (void (*)(void *)) simput_dlsym("setSimputRndGen", 1)))
+     return -1;
 
-   //static int (*openSimputCtlg);
-   //static int (*getSimputCtlgNSources)(void *);
-  //static void (*setSimputConstantARF)(void *, double, double, double, char *, int*);
-   //static void * (*startSimputPhotonAnySource)(void *, double, int*);
-   //static void (*freeSimputCtlg)(void **, int *);
-   //static void (*closeSimputPhotonAnySource)(void *);
-   //static int (*getSimputPhotonAnySource)(void *, void *, double, double *, float *, double *, double *, dobule *, long *, int *) 
-
+   //void setSimputRndGen(double(*rndgen)(int* const));
 
    st->open_source = simput_open_source;
    st->create_photons = simput_create_photons;
