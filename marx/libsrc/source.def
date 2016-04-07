@@ -40,6 +40,8 @@ extern int marx_select_saosac_source (Marx_Source_Type *, Param_File_Type *,
 				      char *, unsigned int);
 extern int marx_select_image_source (Marx_Source_Type *, Param_File_Type *,
 				      char *, unsigned int);
+extern int marx_select_simput_source (Marx_Source_Type *, Param_File_Type *,
+				      char *, unsigned int);
 
 #ifdef MARX_SOURCE_C_FILE
 
@@ -54,10 +56,11 @@ static Source_Object_Type Sources [] =
    {"USER", marx_select_user_source, 0, 0},
    {"SAOSAC", marx_select_saosac_source, _MARX_DITHER_ZERO_AMP|_MARX_DITHER_RECORD_ONLY, 0},
    {"IMAGE", marx_select_image_source, 0, 0},
+   {"SIMPUT", marx_select_simput_source, 0, 0},
    {NULL, NULL, 0, 0}
 };
 #if MARX_HAS_DYNAMIC_LINKING
-char *Marx_Supported_Sources = "POINT, GAUSS, LINE, BETA, RAYFILE, DISK, USER, SAOSAC, IMAGE";
+char *Marx_Supported_Sources = "POINT, GAUSS, LINE, BETA, RAYFILE, DISK, USER, SAOSAC, IMAGE, SIMPUT";
 #else
 char *Marx_Supported_Sources = "POINT, GAUSS, LINE, BETA, RAYFILE, DISK, SAOSAC, IMAGE";
 #endif

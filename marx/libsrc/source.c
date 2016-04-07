@@ -104,13 +104,13 @@ static Source_Object_Type *find_source (char *name)
  * respect to the spacecraft pointing axis, which is generally different
  * from the optical axis.
  */
-static int compute_source_elaz (double *azp, double *elp)
+extern int marx_compute_elaz (double Ra, double Dec, double *azp, double *elp)
 {
    JDMVector_Type src, pnt;
    double ra_pnt, dec_pnt, roll_pnt;
    double az, el;
 
-   src = JDMv_spherical_to_vector (1.0, PI/2.0 - Source_Dec, Source_Ra);
+   src = JDMv_spherical_to_vector (1.0, PI/2.0 - Dec, Ra);
    if (-1 == marx_get_pointing (&ra_pnt, &dec_pnt, &roll_pnt))
      return -1;
    pnt = JDMv_spherical_to_vector (1.0, PI/2.0 - dec_pnt, ra_pnt);
@@ -142,44 +142,51 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
    if (-1 == marx_get_nominal_pointing (&ra_nom, &dec_nom, &roll_nom))
      return -1;
 
-   if (-1 == compute_source_elaz (&Source_Azimuth, &Source_Elevation))
+   if (-1 == marx_compute_elaz (Source_Ra, Source_Dec, &Source_Azimuth, &Source_Elevation))
      return -1;
 
    p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
 
-   /* Now add offsets via the proper rotations */
-   p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
-   p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
+   // SIMPUT source gives absolute RA, DEC
+   // MARX sources give relative to source position
+   if (name != "SIMPUT"){
+     /* Now add offsets via the proper rotations */
+     p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
+     p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
 
-   /* Finally roll it so that this point will be invariant under roll.  That is,
-    * the dither transformation will (on the average) undo this rotation.
-    * See the apply_dither function.
-    */
-   p = JDMv_rotate_unit_vector (p, JDMv_vector (1, 0, 0), roll_nom);
+     /* Finally roll it so that this point will be invariant under roll.  That is,
+      * the dither transformation will (on the average) undo this rotation.
+      * See the apply_dither function.
+      */
+     p = JDMv_rotate_unit_vector (p, JDMv_vector (1, 0, 0), roll_nom);
 
-   /* This vector must point FROM source TO origin. */
-   st->p.x = -p.x;
-   st->p.y = -p.y;
-   st->p.z = -p.z;
+     /* This vector must point FROM source TO origin. */
+     st->p.x = -p.x;
+     st->p.y = -p.y;
+     st->p.z = -p.z;
 
-   /* Create a vector orthogonal to above.  This will save the source
-    * routine the effort required to do this.
-    *
-    * Since st->p is more or less oriented along the negative x direction,
-    * st->p.x will be non-zero.  In fact, this will be required.
-    * With this requirement, a normal in the x-y plane is trival to construct.
-    */
+     /* Create a vector orthogonal to above.  This will save the source
+      * routine the effort required to do this.
+      *
+      * Since st->p is more or less oriented along the negative x direction,
+      * st->p.x will be non-zero.  In fact, this will be required.
+      * With this requirement, a normal in the x-y plane is trival to construct.
+      */
 
-   if (p.x <= 0.0)
-     {
-	marx_error ("Source rays will not hit the telescope.");
-	return -1;
-     }
+     if (p.x <= 0.0)
+       {
+	 marx_error ("Source rays will not hit the telescope.");
+	 return -1;
+       }
 
-   st->p_normal.z = 0.0;
-   st->p_normal.y = 1.0;
-   st->p_normal.x = -p.y / p.x;
-   JDMv_normalize (&st->p_normal);
+     st->p_normal.z = 0.0;
+     st->p_normal.y = 1.0;
+     st->p_normal.x = -p.y / p.x;
+     JDMv_normalize (&st->p_normal);
+   }
+   else{
+     st->p = p;
+   }
 
    st->distance = Source_Distance;
 
