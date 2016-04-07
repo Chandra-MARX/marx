@@ -64,7 +64,7 @@ SourceDEC,r,a,-5.375129700E+01,-90,90,"source DEC (degrees)"
 #---------------------------------------------------------------------------
 # Source model to use
 #
-SourceType,s,a,"POINT","POINT|GAUSS|IMAGE|LINE|BETA|RAYFILE|DISK|USER|SAOSAC",,"source"
+SourceType,s,a,"POINT","POINT|GAUSS|IMAGE|LINE|BETA|RAYFILE|DISK|USER|SAOSAC|SIMPUT",,"source"
 #
 # Gaussian source parameters
 #
@@ -109,6 +109,11 @@ UserSourceArgs,s,a,"pnts.dat",,,"user source parameter"
 #
 SAOSACFile,s,a,"saosac.fits",,,"marx input source/output ray filename"
 SAOSAC_Color_Rays,b,a,no,,,"This option is no longer supported"
+#
+# SIMPUT Source parameters
+#
+S-SIMPUT-Source,f,a,"CDFS_cat_galaxies.fits",,,"Filename of SIMPUT Catalog"
+S-SIMPUT-Library,f,a,"/melkor/d1/guenther/soft/simput/lib/libsimput.so",,,"Path to dynamically linked file libsimput.so"
 #---------------------------------------------------------------------------
 #
 # Dither/Aspect Parameters

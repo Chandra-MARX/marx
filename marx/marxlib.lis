@@ -61,3 +61,4 @@
 @libsrc/s-rayfile.c
 @libsrc/s-disk.c
 @libsrc/s-user.c
+@libsrc/s-simput.c
