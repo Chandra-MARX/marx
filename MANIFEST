@@ -309,6 +309,7 @@ marx/libsrc/s-point.c
 marx/libsrc/s-rayfile.c
 marx/libsrc/s-saosac.c
 marx/libsrc/s-user.c
+marx/libsrc/s-simput.c
 marx/libsrc/trans.c
 marx/libsrc/util.c
 marx/libsrc/wfold.c
