@@ -21,14 +21,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-// todo: dynamic linking?
-// todo: start value of arf is currently 0.2. How about the HRC?
-// todo: Set SIMPUT random number generator to use the marx function
-/** Set the random number generator, which is used by the simput
-    library routines. The generator should return double valued,
-    uniformly distributed numbers in the interval [0,1). */
-//void setSimputRndGen(double(*rndgen)(int* const));
-
 #include <stdio.h>
 #include "config.h"
 
@@ -76,7 +68,7 @@ typedef void (*Fun_Ptr)(void);
 
 static void * (*openSimputCtlg)(char *, int, int, int, int, int, int *);
 static int (*getSimputCtlgNSources)(void *);
-static void (*setSimputConstantARF)(void *, double, double, double, char *, int*);
+static void (*setSimputARFfromarrays)(void *, long, float[], float[], float[], char *, int*);
 static void * (*startSimputPhotonAnySource)(void *, double, int*);
 static void (*freeSimputCtlg)(void **, int *);
 static void (*closeSimputPhotonAnySource)(void *);
@@ -123,6 +115,15 @@ int simput_open_source (Marx_Source_Type *st)
   double* const dec;
   int status = 0;
   long n_sources;
+  void * src;
+  #define ARF_BIN_SIZE 0.001
+  #define ARF_LOW_E 0.01
+  #define N_ARF_BINS 12000
+  float low_energy[N_ARF_BINS];
+  float hi_energy[N_ARF_BINS];
+  float eff_area[N_ARF_BINS];
+  float en = ARF_LOW_E;
+  long i;
 
   mjdref = _Marx_TStart_MJDsecs / (24. * 3600.);
   setSimputRndGen(&wrap_JDMrandom);
@@ -133,6 +134,7 @@ int simput_open_source (Marx_Source_Type *st)
     marx_error ("Error interpreting SIMPUT catalog.");
     return -1;
   }
+
   n_sources = getSimputCtlgNSources(cat);
   if (n_sources==0){
     marx_error("No Sources found in SIMPUT catalog");
@@ -142,7 +144,14 @@ int simput_open_source (Marx_Source_Type *st)
   if (-1 == marx_get_nominal_pointing (&ra_nom, &dec_nom, &roll_nom))
     return -1;
 
-  setSimputConstantARF(cat, 0.2, 12., Marx_Mirror_Geometric_Area, "Chandra", &status);
+  // Make a constant arf with small bins
+  for (i=0; i<N_ARF_BINS; i++){
+    eff_area[i] = Marx_Mirror_Geometric_Area;
+    low_energy[i]=en;
+    en +=ARF_BIN_SIZE;
+    hi_energy[i]=en;
+  }
+  setSimputARFfromarrays(cat, N_ARF_BINS, low_energy, hi_energy, eff_area, "Chandra", &status);
   if (status!=0){
     marx_error ("SIMPUT could not set ARF.");
     return -1;
@@ -160,22 +169,23 @@ int simput_open_source (Marx_Source_Type *st)
 static int simput_close_source (Marx_Source_Type *st)
 {
   int status;
-  /* if (Simput_handle != NULL) */
-  /*    dlclose (Simput_handle); */
-
-  /* Simput_handle = NULL; */
 
   (void) freeSimputCtlg(&cat, &status);
   (void) closeSimputPhotonAnySource(next_photons);
   (void) st;
   openSimputCtlg = NULL;
   getSimputCtlgNSources = NULL;
-  setSimputConstantARF = NULL;
+  setSimputARFfromarrays = NULL;
   startSimputPhotonAnySource = NULL;
   freeSimputCtlg = NULL;
   closeSimputPhotonAnySource = NULL;
   getSimputPhotonAnySource = NULL;
   setSimputRndGen = NULL;
+
+  if (Simput_Handle != NULL)
+     dlclose (Simput_Handle);
+
+  Simput_Handle = NULL;
 
   return status;
 }
@@ -304,7 +314,7 @@ int marx_select_simput_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
      return -1;
    if (NULL == (getSimputCtlgNSources = (int (*)(void *)) simput_dlsym("getSimputCtlgNSources", 1)))
      return -1;
-   if (NULL == (setSimputConstantARF = (void (*)(void *, double, double, double, char *, int*)) simput_dlsym("setSimputConstantARF", 1)))
+   if (NULL == (setSimputARFfromarrays = (void (*)(void *, long, float[], float[], float[], char *, int*)) simput_dlsym("setSimputARFfromarrays", 1)))
      return -1;
    if (NULL == (startSimputPhotonAnySource = (void * (*)(void *, double, int*)) simput_dlsym("startSimputPhotonAnySource", 1)))
      return -1;
@@ -316,8 +326,6 @@ int marx_select_simput_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
      return -1;
    if (NULL == (setSimputRndGen = (void (*)(void *)) simput_dlsym("setSimputRndGen", 1)))
      return -1;
-
-   //void setSimputRndGen(double(*rndgen)(int* const));
 
    st->open_source = simput_open_source;
    st->create_photons = simput_create_photons;
