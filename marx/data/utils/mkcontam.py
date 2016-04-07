@@ -118,7 +118,7 @@ def marx_contam_file(filein, fileout, rel_tolerance=0.01, abs_tolerance=0.01):
         hdr['instrum'] = "ACIS"
         hdr['detnam'] = "ACIS-{0}".format(i)
         hdr['ccd_id'] = i
-        hdr['marxvers'] = 5.2
+        hdr['marxvers'] = 5.3
         hdr['fxyblk'] = maxb
 
         cols = []
