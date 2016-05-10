@@ -3789,7 +3789,7 @@ static int compute_status (Data_Def_Type *ddt) /*{{{*/
 }
 
 /*}}}*/
-
+// see $CALDB/data/chandra/acis/grade/acisD2009-11-01gradeN0005.fits
 static char Grade_Map [256] =
 {
    0,   1,   2,   5,   1,   1,   5,   7,   3,   5,   6,   6,   3,   5,   7,   7,
@@ -3819,6 +3819,11 @@ static int compute_grade (Data_Def_Type *ddt) /*{{{*/
 
 /*}}}*/
 
+/* fltgrades assigned to the 3*3 subpixels. Each subpixel had four fltgradea
+ * listed here. compute_fltgrade shoses one of them randomly.
+ * This array is 9 * 4 instead of 3 * 3 * 4, just to reduce the number of
+ * dimensions and simplify typing.
+ */
 static int Flight_Grade_Table [9][4] =
 {
    /* -- */ { 10,  11,  138,  139 },
@@ -3832,6 +3837,20 @@ static int Flight_Grade_Table [9][4] =
    /* ++ */ { 80,  81,  208,  209 }
 };
 
+/* Each pixel is split into 3*3 sub-pixels. Photons hitting the middle one get
+ * assigned fltgrade 0 = grade 0, those hitting one of the 4 corners get
+ * randomly assigned one of four appropriate corner-split grades (e.g. 10,
+ * 11, 138, 139 for the bottom left corner), and those hitting a side one
+ * of four vertical or horizontal split grades (e.g. 2, 34, 130, 162 for
+ * the middle bottom sub-pixel). That makes almost all fltgrades equally
+ * likely, and grade 0 four time more likely than the rest.but, in the words of
+ * Cathrine Grant from the ACIS team, any scheme
+ * that's not energy dependent and does not distinguish between FI and BI
+ * "is just pure fiction". For example, for BI chips that low energies,
+ * photons will generate only small charge clouds and even events that hit
+ * fairly close to the pixel boundary do not generate split events (see
+ * e.g. https://iopscience.iop.org/article/10.1086/421866/fulltext/ - Fig. 1).
+ */
 static int compute_fltgrade (Data_Def_Type *ddt) /*{{{*/
 {
    int dx, dy;

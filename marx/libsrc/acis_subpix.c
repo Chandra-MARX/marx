@@ -277,6 +277,9 @@ Marx_Subpix_Table_Type *marx_open_acis_subpix (void)
    return stt;
 }
 
+/* In the CalDB EDSER file (in structure stt), find the energy and fltgrade
+ * dependend dx, dy for a photon.
+ */
 int marx_compute_acis_subpix (Marx_Subpix_Table_Type *stt,
 			      int ccd, float energy, int fltgrade, float *dxp, float *dyp)
 {
@@ -305,6 +308,7 @@ int marx_compute_acis_subpix (Marx_Subpix_Table_Type *stt,
 	j = i;
 	i--;
      }
+   // Linear interpolation on the energy grid to get dxp, dyp
    w1 = ((double)energy - s->energies[i])/(s->energies[j] - s->energies[i]);
    w0 = 1.0 - w1;
    *dxp = w0 * s->dxs[i] + w1 * s->dxs[j];
