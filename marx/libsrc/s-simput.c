@@ -106,6 +106,13 @@ double wrap_JDMrandom(int* const status)
   return JDMrandom();
 }
 
+#define ARF_BIN_SIZE 0.001
+#define ARF_LOW_E 0.01
+#define N_ARF_BINS 12000
+static float low_energy[N_ARF_BINS];
+static float hi_energy[N_ARF_BINS];
+static float eff_area[N_ARF_BINS];
+
 int simput_open_source (Marx_Source_Type *st)
 {
   //SimputSrc* const src;
@@ -116,12 +123,6 @@ int simput_open_source (Marx_Source_Type *st)
   int status = 0;
   long n_sources;
   void * src;
-  #define ARF_BIN_SIZE 0.001
-  #define ARF_LOW_E 0.01
-  #define N_ARF_BINS 12000
-  float low_energy[N_ARF_BINS];
-  float hi_energy[N_ARF_BINS];
-  float eff_area[N_ARF_BINS];
   float en = ARF_LOW_E;
   long i;
 
