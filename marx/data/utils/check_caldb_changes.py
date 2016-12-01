@@ -80,5 +80,5 @@ If any of these calibration files have changed, that probably also has an
 effect on /hrma/corr*.dat.
 See utils/Makefile for instructions on how to redo those.
 
-If any file name changes, edit marxcaldb.dat accordingly.
+If any file name changes, edit marxcaldb.dat, Markefile.in, and marx.lis accordingly; then do git rm, git add
 ''')
