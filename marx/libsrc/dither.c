@@ -356,10 +356,13 @@ static int get_aspsol_dither (double t, Marx_Dither_Type *d,
 
 static int get_aspsol_dither_mean(double total_time, double *dy, double *dz, double *dtheta)
 {
-  // Make sure we read the file up to the total exposure time
-   if (-1 == get_aspsol_point (total_time))
-     return -1;
+  int iret;
 
+  // Make sure we read the file up to the total exposure time
+  iret = get_aspsol_point (total_time);
+  if(iret==-1) return iret;
+
+  //marx_message("get_aspsol_dither_mean(): Aspsol.num_steps = %d\n",Aspsol.num_steps);
    if ( 0 == Aspsol.num_steps)
      {
        marx_error("Exposure is too short to calculate mean ASPSOL values.");
@@ -368,6 +371,7 @@ static int get_aspsol_dither_mean(double total_time, double *dy, double *dz, dou
    *dy = Aspsol.sum_dy / Aspsol.num_steps;
    *dz = Aspsol.sum_dz / Aspsol.num_steps;
    *dtheta = Aspsol.sum_dtheta / Aspsol.num_steps;
+   return iret;
 }
 
 /* Record the dither state but do not actually dither the rays, which are
@@ -732,6 +736,5 @@ int marx_average_dither(double t, double *dy, double *dz, double *dtheta)
   int status;
   status = (*Get_Dither_Par_Means)(t, dy, dz, dtheta);
 
-   if (status != 1)
-     return status;
+  return status;
 }

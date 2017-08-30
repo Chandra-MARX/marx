@@ -1185,6 +1185,7 @@ static int write_obs_par (double total_time)
        || (-1 == pf_learn_double (pf, "EXPOSURE", total_time))
        || (-1 == pf_learn_double (pf, "TELAPSE", total_time)))
        {
+	  // marx_message ("write_obs_par(): C\n");
 	  pf_close_parameter_file (pf);
 	  return -1;
        }
@@ -1199,10 +1200,14 @@ static int write_obs_par (double total_time)
  */
 static int write_fits_info (double total_time)
 {
-   if (-1 == write_obs_par (total_time))
+  int iret;
+
+  iret = write_obs_par (total_time);
+  
+  if (iret == -1)
      return -1;
 
-   return 0;
+  return 0;
 }
 
 /* Pipe routines */
