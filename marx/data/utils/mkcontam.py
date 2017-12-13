@@ -140,7 +140,7 @@ def marx_contam_file(filein, fileout, rel_tolerance=0.01, abs_tolerance=0.01):
                                             name='ACIS{0}_CONTAM'.format(i))
         listhdus.append(tab)
     newhdulist = fits.HDUList(listhdus)
-    newhdulist.writeto(fileout)
+    newhdulist.writeto(fileout, overwrite=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Change ACIS Contam file from CALDB to MARX format')
