@@ -438,6 +438,10 @@ ACIS-I3-FilterFile,f,h,"acis/acis_i_xray_trans_1198.dat",,,"ACIS Chip 3 OBF file
 #---------------------------------------------------------------------------
 # The blur parameters were extracted from
 #   <http://cxc.harvard.edu/twiki/bin/view/HrcCal/DetectorPSF>.
+# However, comparison to observations in Dec 2018 shows that the PSFs
+# with these characteristics are too wide in the wings. 
+# Thus, we return to a Gaussian distribution shown to fit better while
+# this issue is investigated in more detail.
 # The (Xctr,Yctr) are offset at runtime such that (G1Xctr,G1Yctr)=(0,0).
 #
 HRC-I-BlurG1FWHM,r,h,13.8994,0,,"HRC-I Gauss1 FWHM (1/4 pixels)"
@@ -447,11 +451,11 @@ HRC-I-BlurG1Amp,r,h,15.7528,0,,"HRC-I Gauss1 Amp"
 HRC-I-BlurG2FWHM,r,h,4.25636,0,,"HRC-I Gauss2 FWHM (1/4 pixels)"
 HRC-I-BlurG2Xctr,r,h,61.35,0,,"HRC-I Gauss2 Xctr (1/4 pixels)"
 HRC-I-BlurG2Yctr,r,h,64.178,0,,"HRC-I Gauss2 Yctr (1/4 pixels)"
-HRC-I-BlurG2Amp,r,h,5.19162,0,,"HRC-I Gauss2 Amp"
+HRC-I-BlurG2Amp,r,h,0.0,0,,"HRC-I Gauss2 Amp"
 HRC-I-BlurL1FWHM,r,h,10.8269,0,,"HRC-I Lorentz1 FWHM (1/4 pixels)"
 HRC-I-BlurL1Xctr,r,h,73.3361,0,,"HRC-I Lorentz1 Xctr (1/4 pixels)"
 HRC-I-BlurL1Yctr,r,h,63.9927,0,,"HRC-I Lorentz1 Yctr (1/4 pixels)"
-HRC-I-BlurL1Amp,r,h,0.978579,0,,"HRC-I Lorentz1 Amp"
+HRC-I-BlurL1Amp,r,h,0.0,0,,"HRC-I Lorentz1 Amp"
 HRC-I-BlurL1Rmax,r,h,256,0,,"HRC-I Lorentz1 Rmax (1/4 pixels)"
 #
 HRC-I-QEFile,f,h,"hrc/mcp_qe_i.v2.2.dat",,,"HRC-I QE File"
@@ -468,11 +472,11 @@ HRC-S-BlurG1Amp,r,h,15.750,0,,"HRC-S Gauss1 Amp"
 HRC-S-BlurG2FWHM,r,h,4.2560,0,,"HRC-S Gauss2 FWHM (1/4 pixels)"
 HRC-S-BlurG2Xctr,r,h,67.420,0,,"HRC-S Gauss2 Xctr (1/4 pixels)"
 HRC-S-BlurG2Yctr,r,h,64.110,0,,"HRC-S Gauss2 Yctr (1/4 pixels)"
-HRC-S-BlurG2Amp,r,h,5.1920,0,,"HRC-S Gauss2 Amp"
+HRC-S-BlurG2Amp,r,h,0.0,0,,"HRC-S Gauss2 Amp"
 HRC-S-BlurL1FWHM,r,h,10.820,0,,"HRC-S Lorentz1 FWHM (1/4 pixels)"
 HRC-S-BlurL1Xctr,r,h,53.030,0,,"HRC-S Lorentz1 Xctr (1/4 pixels)"
 HRC-S-BlurL1Yctr,r,h,63.880,0,,"HRC-S Lorentz1 Yctr (1/4 pixels)"
-HRC-S-BlurL1Amp,r,h,0.9790,0,,"HRC-S Lorentz1 Amp"
+HRC-S-BlurL1Amp,r,h,0.0,0,,"HRC-S Lorentz1 Amp"
 HRC-S-BlurL1Rmax,r,h,256.000,0,,"HRC-S Lorentz1 Rmax (1/4 pixels)"
 #
 HRC-S-QEFile0,f,h,"hrc/mcp_qe_s.v3.dat",,,"HRC QE File for MCP 0"
