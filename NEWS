@@ -1,3 +1,64 @@
+Marx 5.4 (Dec 2018)
+===================
+Update `CalDB`_ files that are shipped with |marx| to `CalDB`_ version 4.8.2.
+
+HRC PSF
+-------
+The HRC detector PSF has some blur in it. See
+https://cxc.cfa.harvard.edu/twiki/bin/view/HrcCal/DetectorPSF for how the
+parameters used in previous versions of |marx| are determined. However, we
+recently found that the PSFs are wider than observed. Thus, in this version we
+change the values of the default `marx.par` file to use a single Gaussian
+instead. This change is most important for the profile of the wings in very
+bright HRC sources.  We continue to investigate this and expect another change
+in the next |marx| release.
+
+
+Marx 5.3.3 (Dec 2017)
+=====================
+Small bug fix to the source code to allow compilation with clang
+(which is the default compiler on Macs).
+
+Marx 5.3.2 (Dec 2016)
+=====================
+Update `CalDB`_ files that are shipped with |marx|. No changes to the source
+code.
+
+
+Marx 5.3.1 (Aug 2016)
+=====================
+This fixes two bugs for users of SIMPUT sources; all other
+runs are unaffected.
+
+
+Marx 5.3 (Apr 2016)
+===================
+
+Important bug-fix for off-axis sources: Please upgrade!
+-------------------------------------------------------
+MARX 5.0, 5.1, and 5.2 contain a bug that affects the PSF for 
+simulations of off-axis sources; this is fixed in 5.3.
+The root cause for this bug was that the entrance aperture of the Chandra
+mirrors was chosen to match the size of the mirror opening as seen an on-axis
+source exactly. For an off-axis source that means that the generated photons
+hit only part of the mirror, leading to gaps in the simulated PSF. Now, the
+entrance aperture has been increased to allow sources anywhere in the
+field-of-view to fill the detector. This necessarily increases the run time of
+all |marx| simulations, because more photons need to be generated.
+See https://github.com/Chandra-MARX/marx/issues/21 for a detailed
+description of the issue.
+
+
+New source type: SIMPUT
+-----------------------
+|marx| now supports the new `SIMPUT standard`_, which is a fits based
+description of sources, which allows a large number of source with different
+spectra, light curves, and shapes on the sky. This file format is supported by a
+number of other simulators (e.g. for ATHENA), so integrating it in |marx|
+allows users to use the same source specification for different X-ray missions.
+The support in |marx| is through the `SIMPUT code`_ which needs to be installed
+separately and is linked dynamically at runtime if :par:`SourceType="SIMPUT"`.
+
 ============================================================================
 Marx 5.2 Release Notes
 ============================================================================
