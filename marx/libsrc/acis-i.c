@@ -143,6 +143,8 @@ int _marx_acis_i_detect (Marx_Photon_Type *pt) /*{{{*/
 	     at->ccd_num = d->id;
 	     at->y_pixel = dx / d->x_pixel_size;
 	     at->z_pixel = dy / d->y_pixel_size;
+  	     _marx_acis_enyz_to_grade(at);
+	     pt->history |= (MARX_DET_GRADE_OK);
 
 	     if (0 == _marx_acis_apply_qe_and_pha (&Acis_CCDS[(unsigned int) (d->id)], at))
 	       {
@@ -300,6 +302,7 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
 {
    Marx_Detector_Type *acis_i;
    unsigned int i;
+   int igrfits[2];
 
 #if MARX_HAS_ACIS_FEF
    if (-1 == marx_init_acis_i_rmf (p))
@@ -345,6 +348,16 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
 	       return -1;
 	  }
      }
+
+   /* AML October 11, 2018
+    *
+    * if grades FITS files have not been read in, read them now.
+    *
+    *
+    */
+   set_print_grfits_diag();
+   // unset_print_grfits_diag();
+   read_acis_grades_files(igrfits);
 
    return 0;
 }

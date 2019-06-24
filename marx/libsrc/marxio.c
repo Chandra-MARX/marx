@@ -44,6 +44,8 @@
 #include "marx.h"
 #include "_marx.h"
 
+#include "_jdfits.h"
+
 #ifndef SLMALLOC
 # define SLMALLOC malloc
 # define SLFREE free
@@ -204,13 +206,13 @@ FILE *marx_create_write_dump_file (char *filename, Marx_Dump_File_Type *dft)
    return fp;
 }
 
-typedef struct Outfile_Info_Type
+typedef struct _Outfile_Info_Type
 {
    unsigned long mask;
    char *filename;
    char *colname;
    char data_type;
-   int (*write_func)(struct Outfile_Info_Type *, FILE *fp, Marx_Photon_Attr_Type *at, double);
+   int (*write_func)(struct _Outfile_Info_Type *, FILE *fp, Marx_Photon_Attr_Type *at, double);
 }
 Outfile_Info_Type;
 
@@ -249,7 +251,7 @@ Outfile_Info_Type;
    { \
       SIGNED_CHAR i = expr; \
       (void) info; (void) total_time; \
-      if (1 != fwrite (&i, 1, 1, fp)) \
+      if (1 != fwrite(&i, 1, 1, fp)) \
 	return -1; \
       return 0; \
    }
@@ -284,10 +286,12 @@ MAKE_WRITE_INT8_FUNC(write_order1, at->support_orders[0])
 MAKE_WRITE_INT8_FUNC(write_order2, at->support_orders[1])
 MAKE_WRITE_INT8_FUNC(write_order3, at->support_orders[2])
 MAKE_WRITE_INT8_FUNC(write_order4, at->support_orders[3])
+// AML October 22, 2018
+MAKE_WRITE_INT16_FUNC(write_grade, at->grade)
 
 MAKE_WRITE_INT32_FUNC(write_photon_tag, at->tag)
 
-Outfile_Info_Type Outfile_Info_Table [] =
+Outfile_Info_Type Outfile_Info_Table[] =
 {
    {MARX_PI_OK, "b_energy.dat", "B_ENERGY", 'E', &write_pi},
    {MARX_ENERGY_OK, "energy.dat", "ENERGY", 'E', &write_energy},
@@ -312,6 +316,7 @@ Outfile_Info_Type Outfile_Info_Table [] =
    {MARX_ORDER2_OK, "ocoarse1.dat", "COARSE1", 'A', &write_order2},
    {MARX_ORDER3_OK, "ocoarse2.dat", "COARSE2", 'A', &write_order3},
    {MARX_ORDER4_OK, "ocoarse3.dat", "COARSE3", 'A', &write_order4},
+   {MARX_DET_GRADE_OK, "grade.dat", "GRADE", 'I', &write_grade}, // AML October 22, 2018
 #if MARX_HAS_DITHER
    {MARX_SKY_DITHER_OK, "sky_ra.dat", "RA", 'E', &write_sky_ra},
    {MARX_SKY_DITHER_OK, "sky_dec.dat", "DEC", 'E', &write_sky_dec},

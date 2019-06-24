@@ -159,6 +159,7 @@ void _marx_dither_set_ray_tstart (double);
 extern int _marx_init_mirror_blur (Param_File_Type *);
 extern int _marx_mirror_blur (Marx_Photon_Type *);
 
+#define GR5_MAX_DEL 0.001    // maximum deviation of subtotal of grade probabilities from unity
 extern int _marx_hrc_s_detect (Marx_Photon_Type *);
 extern int _marx_hrc_i_detect (Marx_Photon_Type *);
 extern int _marx_acis_s_detect (Marx_Photon_Type *);
@@ -167,6 +168,11 @@ extern int _marx_hrc_s_init (Param_File_Type *);
 extern int _marx_hrc_i_init (Param_File_Type *);
 extern int _marx_acis_s_init (Param_File_Type *);
 extern int _marx_acis_i_init (Param_File_Type *);
+
+extern int _marx_acis_enyz_to_grade (Marx_Photon_Attr_Type *at);  // AML Oct. 5, 2018
+extern void read_acis_grades_files(int ireturn[2]);               // AML Oct. 22, 2018
+extern void set_print_grfits_diag();
+extern void unset_print_grfits_diag();
 
 #if MARX_HAS_IXO_SUPPORT
 extern int _marx_ixoccd_init (Param_File_Type *);
