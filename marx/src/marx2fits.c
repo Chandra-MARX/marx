@@ -749,7 +749,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "mirror.dat",		       /* filename */
       DDT_NEED_MIRROR,		       /* flags */
       "SHELL",			       /* colname */
-      "Mirror Shell (0=1,1=3,2=4,3=6)",
+      "Mirror Shell (0=1,1=3,2=4,3=6)",/* comment */
       "I",			       /* type */
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
