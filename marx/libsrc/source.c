@@ -149,7 +149,7 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
 
    // SIMPUT source gives absolute RA, DEC
    // MARX sources give relative to source position
-   if (name != "SIMPUT"){
+   if (strcmp(name, "SIMPUT") != 0){
      /* Now add offsets via the proper rotations */
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
