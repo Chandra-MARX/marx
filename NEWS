@@ -1,3 +1,9 @@
+Marx 6.0 (unreleased)
+=====================
+
+Change column type of PHA and PI columns written by ``marx2fits`` to float32
+to match the files that CIAO writes.
+
 Marx 5.4 (Dec 2018)
 ===================
 Update `CalDB`_ files that are shipped with |marx| to `CalDB`_ version 4.8.2.

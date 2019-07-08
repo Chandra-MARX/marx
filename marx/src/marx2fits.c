@@ -684,12 +684,12 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
 #endif
       "PHA",			       /* colname */
       "Total PHA for event",	       /* comment */
-      "I",			       /* type */
+      "J",			       /* type */
       "adu",			       /* units */
       NULL,			       /* WCS CTYPE */
       13,			       /* column_number */
       read_int16_to_int32,	       /* compute_value */
-      write_int32_as_int16,		       /* write_value */
+      write_int32,		       /* write_value */
       open_marx_int16_file,	       /* open */
       close_marx_file,		       /* close */
       NULL,			       /* cdt */
@@ -1178,18 +1178,18 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
    },
 #endif
    {
-      'I',			       /* type */
+      'J',			       /* type */
       &Data_Table.dtt_pi,	       /* pointer to value */
       NULL,			       /* filename */
       DDT_NEED_ACIS,		       /* flags */
       "PI",			       /* colname */
       "pulse invariant energy of event",/* comment */
-      "I",			       /* type */
+      "J",			       /* type */
       "Chan",			       /* units */
       NULL,			       /* WCS CTYPE */
       15,			       /* column_number */
       compute_pi,		       /* compute_value */
-      write_int16,		       /* write_value */
+      write_int16_as_int32,		       /* write_value */
       NULL,			       /* open */
       NULL,			       /* close */
       NULL,			       /* cdt */
