@@ -83,7 +83,7 @@ static int num_grade;
 char *grades_data_directory;
 char grades_input_file[512];
 
-int print_grfits_diag;
+int print_grfits_diag, extra_stderr_diag;
 FILE *fpgrdiag;
 
 #define USE_CALDB_FILES
@@ -241,10 +241,10 @@ int _marx_acis_enyz_to_grade (Marx_Photon_Attr_Type *at)
   if(gr >= 0) {
     num_grade++;
   }
-  if(num_grade%100 == 0) {
+  if( (extra_stderr_diag == 1) && (num_grade%100 == 0) ) {
     fprintf(stderr,"grade gr = %d\n",gr);
     return(1);
-  }
+  } 
   if(gr < 0) {
     fprintf(stderr,"******grade gr = %d\n",gr);
     return(0);
@@ -585,8 +585,9 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
     *
     *
     */
-   set_print_grfits_diag();
-   // unset_print_grfits_diag();
+   // set_print_grfits_diag();
+   unset_print_grfits_diag();
+   unset_extra_stderr_diag();
    read_acis_grades_files(igrfits);
 
    return 0;
@@ -705,6 +706,20 @@ void unset_print_grfits_diag()
   if(fpgrdiag != 0) {
     fclose(fpgrdiag);
   }
+}
+
+/****************************************************************************/
+
+void set_extra_stderr_diag()
+{
+  extra_stderr_diag = 1;
+}
+
+/****************************************************************************/
+
+void unset_extra_stderr_diag()
+{
+  extra_stderr_diag = 0;
 }
 
 /****************************************************************************/
@@ -1088,17 +1103,17 @@ int random_grade(double ephot, double xpixsz, double xpos, double ypixsz,
 
   jen = get_ebin(ephot);    // add error check !!!
 
-  // Check that xpixsz and ypixsz are > 0
+  // Check that xpixsz and ypixsz are > 0 ?
 
   xp = (xpos/xpixsz) - floor(xpos/xpixsz);
   jx = xp*grt_ptr->grprdim[2];
   if(jx >= grt_ptr->grprdim[2])
     jx = grt_ptr->grprdim[2] - 1;
 
-  xp = (xpos/xpixsz) - floor(xpos/xpixsz);
-  jy = xp*grt_ptr->grprdim[2];
-  if(jy >= grt_ptr->grprdim[2])
-    jy = grt_ptr->grprdim[2] - 1;
+  yp = (ypos/ypixsz) - floor(ypos/ypixsz);
+  jy = yp*grt_ptr->grprdim[3];
+  if(jy >= grt_ptr->grprdim[3])
+    jy = grt_ptr->grprdim[3] - 1;
 
   return(get_random_grade(jen,jx,jy));
 }
@@ -1213,7 +1228,8 @@ int read_header(FILE *fpin)
 
   nbyt = 0;
   for(i=0;i<GR5_MAX_N_HDR;++i){
-    fprintf(stderr,"starting header block %d\n",i);fflush(stderr);
+    if(extra_stderr_diag == 1)
+	fprintf(stderr,"starting header block %d\n",i);fflush(stderr);
     if(print_grfits_diag==1) {
       fprintf(fpgrdiag,"starting header block %d\n",i); }
     for(j=0;j<36;++j) {
@@ -1340,7 +1356,8 @@ int read_header(FILE *fpin)
       }
       if (!strncmp("END",hdr,3)) {
 	iend = 1;
-	fprintf(stderr,"END found.\n");
+	if(extra_stderr_diag == 1)
+	  fprintf(stderr,"END found.\n");
 	if(print_grfits_diag==1) {
 	  fprintf(fpgrdiag,"END found.\n"); }
       }
@@ -1436,7 +1453,8 @@ int read_image_data(FILE *infile)
   if (naxes > 0) {
     nim = 1;
     for(i=0;i<naxes;++i) {
-      fprintf(stderr,"i,nax = %d %d\n",i,nax[i]);
+      if(extra_stderr_diag == 1)
+	fprintf(stderr,"i,nax = %d %d\n",i,nax[i]);
       nim *= nax[i];
     }
     nbytim = nim*numbyt[0];
@@ -1452,11 +1470,8 @@ int read_image_data(FILE *infile)
 	nrd += ng;
 	// How does the destination variable which could have any of a set of types get specified?
 	// one global variable of each type?
-	if(i<5) {
-	  if(print_grfits_diag==1)
+	if( (i<5) && (print_grfits_diag==1) )  {
 	    convert_data(intflt[0],numbyt[0],inbuf,1,fpgrdiag);
-	  else
-	    convert_data(intflt[0],numbyt[0],inbuf,1,stderr);
 	}
 	else
 	  convert_data(intflt[0],numbyt[0],inbuf,0,stderr);
@@ -1488,11 +1503,13 @@ int read_bintable_data(FILE *infile)
   unsigned char inbuf[8];
   int i, j, sng, nim, nbytim, nrd, npad, ng;
 
-  fprintf(stderr,"ncol = %d\n",ncol);
+  if(extra_stderr_diag == 1)
+    fprintf(stderr,"ncol = %d\n",ncol);
   nrd = 0;
   if (naxes > 0) {  // error if naxes != 2
     for(i=0;i<nax[1];++i) {   // nax[1] = number of rows in the binary table
-      fprintf(stderr,"i,nax[1] = %d %d\n",i,nax[1]);
+      if(extra_stderr_diag == 1)
+	fprintf(stderr,"i,nax[1] = %d %d\n",i,nax[1]);
       for(j=0;j<ncol;++j) {   // ncol = number of columns in a row
 	if( (print_grfits_diag==1) && (i==0) ) {
 	  fprintf(fpgrdiag,"j,numbyt[j] = %d %d\n",j,numbyt[j]); }
@@ -1503,11 +1520,8 @@ int read_bintable_data(FILE *infile)
 	}
 	// How does the destination variable which could have any of a set of types get specified?
 	// one global variable of each type?
-	if(i<3) {
-	  if(print_grfits_diag==1)
+	if( (i<3) && (print_grfits_diag==1) ) {
 	    convert_data(intflt[j],numbyt[j],inbuf,1,fpgrdiag);
-	  else
-	    convert_data(intflt[j],numbyt[j],inbuf,1,stderr);
 	}
 	else
 	  convert_data(intflt[j],numbyt[j],inbuf,0,stderr);
@@ -1539,18 +1553,17 @@ int read_grades_fits_file(FILE *gradesfp)
 
   irec = 0;
   ntot = 0;
-  fprintf(stderr,"\nBeginning read_grades_fits_file()\n");
-  if(print_grfits_diag==1)
-    fprintf(fpgrdiag,"\nBeginning read_grades_fits_file()\n");
+  if(extra_stderr_diag == 1) fprintf(stderr,"\nBeginning read_grades_fits_file()\n");
+  if(print_grfits_diag==1) fprintf(fpgrdiag,"\nBeginning read_grades_fits_file()\n");
   while(1) {
     nrd = read_header(gradesfp);
-    fprintf(stderr,"nrd = %d\n",nrd);
+    if(extra_stderr_diag == 1) fprintf(stderr,"nrd = %d\n",nrd);
     if( (nrd <= 0) || ((nrd % 2880) != 0) ) {
       return(-1);
     }
-    fprintf(stderr,"\nnaxes = %d\n",naxes);
+    if(extra_stderr_diag == 1) fprintf(stderr,"\nnaxes = %d\n",naxes);
     ntot += nrd;
-    fprintf(stderr,"ntot = %d\n",ntot);
+    if(extra_stderr_diag == 1) fprintf(stderr,"ntot = %d\n",ntot);
     if(irec==0) {
       for(i=0;i<4;++i) {
 	grt_ptr->grprdim[i] = nax[i];
@@ -1558,12 +1571,13 @@ int read_grades_fits_file(FILE *gradesfp)
 	  grt_ptr->grprmod[i] = 1;
 	else
 	  grt_ptr->grprmod[i] = nax[i-1]*grt_ptr->grprmod[i-1];
-	fprintf(stderr,"i,grprdim[i],grprmod[i] = %d %d %d\n",i,grt_ptr->grprdim[i],grt_ptr->grprmod[i]);
+	if(extra_stderr_diag == 1) 
+	  fprintf(stderr,"i,grprdim[i],grprmod[i] = %d %d %d\n",i,grt_ptr->grprdim[i],grt_ptr->grprmod[i]);
       }
       if((icgr = check_grprdim()) < 0) {
 	fprintf(stderr,"ERROR - grade table too big - icgr = %d; exiting ...\n",icgr);
 	for(i=0;i<4;++i) {
-	  fprintf(stderr,"i,dim[i] = %d  %d\n",i,grt_ptr->grprdim[i]);
+	  if(extra_stderr_diag == 1) fprintf(stderr,"i,dim[i] = %d  %d\n",i,grt_ptr->grprdim[i]);
 	}
 	exit(-1);
       }
@@ -1579,9 +1593,9 @@ int read_grades_fits_file(FILE *gradesfp)
     // Read IMAGE data
     if( (ihdr == 0) || (ihdr == 1) ) {
       nrd = read_image_data(gradesfp);
-      fprintf(stderr,"irec, nrd = %d %d\n",irec,nrd);
+      if(extra_stderr_diag == 1) fprintf(stderr,"irec, nrd = %d %d\n",irec,nrd);
       ntot += nrd;
-      fprintf(stderr,"ntot = %d\n",ntot);
+      if(extra_stderr_diag == 1) fprintf(stderr,"ntot = %d\n",ntot);
     }
 
     // Read BINTABLE data
@@ -1590,9 +1604,9 @@ int read_grades_fits_file(FILE *gradesfp)
 	set_e_columns();
       }
       nrd = read_bintable_data(gradesfp);
-      fprintf(stderr,"irec, nrd = %d %d\n",irec,nrd);
+      if(extra_stderr_diag == 1) fprintf(stderr,"irec, nrd = %d %d\n",irec,nrd);
       ntot += nrd;
-      fprintf(stderr,"ntot = %d\n",ntot);
+      if(extra_stderr_diag == 1) fprintf(stderr,"ntot = %d\n",ntot);
     }
     ++irec;
   } // while loop 

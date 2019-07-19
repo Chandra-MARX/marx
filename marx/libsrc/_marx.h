@@ -173,6 +173,8 @@ extern int _marx_acis_enyz_to_grade (Marx_Photon_Attr_Type *at);  // AML Oct. 5,
 extern void read_acis_grades_files(int ireturn[2]);               // AML Oct. 22, 2018
 extern void set_print_grfits_diag();
 extern void unset_print_grfits_diag();
+extern void set_extra_stderr_diag();
+extern void unset_extra_stderr_diag();
 
 #if MARX_HAS_IXO_SUPPORT
 extern int _marx_ixoccd_init (Param_File_Type *);
