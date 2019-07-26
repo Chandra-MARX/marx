@@ -622,6 +622,8 @@ int main (int argc, char **argv) /*{{{*/
        && (status == 0))
      status = -1;
 
+   marx_message("main(): status = %d\n",status);
+
    if (status == -1)
      return 1;
 
@@ -632,7 +634,7 @@ int main (int argc, char **argv) /*{{{*/
    fprintf (stdout, "Stats[3] = %ld\n", Stats[3]);
 #endif
    return 0;
-}
+}  // end of main()
 
 /*}}}*/
 
@@ -959,13 +961,15 @@ static unsigned long compute_write_mask (void) /*{{{*/
 	   case 'S':
 	     mask |= MARX_SKY_DITHER_OK|MARX_DET_DITHER_OK;
 	     break;
-
 	   case 'r':
 	     mask |= MARX_DET_REGION_OK;
 	     break;
-
 	   case 'B':
 	     mask |= MARX_PI_OK;
+	     break;
+	   // AML October 22, 2018:
+	   case 'G':
+	     mask |= MARX_DET_GRADE_OK;
 	     break;
 
 	   default:
@@ -1147,8 +1151,10 @@ static int write_obs_par (double total_time)
    dz=0.;
    dtheta=0.;
 
+   // marx_message ("write_obs_par(): A\n");
    if (-1 == marx_average_dither(total_time, &dy, &dz, &dtheta))
       return -1;
+   // marx_message ("write_obs_par(): B\n");
 
    if ((-1 == pf_learn_double (pf, "ra_nom", ra_nom))
        || (-1 == pf_learn_double (pf, "roll_nom", roll_nom))
@@ -1203,7 +1209,8 @@ static int write_fits_info (double total_time)
   int iret;
 
   iret = write_obs_par (total_time);
-  
+  // marx_message ("write_fits_info(): return val. of write_obs_par() = %d\n",iret);
+
   if (iret == -1)
      return -1;
 

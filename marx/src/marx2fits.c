@@ -749,7 +749,7 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "mirror.dat",		       /* filename */
       DDT_NEED_MIRROR,		       /* flags */
       "SHELL",			       /* colname */
-      "Mirror Shell (0=1,1=3,2=4,3=6)",
+      "Mirror Shell (0=1,1=3,2=4,3=6)",/* comment */
       "I",			       /* type */
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
@@ -976,7 +976,8 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
    {
       'I',			       /* type */
       &Data_Table.dtt_fltgrade,	       /* pointer to value */
-      NULL,			       /* filename */
+      "grade.dat",		       /* filename */
+      // NULL,			       /* filename */
       DDT_NEED_ACIS,		       /* flags */
       "FLTGRADE",			       /* colname */
       "Event Grade Code",	       /* comment */
@@ -984,16 +985,20 @@ static Data_Def_Type Data_Def_Table [] = /*{{{*/
       "",			       /* units */
       NULL,			       /* WCS CTYPE */
       16,			       /* column_number */
-      compute_fltgrade,		       /* compute_value */
+      read_int16,	               /* compute_value */
       write_int16,		       /* write_value */
-      NULL,			       /* open */
-      NULL,			       /* close */
+      open_marx_int16_file,	       /* open */
+      close_marx_file,		       /* close */
+      // compute_fltgrade,		       /* compute_value */
+      // write_int16,		       /* write_value */
+      // NULL,			       /* open */
+      // NULL,			       /* close */
       NULL,			       /* cdt */
       'I',			       /* ddt_min_max_type */
       0.0,			       /* ddt_min_float_value */
       0.0,			       /* ddt_max_float_value */
       0,			       /* ddt_min_int_value */
-      255				       /* ddt_max_int_value */
+      255			       /* ddt_max_int_value */
    },
    {
       'I',			       /* type */

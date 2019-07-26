@@ -96,6 +96,8 @@ typedef struct
    SIGNED_CHAR support_orders[4];	       /* diffraction orders from support */
 
    unsigned int tag;		       /* unique tag for each photon */
+   // short grade;                         /* ACIS grade 0-255 */// AML April 12, 2018
+   int grade;                         // AML June 10, 2019
 }
 Marx_Photon_Attr_Type;
 
@@ -145,6 +147,7 @@ typedef struct
 #define MARX_ORDER2_OK		0x00400000
 #define MARX_ORDER3_OK		0x00800000
 #define MARX_ORDER4_OK		0x01000000
+#define MARX_DET_GRADE_OK       0x02000000    // AML April 12, 2018
 
    unsigned int tag_start;	       /* start tag for this group */
 }
