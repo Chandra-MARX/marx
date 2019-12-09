@@ -10,10 +10,10 @@
  *   described in Belfiore et al. (2019).
  * usage:
  *   this plugin can be compiled with a line like the following:
-gcc -shared -fPIC -I${MARX_DIR}/include -L${MARX_DIR}/lib -ljdmath Draine_halo.c -o Draine_halo.so
+gcc -shared -fPIC -I${MARX_DIR}/include -L${MARX_DIR}/lib -ljdmath draine_halo.c -o draine_halo.so
  *   afterwards it can be called from MARX, with the following options:
-marx SourceType=USER UserSourceFile=./Draine_halo.so UserSourceArgs="$d_10" ... (other options)
-marx SourceType=USER UserSourceFile=./Draine_halo.so UserSourceArgs="$d_10 $E_1" ... (other options)
+marx SourceType=USER UserSourceFile=./draine_halo.so UserSourceArgs="$d_10" ... (other options)
+marx SourceType=USER UserSourceFile=./draine_halo.so UserSourceArgs="$d_10 $E_1" ... (other options)
  *   the argument $d_10 is the distance between ULX1 and the dust layer
  *   in 10 kpc units, and $E_1 is the characteristic photon energy in keV,
  *   used to determine the differential scattering cross section.
