@@ -28,7 +28,6 @@ int user_create_ray (double *delta_t, double *energy,
    *cosz = Source_CosZ;
 
    *delta_t = -1.0;
-   *energy = -1.0;
    return 0;
 }
 

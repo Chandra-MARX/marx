@@ -164,7 +164,7 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
    unsigned int i;
    Marx_Photon_Attr_Type *at;
    int (*efun) (Marx_Spectrum_Type *, double *);
-   double t, energy, last_time;
+   double t, energy, energy_drawn, last_time;
 
    if (User_Start_Iteration != NULL)
      {
@@ -185,6 +185,11 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
      {
 	double p1, p2, p3;
 
+	if (-1 == (*efun) (&st->spectrum, &energy_drawn))
+	  return -1;
+	
+	energy = energy_drawn;
+
 	if (-1 == (*User_Generate_Ray) (&t, &energy, &p1, &p2, &p3))
 	  break;
 
@@ -200,10 +205,15 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 	     at->arrival_time = last_time;
 	  }
 
+	/* This will not be called, unless the User_Generate_Ray resets the
+           energy, but for backwards compatibility, we need it:
+           Up to marx 5.4 the energy before user_generate_ray
+           was undefined and the user source was expected to set it to
+           -1, if it wanted marx to draw as usual.
+	*/
 	if (energy < 0.0)
 	  {
-	     if (-1 == (*efun) (&st->spectrum, &energy))
-	       return -1;
+	    energy = energy_drawn;
 	  }
 
 	at->energy = energy;

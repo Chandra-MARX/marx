@@ -38,7 +38,6 @@ int user_create_ray (double *delta_t, double *energy,
    *cosz = sin_theta * sin (phi);
 
    *delta_t = -1.0;
-   *energy = -1.0;
    
    last_i++;  
 
