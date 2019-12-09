@@ -195,7 +195,6 @@ int user_create_ray (double *delta_t, double *energy,
    double x, y, tmp;
 
    *delta_t = -1.0;
-   *energy = -1.0;
    
    r = JDMrandom ();
    n = JDMbinary_search_f (r, Image, Image_Size);
