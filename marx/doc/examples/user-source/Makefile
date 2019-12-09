@@ -33,7 +33,7 @@ LIBS =
 XCC_SHARED = $(CC_SHARED) $(CFLAGS) $(INCS) 
 XCC_TESTING = $(CC_SHARED) $(CFLAGS) $(INCS) -DTESTING
 
-all: slang.so pnts.so point.so image.so grid.so off-axis.so eventlist.so
+all: slang.so pnts.so point.so image.so grid.so off-axis.so eventlist.so draine_halo.so
 
 point.so: point.c
 	$(XCC_SHARED) point.c -o point.so $(LIBS)
@@ -45,7 +45,8 @@ grid.so: grid.c
 	$(XCC_SHARED) grid.c -o grid.so $(LIBS)
 off-axis.so: off-axis.c
 	$(XCC_SHARED) off-axis.c -o off-axis.so $(LIBS)
-
+draine_halo.so.so: draine_halo.c
+	$(XCC_SHARED) draine_halo.c -o draine_halo.so $(LIBS)
 slang.so: slang.c
 	$(XCC_SHARED) $(SLANG_INC) slang.c -o slang.so $(LIBS) $(SLANG_LIB) -lm
 
