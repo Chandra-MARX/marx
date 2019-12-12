@@ -1,5 +1,5 @@
-Marx 6.0 (unreleased)
-=====================
+Marx 5.5 (Dec 2019)
+====================
 
 Change column type of PHA and PI columns written by ``marx2fits`` to float32
 to match the files that CIAO writes.
