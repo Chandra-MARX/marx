@@ -49,6 +49,7 @@ AC_FUNC_REALLOC
 AC_FUNC_STRTOD
 AC_FUNC_ERROR_AT_LINE
 
+
 dnl JD used to check header and lib with an AND condition.
 AC_CHECK_HEADERS(dlfcn.h)
 AC_CHECK_LIB(dl, dlopen)
@@ -64,6 +65,7 @@ AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
+
 # Need to use SIZEOF_INT_P etc in the program for this to make sense
 # I think original intention was to raise error if length is different
 # then expected. 
@@ -89,7 +91,6 @@ AC_CONFIG_HEADERS(libsrc/config.h:libsrc/config.hin)
 
 AC_CONFIG_FILES([Makefile par/marx.par par/marxasp.par par/marxpileup.par])
 AC_OUTPUT
-
 
 echo ""
 echo "You are compiling MARX with the following compiler configuration:"
@@ -127,3 +128,4 @@ echo ""
 #
 # This way, if the user sets CFLAGS, his choice is respected (though it
 # might make the build crash - but that's his problem).
+

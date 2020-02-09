@@ -43,7 +43,7 @@ src/bisect.c \
 src/machar.c
 
 # This files is used in "include".
-# List it here ot make sure it's include in the source distribution.
+# List it here to make sure it's included in the source distribution.
 EXTRA_libjdmath_a_SOURCES = \
 src/fftn-inc.c
 

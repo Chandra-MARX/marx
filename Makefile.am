@@ -28,6 +28,7 @@ endif
 include_HEADERS = libsrc/marx.h libsrc/marx-feat.h
 
 lib_LIBRARIES = libmarx.a
+
 libmarx_a_SOURCES = \
 libsrc/argcargv.h \
 libsrc/argcargv.c \
