@@ -17,19 +17,11 @@ AC_PROG_INSTALL
 AC_CHECK_HEADERS([stdlib.h unistd.h limits.h])
 
 AC_CHECK_FUNCS([fseeko memset strchr])
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 
 #Check endianess
 AC_CHECK_HEADERS
 AC_C_BIGENDIAN
 
-# Check sizeof various types
-AC_CHECK_SIZEOF(short)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(float)
-AC_CHECK_SIZEOF(double)
 AC_CHECK_LIB(m, erf)
 AC_CHECK_FUNCS( isinf isnan finite erf )
 

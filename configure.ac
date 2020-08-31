@@ -5,16 +5,14 @@ AC_INIT([marx],[6.0],[marx-help@space.mit.edu],[],[http://space.mit.edu/cxc/marx
 # for GNU standards?
 AC_CONFIG_SRCDIR(libsrc/diffract.c)
 
-# Do I need this? Not sure there is anything left to keep in there.
 AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([build-aux])
 
 
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AM_PROG_AR
 AC_PROG_CC
 
-# Do I need this? Not suere there are any macros left I need to build.
-AC_CONFIG_MACRO_DIR([build-aux])
 
 AC_CONFIG_SUBDIRS(jdmath pfile jdfits rsp)
 
@@ -43,9 +41,7 @@ AC_CHECK_HEADERS([stdlib.h unistd.h limits.h])
 
 
 AC_CHECK_FUNCS([timegm floor memset mkdir pow sqrt strchr strstr])
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
-AC_FUNC_REALLOC
 AC_FUNC_STRTOD
 AC_FUNC_ERROR_AT_LINE
 
@@ -59,23 +55,12 @@ AS_IF([test "x$ac_cv_header_dlfcn_h" = "xyes" -a "x$ac_cv_lib_dl_dlopen" = "xyes
 
 AM_CONDITIONAL([HAVE_LIBDL], [test "x$ac_cv_header_dlfcn_h" = "xyes" -a "x$ac_cv_lib_dl_dlopen" = "xyes"]) 
  
-dnl  Check sizeof various types
-AC_CHECK_SIZEOF(short)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(float)
-AC_CHECK_SIZEOF(double)
-
-# Need to use SIZEOF_INT_P etc in the program for this to make sense
-# I think original intention was to raise error if length is different
-# then expected. 
-
 
 # TBD: Is this needed here? Or enough in jdfits and pfile?
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_TYPE_OFF_T
-AC_CHECK_SIZEOF(off_t)
+#AC_CHECK_SIZEOF(off_t)
 
 # Define preprocessor FSEEK to be either fseek or fseeko
 if test "x$ac_cv_func_fseeko" != xyes; then

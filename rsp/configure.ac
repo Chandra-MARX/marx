@@ -42,7 +42,7 @@ AC_CHECK_HEADER([fitsio.h],
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_TYPE_OFF_T
-AC_CHECK_SIZEOF(off_t)
+#AC_CHECK_SIZEOF(off_t)
 
 # Define preprocessor FSEEK to be either fseek or fseeko
 if test "x$ac_cv_func_fseeko" != xyes; then

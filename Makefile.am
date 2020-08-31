@@ -25,17 +25,17 @@ if HAVE_LIBDL
   AM_LDFLAGS=-rdynamic
 endif
 
-include_HEADERS = libsrc/marx.h libsrc/marx-feat.h
+include_HEADERS = libsrc/marx.h libsrc/marx-feat.h libsrc/_marx.h
 
 lib_LIBRARIES = libmarx.a
 
 libmarx_a_SOURCES = \
 libsrc/argcargv.h \
 libsrc/argcargv.c \
-libsrc/_marx.h \
 libsrc/chandra.h \
 libsrc/acis.h \
 libsrc/hrc.h \
+libsrc/_marx.h \
 libsrc/caldb.c \
 libsrc/photon.c \
 libsrc/acis_geom.c \
