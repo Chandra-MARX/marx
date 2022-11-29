@@ -1,3 +1,9 @@
+Marx 5.5.2 (Dec 2022)
+=====================
+This is a maintainace release that just upgrades the contamination file from the 
+CALDB that is shipped with |marx|. No changes are made to the |marx| source code.
+
+
 Marx 5.5.1 (Dec 2020)
 =====================
 This is a maintainace release that just upgrades the contamination file from the 
