@@ -67,7 +67,7 @@ for f in marxcaldb:
         print('Check CALDB manually!')
     else:
         if not diff.identical:
-            print diff.report()
+            print(diff.report())
         else:
             print('{0} is up to date.' .format(f))
 
