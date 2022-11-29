@@ -31,7 +31,7 @@ def rebin_factor(a, n):
     x, y = a.shape
     assert x == y
 
-    return a.reshape((x, y / n, n)).mean(axis=2).reshape((x / n, n, y / n)).mean(axis=1)
+    return a.reshape((x, y // n, n)).mean(axis=2).reshape((x // n, n, y // n)).mean(axis=1)
 
 
 def binup_factor(a, n):
@@ -78,7 +78,7 @@ def block_imgs(imgstack, rel_tolerance=0.01, abs_tolerance=0.01):
         maxb[i] = max_block_image(imgstack[i,:,:], rel_tolerance, abs_tolerance)
     maxb = int(np.min(maxb))
 
-    newstack = np.zeros((n_comp, imgstack.shape[1] / maxb, imgstack.shape[2] / maxb))
+    newstack = np.zeros((n_comp, imgstack.shape[1] // maxb, imgstack.shape[2] // maxb))
     for i in range(n_comp):
         newstack[i, :, :] = rebin_factor(imgstack[i, :, :], maxb)
     return newstack, maxb

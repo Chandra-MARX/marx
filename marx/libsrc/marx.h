@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2019 Massachusetts Institute of Technology
+    Copyright (C) 2002-2020 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -26,8 +26,8 @@
 #include <jdmath.h>
 #include <pfile.h>
 
-#define MARX_VERSION 50500
-#define MARX_VERSION_STRING "5.5.0"
+#define MARX_VERSION 50501
+#define MARX_VERSION_STRING "5.5.1"
 
 #ifndef SIGNED_CHAR
 # define SIGNED_CHAR signed char
