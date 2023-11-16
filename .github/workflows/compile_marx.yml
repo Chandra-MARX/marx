@@ -1,0 +1,29 @@
+name: compile and run marx
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
+    - name: make install
+      run: sudo make install
+    - name: marxversion
+      run: marx --version
+    - name: run marx
+      run: |
+        cp /usr/local/share/marx/pfiles/marx.par .
+        marx
+    - name: run marx2fits
+      run: marx2fits point point.fits
