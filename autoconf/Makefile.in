@@ -65,7 +65,6 @@ PAR_FILES = \
  marx/par/marxpileup.par \
 
 MARXRSP_EXECS = marxrsp/marxrsp
-MARXRSP_LIBEXECS = marxrsp/rspdump
 
 all:
 	cd jdmath; $(MAKE) all

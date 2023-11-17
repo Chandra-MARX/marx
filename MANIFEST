@@ -332,7 +332,6 @@ marxrsp/marx2fits.c
 marxrsp/marxrsp.c
 marxrsp/marxrsp.lis
 marxrsp/rsp.c
-marxrsp/rspdump.c
 marx/src/acis-qe.c
 marx/src/acissim.c
 marx/src/acissim.h
