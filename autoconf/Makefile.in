@@ -32,9 +32,7 @@ DEST_PFILEDIR	= $(DESTDIR)$(PFILEDIR)
 
 BINEXECS = \
  marx/src/$(ARCH)objs/marx \
- marx/src/$(ARCH)objs/marx2dpde \
  marx/src/$(ARCH)objs/marx2fits \
- marx/src/$(ARCH)objs/marx2img \
  marx/src/$(ARCH)objs/marxcat \
  marx/src/$(ARCH)objs/marxpileup \
  marx/src/$(ARCH)objs/marxasp \
