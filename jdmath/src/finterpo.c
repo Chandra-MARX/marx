@@ -47,6 +47,8 @@ unsigned int JDMbinary_search_f (float x, float *xp, unsigned int n)
 	     n0 = n2;
 	  }
      }
+
+   if (x >= xp[n0]) return n1;
    return n0;
 }
 
