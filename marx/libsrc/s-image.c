@@ -332,13 +332,15 @@ static int image_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{
 	y = (double) (ofs / X_Image_Size);
 	x = (double) (ofs % X_Image_Size);
 
-	/* Center the image and randomize within the pixel.  Note that the
-	 * average of the RHS of next expression is 0.5*YSize
+	/* Center the image and randomize within the pixel.
+   * In fits, the image center is at an integer pixel, so we need to
+   * subtract 0.5 to make the random number from -0.5 to 0.5 so
+   * the distribution is centered on the pixel.
 	 */
-	y -= 0.5 * (Y_Image_Size - 1) + JDMrandom ();
-	x -= 0.5 * (X_Image_Size - 1) + JDMrandom ();
+  y += -0.5 * Y_Image_Size + (JDMrandom () - 0.5);
+	x += -0.5 * X_Image_Size + (JDMrandom () - 0.5);
 
-	y = y * Rad_Per_YPixel;
+  y = y * Rad_Per_YPixel;
 	x = x * Rad_Per_XPixel;
 
 	cos_y = cos (y);
