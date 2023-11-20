@@ -332,7 +332,6 @@ marxrsp/marx2fits.c
 marxrsp/marxrsp.c
 marxrsp/marxrsp.lis
 marxrsp/rsp.c
-marxrsp/rspdump.c
 marx/src/acis-qe.c
 marx/src/acissim.c
 marx/src/acissim.h
@@ -344,9 +343,7 @@ marx/src/geffdump.c
 marx/src/henke.c
 marx/src/henke.h
 marx/src/Makefile.in
-marx/src/marx2dpde.c
 marx/src/marx2fits.c
-marx/src/marx2img.c
 marx/src/marxasp.c
 marx/src/marx.c
 marx/src/marxcat.c

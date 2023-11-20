@@ -39,19 +39,19 @@
 
 @doc/hrma/hrma-OLD.txt
 @doc/hrma/DG-19961223-1.txt
-@doc/hrma/PZ-19951128.txt 
+@doc/hrma/PZ-19951128.txt
 @doc/hrma/WAP-19950929.txt
 @doc/hrma/WAP-19970327.txt
-@doc/hrma/RJE-19961220.txt 
-@doc/hrma/WAP-19960328.txt 
+@doc/hrma/RJE-19961220.txt
+@doc/hrma/WAP-19960328.txt
 @doc/hrma/JPH-19960304.txt
 @doc/hrma/TJG-19961007A.txt
 @doc/hrma/WAP-19960410.txt
-@doc/hrma/JWA-19960603.txt 
+@doc/hrma/JWA-19960603.txt
 @doc/hrma/TJG-19961007B.txt
 @doc/hrma/WAP-19961008.txt
 @doc/hrma/LVS-19960614.txt
-@doc/hrma/TJG-19961007C.txt  
+@doc/hrma/TJG-19961007C.txt
 @doc/hrma/WAP-19961108.txt
 @doc/hrma/fields.txt
 
@@ -125,13 +125,11 @@
 @src/Makefile.in
 @src/marx.c
 @src/dumpwfold.c
-@src/marx2dpde.c
 @src/geff.c
 @src/geffdump.c
 @src/rfl.c
 @src/marx2fits.c
 @src/bestfocus.c
-@src/marx2img.c
 @src/marxcat.c
 @src/acissim.c
 @src/detinfo.c
@@ -214,8 +212,8 @@
 @data/hrc/hrc_s_geom.txt
 @data/hrc/hrc_i_geom.txt
 *data/hrc/mcp_qe_i.v2.2.dat
-*data/hrc/mcp_qe_s.v3.dat	
-*data/hrc/uvis_i.v4.dat  	
+*data/hrc/mcp_qe_s.v3.dat
+*data/hrc/uvis_i.v4.dat
 *data/hrc/uvis_s1.v4.dat
 *data/hrc/uvis_s2.v4.dat
 *data/hrc/uvis_s34.v4.dat
