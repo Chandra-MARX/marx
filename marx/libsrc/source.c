@@ -147,9 +147,9 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
 
    p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
 
-   // SIMPUT source gives absolute RA, DEC
-   // MARX sources give relative to source position
-   if (strcmp(name, "SIMPUT") != 0){
+   // SIMPUT and IAMGE source gives absolute RA, DEC
+   // other MARX sources give relative to source position
+   if (!((strcmp(name, "SIMPUT") == 0) || (strcmp(name, "IMAGE") == 0))){
      /* Now add offsets via the proper rotations */
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
@@ -170,7 +170,7 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
       *
       * Since st->p is more or less oriented along the negative x direction,
       * st->p.x will be non-zero.  In fact, this will be required.
-      * With this requirement, a normal in the x-y plane is trival to construct.
+      * With this requirement, a normal in the x-y plane is trivial to construct.
       */
 
      if (p.x <= 0.0)
