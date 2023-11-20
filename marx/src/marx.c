@@ -573,7 +573,7 @@ int main (int argc, char **argv) /*{{{*/
 	     return 1;
 	  }
 
-	marx_message ("\t%d collected.\n", num_collected);
+	marx_message ("\t%d photons collected.\n", num_collected);
 	if (num_collected == 0)
 	  break;
 
