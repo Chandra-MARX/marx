@@ -43,6 +43,7 @@
 double Marx_Mirror_Geometric_Area = 1.0;
 
 static int Mirror = -1;
+static int verbose = 0;
 
 int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 {
@@ -50,6 +51,9 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
    char buf[PF_MAX_LINE_LEN];
 
    if (-1 == pf_get_string (pf, "MirrorType", buf, sizeof (buf)))
+     return -1;
+
+   if (-1 == pf_get_integer(pf, "Verbose", &verbose))
      return -1;
 
    if (!strcmp (buf, "HRMA"))
@@ -112,15 +116,15 @@ int marx_mirror_reflect (Marx_Photon_Type *p, int verbose) /*{{{*/
    switch (Mirror)
      {
       case MARX_MIRROR_HRMA:
-	if (verbose) marx_message ("Reflecting from HRMA\n");
+	if (verbose > 0) marx_message ("Reflecting from HRMA\n");
 	return _marx_hrma_mirror_reflect (p);
 
       case MARX_MIRROR_EA:
-	if (verbose) marx_message ("Reflecting from EA-MIRROR\n");
+	if (verbose > 0) marx_message ("Reflecting from EA-MIRROR\n");
 	return _marx_ea_mirror_reflect (p);
 
       case MARX_MIRROR_FFIELD:
-	if (verbose) marx_message ("Flat Fielding Rays\n");
+	if (verbose > 0) marx_message ("Flat Fielding Rays\n");
 	return _marx_ff_mirror_reflect (p);
 #if MARX_HAS_IXO_SUPPORT
 # ifdef MARX_MIRROR_IXO

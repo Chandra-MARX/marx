@@ -2417,7 +2417,7 @@ static int get_marx_pfile_info (void) /*{{{*/
      Simulation_Grating_Type = MARX_GRATING_LETG;
    else Simulation_Grating_Type = 0;
 
-   The_Detector = marx_get_detector_info (DetectorType);
+   The_Detector = marx_get_detector_info (DetectorType, 2);
    if (The_Detector == NULL)
      {
 	pf_close_parameter_file (pf);

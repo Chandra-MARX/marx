@@ -40,6 +40,8 @@
 #include "marx.h"
 #include "_marx.h"
 
+static int verbose = 0;
+
 /*}}}*/
 
 #define USE_GEFF_CALDB_FILE	1
@@ -1327,7 +1329,8 @@ static int read_geff_caldb_file (char *file, int shell,
 				 float ***efficiencies_p,
 				 float **energies_p,
 				 unsigned int *num_energies_p,
-				 int *max_order_p)
+				 int *max_order_p,
+         int verbose)
 {
    int max_order;
    unsigned int num_energies, num_orders = 0;
@@ -1340,7 +1343,7 @@ static int read_geff_caldb_file (char *file, int shell,
    unsigned int i;
 
    sprintf (hduname, "AXAF_GREFF%d", shell+1);
-   marx_message ("\t%s[%s]\n", file, hduname);
+   if (verbose > 1) marx_message ("\t%s[%s]\n", file, hduname);
 
    if (NULL == (f = _marx_open_binary_hdu (file, hduname)))
      return -1;
@@ -1483,7 +1486,7 @@ static int read_geff_bdat_file (char *file, int shell,
 }
 #endif				       /* USE_GEFF_CALDB_FILE */
 
-static Grating_Type *init_one_file_grating (char *file, int shell, double scale)
+static Grating_Type *init_one_file_grating (char *file, int shell, double scale, int verbose)
 {
    int max_order;
    unsigned int num_energies;
@@ -1502,7 +1505,7 @@ static Grating_Type *init_one_file_grating (char *file, int shell, double scale)
    if (NULL == (file = _marx_caldb_get_file (file)))
      goto return_error;
    status = read_geff_caldb_file (file, shell, &efficiencies, &energies,
-				  &num_energies, &max_order);
+				  &num_energies, &max_order, verbose);
 #else
    if (NULL == (file = marx_make_data_file_name (file)))
      goto return_error;
@@ -1562,31 +1565,34 @@ static int init_file_efficiencies (Param_File_Type *pf, char *prefix_name, doubl
 
 	shell = shells[i] - '0';
 #if !USE_GEFF_CALDB_FILE
-	sprintf (pname, "%s_Shell%d_File", prefix_name, shell);
-	if (-1 == pf_get_file (pf, pname, file, sizeof (file)))
+  sprintf(pname, "%s_Shell%d_File", prefix_name, shell);
+  if (-1 == pf_get_file (pf, pname, file, sizeof (file)))
 	  return -1;
 #endif
 	sprintf (pname, "%s_Shell%d_Vig", prefix_name, shell);
 	if (-1 == pf_get_double (pf, pname, &vig))
 	  return -1;
 
-	sprintf (pname, "%s_Shell%d_Theta", prefix_name, shell);
-	if (-1 == pf_get_double (pf, pname, &theta))
+  sprintf(pname, "%s_Shell%d_Theta", prefix_name, shell);
+  if (-1 == pf_get_double (pf, pname, &theta))
 	  return -1;
 
 	sprintf (pname, "%s_Shell%d_dTheta", prefix_name, shell);
 	if (-1 == pf_get_double (pf, pname, &dtheta))
 	  return -1;
 
-	sprintf (pname, "%s_Shell%d_Period", prefix_name, shell);
-	if (-1 == pf_get_double (pf, pname, &period))
+  sprintf(pname, "%s_Shell%d_Period", prefix_name, shell);
+  if (-1 == pf_get_double (pf, pname, &period))
 	  return -1;
 
-	sprintf (pname, "%s_Shell%d_dPoverP", prefix_name, shell);
-	if (-1 == pf_get_double (pf, pname, &dp_over_p))
+  sprintf(pname, "%s_Shell%d_dPoverP", prefix_name, shell);
+  if (-1 == pf_get_double (pf, pname, &dp_over_p))
 	  return -1;
 
-	g = init_one_file_grating (file, i, scale);
+  if (-1 == pf_get_integer(pf, "Verbose", &verbose))
+    return -1;
+
+  g = init_one_file_grating (file, i, scale, verbose);
 
 	if (g == NULL)
 	  return -1;
@@ -1646,7 +1652,7 @@ static int read_sector_files (Param_File_Type *pf, char *name)
 	     return -1;
 	  }
 
-	marx_message ("\t%s\n", file);
+	if (verbose > 1) marx_message ("\t%s\n", file);
 
 	if (NULL == (gs = read_sector_info (file)))
 	  {
@@ -1669,7 +1675,7 @@ int _marx_hetg_init (Param_File_Type *pf)
 
    Sim_Use_LETG = 0;
 
-   marx_message ("Initializing HETG...\n");
+   if (verbose > 0) marx_message ("Initializing HETG...\n");
 
    if (-1 == grating_pre_init (pf))
      return -1;

@@ -129,6 +129,7 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
    unsigned int i, j;
    unsigned int n_mirrors = MARX_NUM_MIRRORS;
    char *file;
+   int verbose;
 
    if ((-1 == pf_get_parameters (p, HRMA_Parm_Table))
        || (HRMA_EA_File == NULL) || (0 == *HRMA_EA_File))
@@ -160,7 +161,10 @@ int _marx_ea_mirror_init (Param_File_Type *p) /*{{{*/
    if (Mirrors.energies != NULL) JDMfree_float_vector (Mirrors.energies);
    Mirrors.energies = NULL;
 
-   marx_message ("Reading binary mirror effective area file\n\t%s\n", file);
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+     return -1;
+
+   if (verbose > 1) marx_message ("Reading binary mirror effective area file\n\t%s\n", file);
 
    if (-1 == marx_f_read_bdat (file, &nread, 7,
 			       NULL,   /* wavelength */

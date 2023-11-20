@@ -243,7 +243,7 @@ static Marx_Detector_Geometry_Type *setup_geom (void)
 
 static Marx_Detector_Type IXO_XMS_Detector;
 
-Marx_Detector_Type *_marx_get_ixo_xms_detector (void)
+Marx_Detector_Type *_marx_get_ixo_xms_detector (int verbose)
 {
    Marx_Detector_Type *d;
    Marx_Detector_Geometry_Type *g;
@@ -276,11 +276,15 @@ int _marx_ixoxms_init (Param_File_Type *pf)
    Marx_QE_Type *qeinfo;
    Marx_Detector_Type *d;
    Marx_Detector_Geometry_Type *xms;
+   int verbose;
 
    if (-1 == read_ixo_ccd_parms (pf))
      return -1;
 
-   if (NULL == (d = _marx_get_ixo_xms_detector ()))
+   if (-1 == pf_get_integer(pf, "Verbose", &verbose))
+     return -1;
+
+   if (NULL == (d = _marx_get_ixo_xms_detector (verbose)))
      return -1;
 
    qeinfo = NULL;

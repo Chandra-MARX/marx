@@ -41,6 +41,8 @@ _Marx_Coord_Transform_Type _Marx_Det_XForm_Matrix;
 int _Marx_Det_Ideal_Flag;
 int _Marx_Det_Extend_Flag;
 
+static int verbose = 0;
+
 static Param_Table_Type Det_Parm_Table [] =
 {
    {"DetOffsetX",	PF_REAL_TYPE,		&_Marx_Det_XForm_Matrix.dx},
@@ -374,7 +376,7 @@ int marx_detect (Marx_Photon_Type *pt, int verbose) /*{{{*/
 
    if (Detector->detect != NULL)
      {
-	if (verbose)
+	if (verbose > 0)
 	  {
 	     marx_message ("Detecting with %s\n", Detector->name);
 	  }

@@ -14,7 +14,7 @@ DataDirectory,s,h,"$MARX_DATA_DIR",,,"directory for input data"
 OutputVectors,s,h,"ETXYZ123DxyMPOabcdSrB",,,"output data columns (one or more of ETXYZ123DxyMPOabcd)"
 RandomSeed,i,h,-1,,,"random number seed (-1 means use current time)"
 DumpToRayFile,b,h,no,,,"Output in MARX rayfile format?"
-Verbose,b,a,yes,,,"Verbose mode"
+Verbose,i,a,1,,,"Verbose mode"
 #---------------------------------------------------------------------------
 #
 # Science Instrument set up and control

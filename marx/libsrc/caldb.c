@@ -501,7 +501,7 @@ static int ext_acis_qe_fun (void *vccdid, JDFits_Type *ft)
    return 0;
 }
 
-int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np)
+int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np, int verbose)
 {
    JDFits_Type *ft;
    JDFits_Row_Type *r;
@@ -516,7 +516,7 @@ int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np)
    if (NULL == (file = _marx_caldb_get_file ("ACISQE")))
      return -1;
 
-   marx_message ("\t%s for [CCDID = %d]\n", file, ccdid);
+   if (verbose > 1) marx_message ("\t%s for [CCDID = %d]\n", file, ccdid);
    ft = jdfits_find_binary_table (file, ext_acis_qe_fun, (void *)&ccdid);
    if (ft == NULL)
      {

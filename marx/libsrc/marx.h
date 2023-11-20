@@ -459,7 +459,7 @@ typedef struct _Marx_Detector_Type
 }
 Marx_Detector_Type;
 
-extern Marx_Detector_Type *marx_get_detector_info (char *);
+extern Marx_Detector_Type *marx_get_detector_info (char *, int);
 extern int marx_compute_tiled_pixel (Marx_Detector_Type *,
 				     int, unsigned int, unsigned int,
 				     unsigned int *, unsigned int *);

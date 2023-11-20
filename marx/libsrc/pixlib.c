@@ -98,7 +98,7 @@ marx_allocate_chip_to_mnc (char *name, int id)
    Marx_Chip_To_MNC_Type *chip2mnc;
    Marx_Detector_Geometry_Type *g;
 
-   if (NULL == (det = marx_get_detector_info (name)))
+   if (NULL == (det = marx_get_detector_info (name, 2)))
      return NULL;
 
    g = det->facet_list;

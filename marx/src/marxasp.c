@@ -473,7 +473,7 @@ static int get_marx_pfile_info (Param_File_Type *pf)
      Simulation_Grating_Type = 2;
    else Simulation_Grating_Type = 0;
 
-   if (NULL == (dt = marx_get_detector_info (DetectorType)))
+   if (NULL == (dt = marx_get_detector_info (DetectorType, 2)))
      {
 	pf_close_parameter_file (pf);
 	marx_error ("*** DetectorType %s not supported.\n", DetectorType);

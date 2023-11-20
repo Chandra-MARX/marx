@@ -43,6 +43,7 @@
 #include "_marx.h"
 
 static int Perform_Blur = 0;
+static int verbose = 0;
 
 /* This structure defines theta vs photon energy and encircled energy */
 typedef struct /*{{{*/
@@ -106,12 +107,17 @@ int _marx_init_mirror_blur (Param_File_Type *p) /*{{{*/
 	return -1;
      }
 
-   if (NULL == (file = marx_make_data_file_name (filebuf)))
-     return -1;
+     if (-1 == pf_get_integer(p, "Verbose", &verbose))
+       return -1;
 
-   marx_message ("Reading blur data file:\n\t%s\n", file);
+     if (NULL == (file = marx_make_data_file_name(filebuf)))
+       return -1;
+     if (verbose == 1)
+       marx_message("Reading blur data file");
+     if (verbose > 1)
+       marx_message("Reading blur data file:\n\t%s\n", file);
 
-   if (NULL == (fp = fopen (file, "rb")))
+     if (NULL == (fp = fopen(file, "rb")))
      {
 	marx_error ("Unable to open file: %s", file);
 	marx_free (file);

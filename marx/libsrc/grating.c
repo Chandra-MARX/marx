@@ -106,19 +106,19 @@ int marx_grating_diffract (Marx_Photon_Type *pt, int verbose) /*{{{*/
    switch (Grating)
      {
       case MARX_GRATING_LETG:
-	if (verbose) marx_message ("Diffracting from LETG.\n");
+	if (verbose > 0) marx_message ("Diffracting from LETG.\n");
 	status = _marx_letg_diffract (pt);
 	break;
 
       case MARX_GRATING_HETG:
-	if (verbose) marx_message ("Diffracting from HETG.\n");
+	if (verbose > 0) marx_message ("Diffracting from HETG.\n");
 	status = _marx_hetg_diffract (pt);
 	break;
 
 #if MARX_HAS_IXO_SUPPORT
 # ifdef MARX_GRATING_CATGS
       case MARX_GRATING_CATGS:
-	if (verbose) marx_message ("Diffracting from CATGS.\n");
+	if (verbose > 0) marx_message ("Diffracting from CATGS.\n");
 	status = _marx_catgs_diffract (pt);
 	break;
 # endif
