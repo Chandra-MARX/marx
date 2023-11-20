@@ -1,5 +1,6 @@
 dnl -*- sh -*-
-AC_INIT(marx/par/marx.par)
+AC_INIT
+AC_CONFIG_SRCDIR([marx/par/marx.par])
 JD_INIT
 
 JD_ANSI_CC
@@ -20,7 +21,8 @@ unistd.h \
 )
 
 AC_CONFIG_SUBDIRS(jdmath pfile jdfits marx)
-AC_OUTPUT(Makefile:autoconf/Makefile.in marxrsp/Makefile)
+AC_CONFIG_FILES([Makefile:autoconf/Makefile.in marxrsp/Makefile])
+AC_OUTPUT
 
 
 echo ""

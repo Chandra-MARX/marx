@@ -168,12 +168,6 @@ extern int _marx_hrc_i_init(Param_File_Type *);
 extern int _marx_acis_s_init(Param_File_Type *);
 extern int _marx_acis_i_init(Param_File_Type *);
 
-#if MARX_HAS_IXO_SUPPORT
-extern int _marx_ixoccd_init (Param_File_Type *);
-extern int _marx_ixoccd_detect (Marx_Photon_Type *);
-extern int _marx_ixoxms_detect (Marx_Photon_Type *);
-#endif
-
 extern int _marx_hrc_s_compute_pixel (int id, double, double,
 				      double *, double *, double *, double *);
 extern int _marx_patch_hrc_s_geom (Marx_Detector_Type *);
@@ -197,14 +191,6 @@ extern int _marx_hetg_init (Param_File_Type *);
 extern int _marx_letg_init (Param_File_Type *);
 extern int _marx_letg_diffract (Marx_Photon_Type *);
 extern int _marx_hetg_diffract (Marx_Photon_Type *);
-
-#if MARX_HAS_IXO_SUPPORT
-extern int _marx_ixo_mirror_init (Param_File_Type *);
-extern int _marx_ixo_mirror_reflect (Marx_Photon_Type *);
-extern int _marx_catgs_init (Param_File_Type *);
-extern int _marx_catgs_diffract (Marx_Photon_Type *);
-extern int _marx_ixoxms_init (Param_File_Type *p);
-#endif
 
 extern int _marx_init_acis_i_gain_map (Param_File_Type *);
 extern int _marx_init_acis_s_gain_map (Param_File_Type *);
@@ -247,10 +233,6 @@ extern Marx_Detector_Type *_marx_get_acis_s_detector (int);
 extern Marx_Detector_Type *_marx_get_acis_i_detector (int);
 extern Marx_Detector_Type *_marx_get_hrc_s_detector (int);
 extern Marx_Detector_Type *_marx_get_hrc_i_detector (int);
-#if MARX_HAS_IXO_SUPPORT
-extern Marx_Detector_Type *_marx_get_ixo_ccd_detector (int);
-extern Marx_Detector_Type *_marx_get_ixo_xms_detector (int);
-#endif
 
 typedef struct _Marx_QE_Type Marx_QE_Type;
 extern void _marx_qe_free (Marx_QE_Type *);

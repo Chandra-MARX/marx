@@ -1,4 +1,5 @@
-AC_INIT(libsrc/diffract.c)
+AC_INIT
+AC_CONFIG_SRCDIR([libsrc/diffract.c])
 JD_INIT
 
 JD_ANSI_CC
@@ -61,7 +62,7 @@ JD_GET_MODULES(libsrc/modules.lis)
 JD_CREATE_MODULE_ORULES
 
 
-AC_CONFIG_HEADER(libsrc/sysconf.h:libsrc/config.hin)
+AC_CONFIG_HEADERS([libsrc/sysconf.h:libsrc/config.hin])
 
 CF_Output_Files="Makefile:autoconf/Makefile.in libsrc/Makefile"
 if test -d src
@@ -69,7 +70,8 @@ then
   CF_Output_Files="$CF_Output_Files src/Makefile"
 fi
 
-AC_OUTPUT($CF_Output_Files data/Makefile doc/Makefile)
+AC_CONFIG_FILES([$CF_Output_Files data/Makefile doc/Makefile])
+AC_OUTPUT
 
 JD_CREATE_EXEC_RULE(fix_ee)
 JD_CREATE_EXEC_RULE(dump_ee)

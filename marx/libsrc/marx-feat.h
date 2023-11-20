@@ -44,4 +44,3 @@
 #define MARX_HAS_ACIS_FEF		1
 #define MARX_HRMA_HAS_STRUTS		1
 
-#define MARX_HAS_IXO_SUPPORT		1
