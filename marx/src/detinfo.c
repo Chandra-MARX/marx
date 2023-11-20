@@ -96,7 +96,7 @@ int main (int argc, char **argv)
 	name = namebuf;
      }
 
-   if (NULL == (det = marx_get_detector_info (name)))
+   if (NULL == (det = marx_get_detector_info (name, 2)))
      usage ();
 
    fprintf (stdout, " Detector Name: %s\n", name);

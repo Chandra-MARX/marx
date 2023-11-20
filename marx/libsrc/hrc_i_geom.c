@@ -46,6 +46,8 @@ static JDMVector_Type UL_Vector;
 static JDMVector_Type UR_Vector;
 static double LL_CXCY[2];
 
+static int verbose = 0;
+
 static int setup_coordinate_xforms (void)
 {
    double len;
@@ -191,7 +193,10 @@ int _marx_hrc_i_geom_init (Param_File_Type *pf)
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
 
-   marx_message ("\t%s\n", file);
+   if (-1 == pf_get_integer(pf, "Verbose", &verbose))
+     return -1;
+
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    if (-1 == _marx_read_simple_data_file (file, Array_Data_Table))
      {
@@ -246,7 +251,7 @@ static int print_info (Marx_Detector_Type *det, FILE *fp)
    return 0;
 }
 
-Marx_Detector_Type *_marx_get_hrc_i_detector (void)
+Marx_Detector_Type *_marx_get_hrc_i_detector (int verbose)
 {
    Marx_Detector_Type *d;
    Marx_Detector_Geometry_Type *g;

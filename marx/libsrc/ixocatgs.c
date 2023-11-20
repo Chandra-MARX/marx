@@ -600,7 +600,7 @@ static double Support_Period = 5.0;    /* microns */
 #define MAX_GEFF_ORDER 16
 #define MAX_GEFF_COLUMNS (MAX_GEFF_ORDER-MIN_GEFF_ORDER+2)
 
-static Grating_Eff_Type *read_geff_caldb_file (char *file)
+static Grating_Eff_Type *read_geff_caldb_file (char *file, int verbose)
 {
    int order, min_order, max_order;
    unsigned int num_energies, num_orders = 0;
@@ -614,7 +614,7 @@ static Grating_Eff_Type *read_geff_caldb_file (char *file)
 
    Grating_Eff_Type *geff = NULL;
    sprintf (hduname, "IXO_GREFF");
-   marx_message ("\t%s[%s]\n", file, hduname);
+   if (verbose > 1) marx_message ("\t%s[%s]\n", file, hduname);
 
    if (NULL == (f = _marx_open_binary_hdu (file, hduname)))
      return NULL;
@@ -715,14 +715,14 @@ return_error:
    return NULL;
 }
 
-static Grating_Eff_Type *read_geff_file (char *file)
+static Grating_Eff_Type *read_geff_file (char *file, int verbose)
 {
    Grating_Eff_Type *geff;
 
    if (NULL == (file = marx_make_data_file_name (file)))
      return NULL;
 
-   geff = read_geff_caldb_file (file);
+   geff = read_geff_caldb_file (file, verbose);
    marx_free (file);
    return geff;
 }
@@ -1212,6 +1212,7 @@ int _marx_catgs_init (Param_File_Type *pf)
 {
    Grating_Eff_Type *left_geff, *right_geff;
    int ret;
+   int verbose;
 
    CatGS_Init_Called++;
 
@@ -1220,9 +1221,12 @@ int _marx_catgs_init (Param_File_Type *pf)
    if (-1 == read_ixo_catgs_parms (pf))
      return -1;
 
-   if (NULL == (left_geff = read_geff_file (Left_Grating_Eff_File)))
+   if (-1 == pf_get_integer(pf, "Verbose", &verbose))
      return -1;
-   if (NULL == (right_geff = read_geff_file (Right_Grating_Eff_File)))
+
+   if (NULL == (left_geff = read_geff_file (Left_Grating_Eff_File, verbose)))
+     return -1;
+   if (NULL == (right_geff = read_geff_file (Right_Grating_Eff_File, verbose)))
      {
 	free_grating_eff_type (left_geff);
 	return -1;

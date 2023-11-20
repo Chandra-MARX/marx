@@ -240,7 +240,7 @@ static int check_simulation_parameters (void)
    pf_close_parameter_file (pf);
 
    if ((0 != strncmp (buf, "ACIS", 4))
-       || (NULL == (det = marx_get_detector_info (buf))))
+       || (NULL == (det = marx_get_detector_info (buf, 2))))
      {
 	fprintf (stderr, "DetectorType %s not supported by this program\n",
 		 buf);

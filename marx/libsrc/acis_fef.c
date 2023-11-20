@@ -82,6 +82,8 @@
 
 #define FIRST_CHAN 1
 
+static int verbose = 0;
+
 typedef struct
 {
    float amp;
@@ -881,8 +883,11 @@ static int read_acis_fef (Param_File_Type *p, int min_ccdid, int max_ccdid)
    if (file == NULL)
      return -1;
 
-   marx_message ("Reading ACIS-I/S FEF File\n");
-   marx_message ("\t%s\n", file);
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+     return -1;
+
+   if (verbose > 0) marx_message("Reading ACIS-I/S FEF File\n");
+   if (verbose > 1) marx_message("\t%s\n", file);
    status = read_fef_file (file, min_ccdid, max_ccdid);
    marx_free (file);
    return status;

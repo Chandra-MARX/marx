@@ -530,7 +530,7 @@ static int print_info (Marx_Detector_Type *det, FILE *fp)
    return 0;
 }
 
-Marx_Detector_Type *_marx_get_hrc_s_detector (void)
+Marx_Detector_Type *_marx_get_hrc_s_detector (int verbose)
 {
    int id;
    Marx_Detector_Type *d;

@@ -462,7 +462,7 @@ static void free_optical_constants (void)
    Num_Energies = 0;
 }
 
-static int read_opt_constants (void)
+static int read_opt_constants (int verbose)
 {
    unsigned int nread;
    char *file;
@@ -479,7 +479,7 @@ static int read_opt_constants (void)
    /* The optical constant file consists of:
     *   energy (KeV), beta, delta
     */
-   marx_message ("Reading binary HRMA optical constants:\n\t%s\n", file);
+   if (verbose > 1) marx_message ("Reading binary HRMA optical constants:\n\t%s\n", file);
 
    if (-1 == marx_f_read_bdat (file, &nread, 3, &Energies, &Betas, &Deltas))
      {
@@ -826,6 +826,7 @@ return_error:
 int _marx_ixo_mirror_init (Param_File_Type *p) /*{{{*/
 {
    char *file;
+   int verbose;
 
    if (-1 == pf_get_parameters (p, IXOMirror_Parm_Table))
      return -1;
@@ -874,7 +875,7 @@ int _marx_ixo_mirror_init (Param_File_Type *p) /*{{{*/
 
    if (Mirror_Is_Ideal == 0)
      {
-	if (-1 == read_opt_constants ())
+	if (-1 == read_opt_constants (verbose))
 	  return -1;
      }
 

@@ -38,6 +38,8 @@
 #include "marx.h"
 #include "_marx.h"
 
+static int verbose = 0;
+
 /* This structure is used for the QE curves */
 typedef struct
 {
@@ -301,6 +303,9 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
    Marx_Detector_Type *acis_i;
    unsigned int i;
 
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+     return -1;
+
 #if MARX_HAS_ACIS_FEF
    if (-1 == marx_init_acis_i_rmf (p))
      return -1;
@@ -312,7 +317,7 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
    if (-1 == get_acis_parms (p))
      return -1;
 
-   if (NULL == (acis_i = marx_get_detector_info ("ACIS-I")))
+   if (NULL == (acis_i = marx_get_detector_info ("ACIS-I", verbose)))
      return -1;
 
    ACIS_I_Chips = acis_i->facet_list;
@@ -323,7 +328,7 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
 #endif
 
    if (_Marx_Det_Ideal_Flag == 0)
-     marx_message ("Reading ACIS-I QE/Filter Files\n");
+     if (verbose > 0) marx_message ("Reading ACIS-I QE/Filter Files\n");
 
    for (i = 0; i < _MARX_NUM_ACIS_I_CHIPS; i++)
      {
@@ -339,9 +344,9 @@ int _marx_acis_i_init (Param_File_Type *p) /*{{{*/
 #endif
 	if (_Marx_Det_Ideal_Flag == 0)
 	  {
-	     if (-1 == _marx_acis_read_chip_efficiencies (ccd))
+	     if (-1 == _marx_acis_read_chip_efficiencies (ccd, verbose))
 	       return -1;
-	     if (-1 == _marx_acis_contam_init (p, ccd))
+	     if (-1 == _marx_acis_contam_init (p, ccd, verbose))
 	       return -1;
 	  }
      }

@@ -242,7 +242,7 @@ static int process_photons (Marx_Photon_Type *pt)
 #if PRINT_STATS_ARRAY
    marx_prune_photons (pt); Stats[0] += pt->num_sorted;
 #endif
-   if (-1 == marx_mirror_reflect (pt, 1))
+   if (-1 == marx_mirror_reflect (pt, Marx_Verbose))
      {
 	marx_error ("Error during reflection from mirror");
 	return -1;
@@ -251,7 +251,7 @@ static int process_photons (Marx_Photon_Type *pt)
 #if PRINT_STATS_ARRAY
    marx_prune_photons (pt); Stats[1] += pt->num_sorted;
 #endif
-   if (-1 == marx_grating_diffract (pt, 1))
+   if (-1 == marx_grating_diffract (pt, Marx_Verbose))
      {
 	marx_error ("Unable to diffract photons.");
 	return -1;
@@ -260,7 +260,7 @@ static int process_photons (Marx_Photon_Type *pt)
 #if PRINT_STATS_ARRAY
    marx_prune_photons (pt); Stats[2] += pt->num_sorted;
 #endif
-   if (-1 == marx_detect (pt, 1))
+   if (-1 == marx_detect (pt, Marx_Verbose))
      {
 	marx_error ("Error during detection.");
 	return -1;
@@ -782,26 +782,25 @@ static int cp_par_file (char *file, char *dir) /*{{{*/
 
 /*}}}*/
 #endif
-static Param_Table_Type Control_Parm_Table [] = /*{{{*/
-{
-     {"NumRays",	PF_INTEGER_TYPE, 	&Num_Rays_Marx_Par},
-     {"dNumRays",	PF_INTEGER_TYPE, 	&Num_Rays_Per_Iteration},
-     {"OutputDir",	PF_FILE_TYPE,	 	&Output_Dir},
-     {"OutputVectors",	PF_STRING_TYPE,	 	&Data_To_Write},
-     {"RandomSeed",	PF_INTEGER_TYPE,	&Random_Seed},
-     {"DataDirectory",	PF_STRING_TYPE,		&Data_Directory},
-     {"DumpToRayFile",	PF_BOOLEAN_TYPE,	&Dump_To_Rayfile},
-     {"RayFile",	PF_STRING_TYPE,		&Rayfile_Name},
-     {"SourceType",	PF_STRING_TYPE,		&Source_Name},
-     {"ExposureTime",	PF_REAL_TYPE,		&Exposure_Time},
-     {"Verbose",	PF_BOOLEAN_TYPE,	&Marx_Verbose},
-     {"FocalLength",	PF_REAL_TYPE,		&Marx_Focal_Length},
-     {"DetOffsetX",	PF_DOUBLE_TYPE,		&DetOffset_X},
-     {"DetOffsetY",	PF_DOUBLE_TYPE,		&DetOffset_Y},
-     {"DetOffsetZ",	PF_DOUBLE_TYPE,		&DetOffset_Z},
+static Param_Table_Type Control_Parm_Table[] = /*{{{*/
+    {
+        {"NumRays", PF_INTEGER_TYPE, &Num_Rays_Marx_Par},
+        {"dNumRays", PF_INTEGER_TYPE, &Num_Rays_Per_Iteration},
+        {"OutputDir", PF_FILE_TYPE, &Output_Dir},
+        {"OutputVectors", PF_STRING_TYPE, &Data_To_Write},
+        {"RandomSeed", PF_INTEGER_TYPE, &Random_Seed},
+        {"DataDirectory", PF_STRING_TYPE, &Data_Directory},
+        {"DumpToRayFile", PF_BOOLEAN_TYPE, &Dump_To_Rayfile},
+        {"RayFile", PF_STRING_TYPE, &Rayfile_Name},
+        {"SourceType", PF_STRING_TYPE, &Source_Name},
+        {"ExposureTime", PF_REAL_TYPE, &Exposure_Time},
+        {"Verbose", PF_INTEGER_TYPE, &Marx_Verbose},
+        {"FocalLength", PF_REAL_TYPE, &Marx_Focal_Length},
+        {"DetOffsetX", PF_DOUBLE_TYPE, &DetOffset_X},
+        {"DetOffsetY", PF_DOUBLE_TYPE, &DetOffset_Y},
+        {"DetOffsetZ", PF_DOUBLE_TYPE, &DetOffset_Z},
 
-     {NULL, 0, NULL}
-};
+        {NULL, 0, NULL}};
 
 /*}}}*/
 
@@ -1046,7 +1045,7 @@ static int write_obs_par (double total_time)
 	detector = "HRC-I";
 	datamode = "IMAGING";
 	if (with_grating) datamode = "SPECTROSCOPIC";
-	d = marx_get_detector_info (detector);
+	d = marx_get_detector_info (detector, 2);
 	break;
 
       case MARX_DETECTOR_HRC_S:
@@ -1054,21 +1053,21 @@ static int write_obs_par (double total_time)
 	detector = "HRC-S";
 	datamode = "IMAGING";
 	if (with_grating) datamode = "SPECTROSCOPIC";
-	d = marx_get_detector_info (detector);
+	d = marx_get_detector_info (detector, 2);
 	break;
 
       case MARX_DETECTOR_ACIS_I:
 	obsdir_file = "obs/acis_i_obs.par";
 	detector = "ACIS-I";
 	datamode = "GRADED";
-	d = marx_get_detector_info (detector);
+	d = marx_get_detector_info (detector, 2);
 	break;
 
       case MARX_DETECTOR_ACIS_S:
 	obsdir_file = "obs/acis_s_obs.par";
 	detector = "ACIS-S";
 	datamode = "GRADED";
-	d = marx_get_detector_info (detector);
+	d = marx_get_detector_info (detector, 2);
 	break;
 
       default:
