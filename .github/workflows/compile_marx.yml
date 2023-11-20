@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: configure
       run: ./configure
     - name: make
@@ -23,7 +23,13 @@ jobs:
       run: marx --version
     - name: run marx
       run: |
-        cp /usr/local/share/marx/pfiles/marx.par .
+        cp /usr/local/share/marx/pfiles/*.par .
         marx
     - name: run marx2fits
       run: marx2fits point point.fits
+    - name: run marxpileup
+      run: marxpileup MarxOutputDir=point
+    - name: run marxasp
+      run: marxasp MarxDir=point
+    - name: List files (to check previous commands worked)
+      run: ls
