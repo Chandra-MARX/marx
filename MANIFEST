@@ -385,10 +385,6 @@ pfile/src/pset.c
 pfile/src/pwhich.c
 pfile/src/test.c
 README
-tools/idl/get_hetg_spect.pro
-tools/idl/get_letg_spect.pro
-tools/idl/make_image.pro
 tools/idl/read_marx_file.pro
-tools/idl/tg_extract.pro
 tools/scripts/marxflux
 tools/scripts/xspec2marx
