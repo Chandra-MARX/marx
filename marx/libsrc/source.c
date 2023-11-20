@@ -44,6 +44,14 @@
 #include "marx.h"
 #include "_marx.h"
 
+static double normalize_angle(double theta)
+{
+  theta = fmod(theta, 360.0);
+  if (theta < 0.0)
+    theta += 360.0;
+  return theta;
+}
+
 typedef struct /*{{{*/
 {
    char *name;
@@ -147,9 +155,9 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
 
    p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
 
-   // SIMPUT source gives absolute RA, DEC
-   // MARX sources give relative to source position
-   if (strcmp(name, "SIMPUT") != 0){
+   // SIMPUT and IAMGE source gives absolute RA, DEC
+   // other MARX sources give relative to source position
+   if (!((strcmp(name, "SIMPUT") == 0) || (strcmp(name, "IMAGE") == 0))){
      /* Now add offsets via the proper rotations */
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
@@ -170,14 +178,22 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
       *
       * Since st->p is more or less oriented along the negative x direction,
       * st->p.x will be non-zero.  In fact, this will be required.
-      * With this requirement, a normal in the x-y plane is trival to construct.
+      * With this requirement, a normal in the x-y plane is trivial to construct.
       */
 
      if (p.x <= 0.0)
-       {
-	 marx_error ("Source rays will not hit the telescope.");
-	 return -1;
-       }
+         {
+           /* Convert to evil degrees */
+           ra_nom *= 180.0 / PI;
+           ra_nom = normalize_angle(ra_nom);
+           dec_nom *= 180.0 / PI;
+           Source_Ra *= 180.0 / PI;
+           Source_Ra = normalize_angle(Source_Ra);
+           Source_Dec *= 180.0 / PI;
+           marx_error("Source is located at RA=%f, Dec=%f but nominal pointing is RA=%f Dec=%f.\nRays will not hit the telescope.",
+                      Source_Ra, Source_Dec, ra_nom, dec_nom);
+           return -1;
+         }
 
      st->p_normal.z = 0.0;
      st->p_normal.y = 1.0;
