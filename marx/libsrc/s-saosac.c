@@ -49,8 +49,6 @@ static int File_Has_Time_Column;
 static double Wgts_Scale_Factor = 1.0;
 #endif
 
-static int Use_Color_Rays = 0;
-
 #if SCALE_SAOSAC_WEIGHTS
 static int compute_weights_scale_factor (char *file, double *wp)
 {
@@ -257,31 +255,24 @@ static int saosac_create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*
 	else
 	  at->mirror_shell = 0;
 
-	if (Use_Color_Rays)
-	  {
-	     if (-1 == (*efun) (&st->spectrum, &at->energy))
-	       return -1;
-	  }
+	if (File_Has_Time_Column)
+	{
+		if (Start_Time == 0)
+		  {
+		    Start_Time = buf[8];
+		    _marx_dither_set_ray_tstart (Start_Time);
+		  }
+		this_time = buf[8] - Start_Time;
+	}
 	else
-	  {
-	     if (File_Has_Time_Column)
-	       {
-		  if (Start_Time == 0)
-		    {
-		       Start_Time = buf[8];
-		       _marx_dither_set_ray_tstart (Start_Time);
-		    }
-		  this_time = buf[8] - Start_Time;
-	       }
-	     else
-	       this_time += 1.0;
+	   this_time += 1.0;
 
-	     if (this_time < 0)
-	       continue;
+	if (this_time < 0)
+	   continue;
 
-	     at->energy = buf[6];
-	     at->arrival_time = this_time;
-	  }
+	at->energy = buf[6];
+	at->arrival_time = this_time;
+
 
 	at++;
 	num_read++;
@@ -332,12 +323,6 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
      }
    else Start_Time = 0;
 
-#if 0
-   if (-1 == pf_get_boolean (p, "SAOSAC_Color_Rays", &Use_Color_Rays))
-     return -1;
-#endif
-   Use_Color_Rays = 0;		       /* nolonger supported */
-
 #if SCALE_SAOSAC_WEIGHTS
    Wgts_Scale_Factor = 1.0;
    if (-1 == pf_get_boolean (p, "SAOSAC_Scale_Wgts", &scale_wgts))
@@ -355,10 +340,6 @@ int marx_select_saosac_source (Marx_Source_Type *st, Param_File_Type *p, /*{{{*/
 
    Saosac_Bin_Table = bt;
 
-   if (Use_Color_Rays)
-     {
-	return _marx_get_simple_specrum_parms (p, st, name);
-     }
    st->spectrum.type = MARX_SAOSAC_SPECTRUM;
 
    return 0;
