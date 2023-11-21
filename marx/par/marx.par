@@ -108,7 +108,6 @@ UserSourceArgs,s,a,"pnts.dat",,,"user source parameter"
 #      This option allows SAOSAC FITS raytrace files to be used.
 #
 SAOSACFile,s,a,"saosac.fits",,,"marx input source/output ray filename"
-SAOSAC_Color_Rays,b,a,no,,,"This option is no longer supported"
 #
 # SIMPUT Source parameters
 #
