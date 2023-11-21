@@ -8,10 +8,18 @@
 /Makefile.in
 /aclocal.m4
 /autom4te.cache/
+*/autom4te.cache/
+*/*/autom4te.cache/
 /config.*
+*/config.*
+*/*/config.*
 /configure
+*/configure
+*/*/configure
 /depcomp
 /install-sh
+*/install-sh
+*/*/install-sh
 /libtool
 /ltmain.sh
 /m4/
@@ -24,6 +32,7 @@
 */*/config.h
 */*/sysconf.h
 confdefs.h
+
 
 
 # shared libraries
