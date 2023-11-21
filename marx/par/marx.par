@@ -6,7 +6,7 @@
 #
 #----------------------------------------------------------------------------
 NumRays,i,a,1000000,,,"TOTAL number of rays to generate (if negative, to num to detect)"
-dNumRays,i,a,100000,1,100000,"number of rays per iteration"
+dNumRays,i,a,100000,1,1000000,"number of rays per iteration"
 TStart,r,a,2023.5,1999.56,,"year of observation"
 ExposureTime,r,a,10000,,,"exposure time (0.0 for none)"
 OutputDir,f,a,"point",,,"output directory name"
