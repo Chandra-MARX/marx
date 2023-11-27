@@ -20,7 +20,7 @@ Verbose,i,a,1,,,"Verbose mode"
 # Science Instrument set up and control
 #
 #---------------------------------------------------------------------------
-MirrorType,s,a,"HRMA","HRMA|EA-MIRROR|FLATFIELD",,"mirror type"
+MirrorType,s,a,"HRMA","HRMA|FLATFIELD",,"mirror type"
 GratingType,s,a,"HETG","HETG|LETG|NONE",,"grating type"
 DetectorType,s,a,"ACIS-S","HRC-S|ACIS-S|HRC-I|ACIS-I|NONE",,"detector type"
 DetIdeal,b,a,no,,,"Is Detector perfect (QE=1)?"
@@ -224,20 +224,6 @@ HRMA_P6H6_XOffset,r,h,-0.541755,,,"HRMA P6H6 X offset (mm)"
 #
 PointingOffsetY,r,h,0,,,"Optical-Axis/Pointing Y Misalignment (arcsec)"
 PointingOffsetZ,r,h,0,,,"Optical-Axis/Pointing Z Misalignment (arcsec)"
-#----------------------------------------------------------------------------
-#
-# EA Mirror Setup
-#
-#----------------------------------------------------------------------------
-MirrorRadius1,r,h,600,0.0,,"Mirror 1 radius (mm)"
-MirrorRadius3,r,h,480,0.0,,"Mirror 3 radius (mm)"
-MirrorRadius4,r,h,425,0.0,,"Mirror 4 radius (mm)"
-MirrorRadius6,r,h,310,0.0,,"Mirror 6 radius (mm)"
-MirrorVig,r,h,0.9,0.0,1.0,"HRMA Vignetting factor"
-MirrorUseEA,b,a,yes,,,"Use effective area for HRMA?"
-MirrorEAFile,f,h,"ea-mirror/Ae_s1346.dat",,,"mirror effective filename"
-MirrorBlur,b,a,yes,,,"Perform mirror blur?"
-MirrorBlurFile,f,h,"ea-mirror/mirr-ee.bin",,,"mirror blur filename"
 #---------------------------------------------------------------------------
 #
 # Grating setup

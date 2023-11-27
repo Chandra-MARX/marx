@@ -58,8 +58,6 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 
    if (!strcmp (buf, "HRMA"))
      type = MARX_MIRROR_HRMA;
-   else if (!strcmp (buf, "EA-MIRROR"))
-     type = MARX_MIRROR_EA;
    else if (!strcmp (buf, "FLATFIELD"))
      type = MARX_MIRROR_FFIELD;
    else
@@ -70,11 +68,6 @@ int marx_mirror_init (Param_File_Type *pf) /*{{{*/
 
    switch (type)
      {
-      case MARX_MIRROR_EA:
-	if (-1 == _marx_ea_mirror_init (pf))
-	  type = -1;
-	break;
-
       case MARX_MIRROR_HRMA:
 	if (-1 == _marx_hrma_mirror_init (pf))
 	  type = -1;
@@ -104,10 +97,6 @@ int marx_mirror_reflect (Marx_Photon_Type *p, int verbose) /*{{{*/
       case MARX_MIRROR_HRMA:
 	if (verbose > 0) marx_message ("Reflecting from HRMA\n");
 	return _marx_hrma_mirror_reflect (p);
-
-      case MARX_MIRROR_EA:
-	if (verbose > 0) marx_message ("Reflecting from EA-MIRROR\n");
-	return _marx_ea_mirror_reflect (p);
 
       case MARX_MIRROR_FFIELD:
 	if (verbose > 0) marx_message ("Flat Fielding Rays\n");

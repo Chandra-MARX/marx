@@ -81,10 +81,7 @@
 @libsrc/mirror.c
 @libsrc/diffract.c
 @libsrc/disperse.c
-@libsrc/mblur.c
 @libsrc/interp.c
-@libsrc/fix_ee.c
-@libsrc/dump_ee.c
 @libsrc/detector.c
 @libsrc/detpix.c
 @libsrc/wfold.c
@@ -98,7 +95,6 @@
 @libsrc/source.c
 @libsrc/source.def
 @libsrc/util.c
-@libsrc/eamirror.c
 @libsrc/grating.c
 @libsrc/pixlib.c
 @libsrc/rdb.c
@@ -176,10 +172,6 @@
 #*data/acis/s4_w457c4_eff_898_release.dat
 #*data/acis/s5_w201c3r_eff_898_release.dat
 #*data/acis/acisD1999-12-10gain_marxN0001_110.fits
-
-@data/ea-mirror/README
-*data/ea-mirror/Ae_s1346.dat
-*data/ea-mirror/Mirror_EE.bin
 
 @data/grating/README
 *data/grating/optical-constants.dat

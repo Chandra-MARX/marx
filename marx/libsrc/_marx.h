@@ -156,9 +156,6 @@ void _marx_dither_detector (Marx_Dither_Type *);
 void _marx_dither_set_ray_tstart (double);
 #endif
 
-extern int _marx_init_mirror_blur (Param_File_Type *);
-extern int _marx_mirror_blur (Marx_Photon_Type *);
-
 extern int _marx_hrc_s_detect (Marx_Photon_Type *);
 extern int _marx_hrc_i_detect (Marx_Photon_Type *);
 extern int _marx_acis_s_detect (Marx_Photon_Type *);
@@ -182,8 +179,6 @@ extern int _marx_drake_flat_init (Param_File_Type *);
 
 extern int _marx_hrma_mirror_init (Param_File_Type *);
 extern int _marx_hrma_mirror_reflect (Marx_Photon_Type *);
-extern int _marx_ea_mirror_init (Param_File_Type *);
-extern int _marx_ea_mirror_reflect (Marx_Photon_Type *);
 extern int _marx_ff_mirror_init (Param_File_Type *);
 extern int _marx_ff_mirror_reflect (Marx_Photon_Type *);
 

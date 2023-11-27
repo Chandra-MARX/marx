@@ -39,8 +39,8 @@ OutputDir
 MirrorType
          Type: s
          Mode: a
-        Value: "EA-MIRROR"
-    Min Value: "HRMA|EA-MIRROR"
+        Value: "HRMA"
+    Min Value: "HRMA"
     Max Value: 
   Description:
 
@@ -264,122 +264,7 @@ HRMAXOffset
   Description:
 
     HRMA XOffset (mm)
-#----------------------------------------------------------------------------
-# EA Mirror Setup
-#----------------------------------------------------------------------------
 
-
-MirrorF
-         Type: r
-         Mode: h
-        Value: 10.0692
-    Min Value: 0.0
-    Max Value: 
-  Description:
-
-    HRMA focal length (meters)
-
-
-MirrorRadius1
-         Type: r
-         Mode: h
-        Value: 600
-    Min Value: 0.0
-    Max Value: 
-  Description:
-
-    Mirror 1 radius (mm)
-
-
-MirrorRadius3
-         Type: r
-         Mode: h
-        Value: 480
-    Min Value: 0.0
-    Max Value: 
-  Description:
-
-    Mirror 3 radius (mm)
-
-
-MirrorRadius4
-         Type: r
-         Mode: h
-        Value: 425
-    Min Value: 0.0
-    Max Value: 
-  Description:
-
-    Mirror 4 radius (mm)
-
-
-MirrorRadius6
-         Type: r
-         Mode: h
-        Value: 310
-    Min Value: 0.0
-    Max Value: 
-  Description:
-
-    Mirror 6 radius (mm)
-
-
-MirrorVig
-         Type: r
-         Mode: h
-        Value: 0.9
-    Min Value: 0.0
-    Max Value: 1.0
-  Description:
-
-    HRMA Vignetting factor
-
-
-MirrorUseEA
-         Type: b
-         Mode: a
-        Value: yes
-    Min Value: 
-    Max Value: 
-  Description:
-
-    Use effective area for HRMA?
-
-
-MirrorEAFile
-         Type: f
-         Mode: h
-        Value: "Ae_s1346.tbl"
-    Min Value: 
-    Max Value: 
-  Description:
-
-    mirror effective filename
-#---------------------------------------------------------------------------
-# Mirror Blur Setup
-#---------------------------------------------------------------------------
-
-
-MirrorBlur
-         Type: b
-         Mode: a
-        Value: yes
-    Min Value: 
-    Max Value: 
-  Description:
-
-    Perform mirror blur?
-
-
-MirrorBlurFile
-         Type: f
-         Mode: h
-        Value: "mirr-ee.dat"
-    Min Value: 
-    Max Value: 
-  Description:
-
-    mirror blur filename
 #---------------------------------------------------------------------------
 # Grating setup
 #---------------------------------------------------------------------------

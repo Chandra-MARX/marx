@@ -42,7 +42,6 @@ PFILEDIR	= $(datarootdir)/marx/pfiles
 install_lib_dir = @libdir@
 install_include_dir = @includedir@
 
-EE_DATADIR = $(SRCDIR)/../data/ea-mirror
 MARX_DATA_DIR=$(DATADIR)
 MARX_PFILE_DIR=$(PFILEDIR)
 
@@ -80,7 +79,7 @@ CONFIG_H = config.h
 ALL_CFLAGS = $(CFLAGS) -Dunix $(OTHER_DEFINES) $(INCLUDE_DIRS)
 COMPILE_CMD = $(CC) -c $(ALL_CFLAGS)
 
-all: $(TARGET_OBJ_LIB) $(EE_DATADIR)/mirr-ee.bin
+all: $(TARGET_OBJ_LIB)
 marxlib: $(TARGET_OBJ_LIB)
 
 $(TARGET_OBJ_LIB): $(CONFIG_H) $(OBJDIR) $(OBJS)
@@ -92,11 +91,7 @@ $(OBJDIR) :
 $(CONFIG_H) : $(SRCDIR)/sysconf.h
 	/bin/cp $(SRCDIR)/sysconf.h $(CONFIG_H)
 	-/bin/rm -f $(OBJDIR)/*.o
-#---------------------------------------------------------------------------
-# Data files
-#---------------------------------------------------------------------------
-$(EE_DATADIR)/mirr-ee.bin: $(OBJDIR)/fix_ee $(EE_DATADIR)/Mirror_EE.bin
-	cd $(EE_DATADIR); $(OBJDIR)/fix_ee
+
 #---------------------------------------------------------------------------
 # Intallation rules
 #---------------------------------------------------------------------------
@@ -117,7 +112,6 @@ clean:
 	-/bin/rm -f $(OBJDIR)/* *~
 distclean: clean
 	-/bin/rm -rf $(OBJDIR) Makefile sysconf.h
-	-/bin/rm $(EE_DATADIR)/mirr-ee.bin
 #---------------------------------------------------------------------------
 $(SRCDIR)/source.c: $(SRCDIR)/source.def
 	touch $(SRCDIR)/source.c

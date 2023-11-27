@@ -368,7 +368,6 @@ extern int marx_grating_diffract (Marx_Photon_Type *, int);
 #define MARX_DETECTOR_PLANE	5
 #define MARX_MAX_DETECTORS	10
 
-#define MARX_MIRROR_EA		1
 #define MARX_MIRROR_HRMA	2
 #define MARX_MIRROR_FFIELD	3
 
