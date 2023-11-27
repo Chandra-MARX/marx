@@ -234,10 +234,20 @@ int _marx_mirror_blur (Marx_Photon_Type *pt) /*{{{*/
 	at = photon_attributes + sorted_index[i];
 
 	energy = (float) at->energy;
-	/* Now find which two energy curves to use: j and j + 1 */
+	/* Now find which two energy curves to use: j - 1 and j */
 	j = JDMbinary_search_f (energy, energies, num_energies);
-	e0 = energies[j];
-	e1 = energies[j + 1];
+  if (j == 0)
+  {
+    /* extrapolate */
+    j++;
+  }
+  if (j == num_energies)
+  {
+    /* extrapolate */
+    j--;
+  }
+  e0 = energies[j - 1];
+	e1 = energies[j];
 
 	/* Ideally a random number between 0 and 1 would be used.  However,
 	 * the blur data close to 1.0 cannot be trusted.
@@ -246,10 +256,10 @@ int _marx_mirror_blur (Marx_Photon_Type *pt) /*{{{*/
 
 	/* Now interpolate thetas on the two energy curves */
 	theta0 = JDMinterpolate_f (r, encircled_energies,
-				   Mirr_Blur.thetas[at->mirror_shell][j],
+				   Mirr_Blur.thetas[at->mirror_shell][j - 1],
 				   num_ee);
 	theta1 = JDMinterpolate_f (r, encircled_energies,
-				   Mirr_Blur.thetas[at->mirror_shell][j + 1],
+				   Mirr_Blur.thetas[at->mirror_shell][j],
 				   num_ee);
 	blur = theta0 + (theta1 - theta0) * (energy - e0) / (e1 - e0);
 

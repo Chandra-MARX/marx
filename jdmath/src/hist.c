@@ -40,27 +40,6 @@
 #define FLOAT_TYPE float
 #include "hist.c"
 #else
-#if 0
-static unsigned int binary_search_d (double x, double *xp, unsigned int n)
-{
-   unsigned int n0, n1, n2;
-
-   n0 = 0;
-   n1 = n;
-
-   while (n1 > n0 + 1)
-     {
-	n2 = (n0 + n1) / 2;
-	if (xp[n2] >= x)
-	  {
-	     if (xp[n2] == x) return n2;
-	     n1 = n2;
-	  }
-	else n0 = n2;
-     }
-   return n0;
-}
-#endif
 /*
  * histogram routines
  *
@@ -68,6 +47,7 @@ static unsigned int binary_search_d (double x, double *xp, unsigned int n)
  * of values y_i to be grouped into the histogram.  The bin size of the
  * nth bin is given by x_{i+1} - x_i, except for the last bin, which is
  * assumed to be of infinite width.
+ * This means that values of pts that are less than x_0 are ignored.
  */
 
 /* If reverse_indices is NON-NULL, it is assumed to point to an array of
@@ -102,10 +82,10 @@ int JDMHISTOGRAM_FUNCTION (FLOAT_TYPE *pts, unsigned int npts,
 	  continue;
 
 	j = BINARY_SEARCH (val, bin_edges, nbins);
-	histogram[j] += 1;
+	histogram[j - 1] += 1;
 
 	if (reverse_indices != NULL)
-	  reverse_indices[i] = (int) j;
+	  reverse_indices[i] = (int) j - 1;
      }
    return 0;
 }

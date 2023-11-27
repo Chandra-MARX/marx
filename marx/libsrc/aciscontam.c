@@ -240,18 +240,26 @@ static void compute_tau_values (Single_Component_Contam_Type *contam,
    double t = _Marx_TStart_MJDsecs;
    double t0, t1;
 
-   n0 = JDMbinary_search_d (t, times, ntimes);
-   n1 = n0+1;
+   n1 = JDMbinary_search_d (t, times, ntimes);
+   n0 = n1 - 1;
 
-   if (n1 == ntimes)
-     {
-	if (n0 == 0)
+   if (ntimes == 1)
 	  {
 	     contam->tau_0s[layer] = tau0s[0];
 	     contam->tau_1s[layer] = tau1s[0];
 	     return;
 	  }
-	n1 = n0-1;
+
+  /* Out of range. Extrapolate. */
+  if (n1 == ntimes)
+     {
+      n1--;
+      n0--;
+     }
+  if (n1 == 0)
+     {
+      n1 = 1;
+      n0 = 0;
      }
 
    t0 = times[n0];
