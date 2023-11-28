@@ -553,19 +553,20 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
 	/* return 0; */
      }
 
-   if (total_neg_area != 0.0)
-     flags |= HAS_NEG_AMP_GAUSSIANS;
+     if (total_neg_area != 0.0)
+       flags |= HAS_NEG_AMP_GAUSSIANS;
 
-   g = gaussians;
-   if (total_pos_area > 0) while (g < gmax)
-     {
-	/* Since we interpolate over pairs of gaussians, do not normalize
-	 * each member of the pair separately.
-	 */
-	/* g->amp /= total_pos_area; */
-	g->cum_area /= total_pos_area;
-	g++;
-     }
+     g = gaussians;
+     if (total_pos_area > 0)
+       while (g < gmax)
+       {
+         /* Since we interpolate over pairs of gaussians, do not normalize
+          * each member of the pair separately.
+          */
+         /* g->amp /= total_pos_area; */
+         g->cum_area /= total_pos_area;
+         g++;
+       }
 
    total_area = total_pos_area - total_neg_area;
    if (total_area != 0)
@@ -990,18 +991,22 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
      }
 
    num_energies = f->num_energies;
-   i = JDMbinary_search_f (energy, f->energies, num_energies);
-   j = i + 1;
+   j = JDMbinary_search_f (energy, f->energies, num_energies);
+   if (j == 0)
+   {
+     /* extrapolate */
+     j++;
+   }
    if (j == num_energies)
-     {
-	/* extrapolate */
-	i--;
-	j--;
-     }
+   {
+	   /* extrapolate */
+     j--;
+   }
 
-   t = (energy - f->energies[i])/(f->energies[j] - f->energies[i]);
+   t = (energy - f->energies[j-1])/(f->energies[j] - f->energies[j-1]);
    g0 = f->gaussians + i * num_gaussians;
    g1 = g0 + num_gaussians;
+   //marx_message("acis_fef: t = %f, energy= %f, f->energies[j-1] = %f, f->energies[j] = %f \n", t, energy, f->energies[j-1], f->energies[j]);
 
    for (i = 0; i < num_gaussians; i++)
      {
@@ -1031,10 +1036,10 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
 
    if (flags & HAS_TOTAL_NEG_AREA)
      {
-	marx_message ("Warning occurred for ccdid=%d,chipx=%f,chipy=%f,energy=%f\n",
-		      ccd_id, x, y, energy);
-	return -1;
-	/* flags &= ~HAS_TOTAL_NEG_AREA; */
+       marx_message("Warning occurred for ccdid=%d,chipx=%f,chipy=%f,energy=%f,flags=%d,flagsandneg=%d\n",
+                    ccd_id, x, y, energy, flags, flags & HAS_TOTAL_NEG_AREA);
+       return -1;
+       /* flags &= ~HAS_TOTAL_NEG_AREA; */
      }
 
    if (flags == 0)

@@ -347,16 +347,21 @@ double marx_wfold_table_interp (Marx_WFold_Table_Type *table, double energy, dou
    e_alpha = energy * sin_alpha;
    i = JDMbinary_search_d (e_alpha, table->e_alphas, table->num_arrays);
 
-   if (i + 1 == table->num_arrays)
+   if (i == table->num_arrays)
      {
-	/* Back off one and extrapolate outside range */
-	i--;
+	      /* Back off one and extrapolate outside range */
+	      i--;
+     }
+     if (i == 0)
+     {
+       /* Back off one and extrapolate outside range */
+       i++;
      }
 
-   theta_0 = interpolate_theta (table->fold_arrays[i], r);
-   theta_1 = interpolate_theta (table->fold_arrays[i + 1], r);
-   e_alpha_0 = table->e_alphas[i];
-   e_alpha_1 = table->e_alphas[i + 1];
+   theta_0 = interpolate_theta (table->fold_arrays[i - 1], r);
+   theta_1 = interpolate_theta (table->fold_arrays[i], r);
+   e_alpha_0 = table->e_alphas[i - 1];
+   e_alpha_1 = table->e_alphas[i];
    theta = theta_0 + (theta_1 - theta_0) * (e_alpha - e_alpha_0) / (e_alpha_1 - e_alpha_0);
 
    /* Arc seconds??  Assume radians */

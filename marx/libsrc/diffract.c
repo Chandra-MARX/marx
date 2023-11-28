@@ -337,9 +337,15 @@ double marx_compute_grating_efficiency (double energy, int order,
      }
 
    /* Find where energy lies on the Energies grid. */
-   n0 = JDMbinary_search_f (energy, Energies, Num_Energies);
-   n1 = n0 + 1;
-
+   n1 = JDMbinary_search_f (energy, Energies, Num_Energies);
+   n0 = n1 - 1;
+   if (n1 == 0)
+  {
+    /* Oops.  energy is out of range.
+     * Use last first points to extrapolate. */
+    n0++;
+    n1++;
+  }
    if (n1 == Num_Energies)
      {
 	/* Oops.  energy is out of range.
@@ -356,7 +362,7 @@ double marx_compute_grating_efficiency (double energy, int order,
 
    e1 = Energies[n1];
    eff1 = compute_efficiency (order, n1, geom);
-
+   marx_message ("energy = %g, e0 = %g, e1 = %g\n", energy, e0, e1);
    return eff0 + (eff1 - eff0)/(e1 - e0) * (energy - e0);
 }
 
@@ -733,6 +739,14 @@ static int diffract_photon (Grating_Type *g, double theta,
    d = JDMv_cross_prod (n, l);
 
    if (gs != NULL)
+     /* HMG 11/17/2023:
+      * As far as I can tell, this code is not used at the moment.
+      * It's implemented here so that we can switch it on with detailed
+      * sector information, however, that information has never been obtained
+      * in calibration and thus is not available in MARX/CALDB.
+      * So, gs (the variable holding the grating sector information) is always NULL
+      * and the first branch of the if is never used.
+      */
      {
 	unsigned int sector_num;
 	double sector;
@@ -742,7 +756,8 @@ static int diffract_photon (Grating_Type *g, double theta,
 	if (sector < 0) sector = 2*PI + sector;
 
 	sector_num = JDMbinary_search_d (sector, gs->min_angle, gs->num_sectors);
-	if ((gs->max_angle[sector_num] <= sector)
+  sector_num = sector_num - 1;
+  if ((gs->max_angle[sector_num] <= sector)
 	    || (gs->min_angle[sector_num] > sector))
 	  return -1;
 

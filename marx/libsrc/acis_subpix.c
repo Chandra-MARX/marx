@@ -284,7 +284,7 @@ int marx_compute_acis_subpix (Marx_Subpix_Table_Type *stt,
 			      int ccd, float energy, int fltgrade, float *dxp, float *dyp)
 {
    Subpix_Type *s;
-   unsigned int i, j, n;
+   unsigned int j, n;
    double w0, w1;
 
    if (stt == NULL)
@@ -301,18 +301,22 @@ int marx_compute_acis_subpix (Marx_Subpix_Table_Type *stt,
      }
 
    n = (unsigned int) s->num_energies;
-   i = JDMbinary_search_f (energy, s->energies, n);
-   j = i+1;
+   j = JDMbinary_search_f (energy, s->energies, n);
+   if (j == 0)
+   {
+     /* extrapolate */
+     j++;
+   }
    if (j == n)
-     {
-	j = i;
-	i--;
-     }
+   {
+     /* extrapolate */
+     j--;
+   }
    // Linear interpolation on the energy grid to get dxp, dyp
-   w1 = ((double)energy - s->energies[i])/(s->energies[j] - s->energies[i]);
+   w1 = ((double)energy - s->energies[j - 1])/(s->energies[j] - s->energies[j - 1]);
    w0 = 1.0 - w1;
-   *dxp = w0 * s->dxs[i] + w1 * s->dxs[j];
-   *dyp = w0 * s->dys[i] + w1 * s->dys[j];
+   *dxp = w0 * s->dxs[j - 1] + w1 * s->dxs[j];
+   *dyp = w0 * s->dys[j - 1] + w1 * s->dys[j];
 
    return 0;
 }

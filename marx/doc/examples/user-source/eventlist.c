@@ -594,7 +594,9 @@ static double map_pi_to_line (short pi)
 	return b->energies[0];
      }
    i = JDMbinary_search_f (JDMrandom (), b->cum_strengths, b->num_energies);
-   return b->energies[i];
+   if (i == 0)
+     return b->energies[0];
+   return b->energies[i - 1];
 }
 
 static int read_data (double *tp, double *xp, double *yp, short *chanp)
