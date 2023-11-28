@@ -740,8 +740,8 @@ static int diffract_photon (Grating_Type *g, double theta,
 
    if (gs != NULL)
      /* HMG 11/17/2023:
-      * As far as I can tell, this code is unsed at the moment.
-      * It's implemented here so that we can swtich it on with detailed
+      * As far as I can tell, this code is not used at the moment.
+      * It's implemented here so that we can switch it on with detailed
       * sector information, however, that information has never been obtained
       * in calibration and thus is not available in MARX/CALDB.
       * So, gs (the variable holding the grating sector information) is always NULL
