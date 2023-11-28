@@ -73,9 +73,6 @@ fi
 AC_CONFIG_FILES([$CF_Output_Files data/Makefile doc/Makefile])
 AC_OUTPUT
 
-JD_CREATE_EXEC_RULE(fix_ee)
-JD_CREATE_EXEC_RULE(dump_ee)
-
 JD_APPEND_RULES(libsrc/Makefile)
 
 dnl We may be configuring just marxlib and the src directory may not be

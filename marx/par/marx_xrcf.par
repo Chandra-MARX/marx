@@ -27,7 +27,7 @@ Verbose,b,a,yes,,,"Verbose mode"
 # Science Instrument set up and control
 #
 #---------------------------------------------------------------------------
-MirrorType,s,a,"HRMA","HRMA|EA-MIRROR",,"Select mirror type"
+MirrorType,s,a,"HRMA","HRMA",,"Select mirror type"
 GratingType,s,a,"HETG","HETG|LETG|NONE",,"Select grating type"
 DetectorType,s,a,"ACIS-S","HRC-S|ACIS-S|HRC-I|ACIS-I|NONE",,"Select detector type"
 DetOffsetX,r,a,-195.002109,,,"Enter Detector X offset from nominal (mm)"
@@ -158,21 +158,6 @@ HRMA_P1H1_XOffset,r,h,-3.274354,,,"Enter HRMA P1H1 X offset (mm)"
 HRMA_P3H3_XOffset,r,h,-0.256876,,,"Enter HRMA P3H3 X offset (mm)"
 HRMA_P4H4_XOffset,r,h,0.735539,,,"Enter HRMA P4H4 X offset (mm)"
 HRMA_P6H6_XOffset,r,h,-0.539117,,,"Enter HRMA P6H6 X offset (mm)"
-#----------------------------------------------------------------------------
-#
-# EA Mirror Setup
-#
-#----------------------------------------------------------------------------
-MirrorF,r,h,10.0692,0.0,,"Enter HRMA focal length (meters)"
-MirrorRadius1,r,h,600,0.0,,"Enter Mirror 1 radius (mm)"
-MirrorRadius3,r,h,480,0.0,,"Enter Mirror 3 radius (mm)"
-MirrorRadius4,r,h,425,0.0,,"Enter Mirror 4 radius (mm)"
-MirrorRadius6,r,h,310,0.0,,"Enter Mirror 6 radius (mm)"
-MirrorVig,r,h,0.9,0.0,1.0,"Enter HRMA Vignetting factor"
-MirrorUseEA,b,a,yes,,,"Use effective area for HRMA?"
-MirrorEAFile,f,h,"Ae_s1346.dat",,,"Enter mirror effective filename"
-MirrorBlur,b,a,yes,,,"Perform mirror blur?"
-MirrorBlurFile,f,h,"mirr-ee.bin",,,"Enter mirror blur filename"
 #---------------------------------------------------------------------------
 #
 # Grating setup

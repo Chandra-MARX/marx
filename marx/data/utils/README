@@ -1,13 +1,2 @@
 This directory contains programs and scripts that are used to make several
 of the MARX data input files. Individual scripts are commented.
-
-Here some general remarks
--------------------------
-mk_hrma_ea.sl, mkcorr.sl, run_mkarf.sh:
-    These scripts make input for the ea-mirror model.
-    See Makefile for invocation.
-    Since the ea-mirror model should not be used any longer and 
-    is of historical interest only, these scripts are not used any more.
-    The ea-mirror model stays frozen and **does not** receive regular
-    updates; thus, it **does not** follow recent improvments in CALDB.
-    Users should use the more accurate HRMA mirror model.

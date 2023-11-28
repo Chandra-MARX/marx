@@ -30,10 +30,7 @@
 @libsrc/mirror.c
 @libsrc/diffract.c
 @libsrc/disperse.c
-@libsrc/mblur.c
 @libsrc/interp.c
-@libsrc/fix_ee.c
-@libsrc/dump_ee.c
 @libsrc/detector.c
 @libsrc/detpix.c
 @libsrc/wfold.c
@@ -47,7 +44,6 @@
 @libsrc/source.c
 @libsrc/source.def
 @libsrc/util.c
-@libsrc/eamirror.c
 @libsrc/grating.c
 @libsrc/pixlib.c
 @libsrc/rdb.c

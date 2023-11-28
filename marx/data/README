@@ -10,15 +10,10 @@ files:
    ./caldb
       This directory contains files that are copied over from CALDB
       (so that MARX users don't need a full CALDB isntallation to run
-      MARX) or that are derived fomr CALDB files, e.g. by re-ordering
-      as CALDB file. ]
+      MARX) or that are derived from CALDB files, e.g. by re-ordering
+      as CALDB file.
       This directory also contains a S-Lang script to generate some of
       these files from CALDB.
-
-   ./ea-mirror
-      This directory contains data files need by the MARX EA-MIRROR
-      module. This module is deprecated and the files will not be 
-      updated any longer.
 
    ./grating
       This directory contains data files for the HETG and LETG.
