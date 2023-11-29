@@ -55,7 +55,7 @@ double JDMinterpolate_d (double x, double *xp, double *yp, unsigned int n)
 
 	if (n == 1)
 		return yp[0];
-	n1 = JDMbinary_search_f(x, xp, n);
+	n1 = JDMbinary_search_d(x, xp, n);
 	n0 = n1 - 1;
 
 	if (x == xp[n1])
