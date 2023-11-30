@@ -967,7 +967,7 @@ static Fef_Type *find_fef (int ccd_id, float x, float y)
 int marx_apply_acis_rmf (int ccd_id, float x, float y,
 			 double energy, float *pip, short *phap)
 {
-   unsigned int i, j;
+   unsigned int i;
    Fef_Type *f;
    double pha;
    unsigned int num_energies, num_gaussians;
@@ -991,20 +991,20 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
      }
 
    num_energies = f->num_energies;
-   j = JDMbinary_search_f (energy, f->energies, num_energies);
-   if (j == 0)
+   i = JDMbinary_search_f (energy, f->energies, num_energies);
+   if (i == 0)
    {
      /* extrapolate */
-     j++;
+     i++;
    }
-   if (j == num_energies)
+   if (i == num_energies)
    {
 	   /* extrapolate */
-     j--;
+     i--;
    }
 
-   t = (energy - f->energies[j-1])/(f->energies[j] - f->energies[j-1]);
-   g0 = f->gaussians + i * num_gaussians;
+   t = (energy - f->energies[i - 1])/(f->energies[i] - f->energies[i - 1]);
+   g0 = f->gaussians + (i - 1) * num_gaussians;
    g1 = g0 + num_gaussians;
    //marx_message("acis_fef: t = %f, energy= %f, f->energies[j-1] = %f, f->energies[j] = %f \n", t, energy, f->energies[j-1], f->energies[j]);
 
@@ -1029,7 +1029,7 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
 
 	g0++;
 	g1++;
-     }
+       }
 
    if (-1 == normalize_gaussians (Gaussians, num_gaussians, &flags, &mean))
      return -1;
