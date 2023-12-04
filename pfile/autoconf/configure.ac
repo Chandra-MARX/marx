@@ -1,4 +1,5 @@
-AC_INIT(src/pfile.c)
+AC_INIT
+AC_CONFIG_SRCDIR([src/pfile.c])
 JD_INIT
 JD_ANSI_CC
 
@@ -23,8 +24,9 @@ JD_GCC_WARNINGS
 JD_GET_MODULES(src/modules.lis)
 JD_CREATE_MODULE_ORULES
 
-AC_CONFIG_HEADER(src/sysconf.h:src/config.hin)
-AC_OUTPUT(Makefile:autoconf/Makefile.in src/Makefile)
+AC_CONFIG_HEADERS([src/sysconf.h:src/config.hin])
+AC_CONFIG_FILES([Makefile:autoconf/Makefile.in src/Makefile])
+AC_OUTPUT
 
 JD_CREATE_EXEC_RULE(pset)
 JD_CREATE_EXEC_RULE(plist)
