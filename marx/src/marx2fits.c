@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2022 Massachusetts Institute of Technology
+    Copyright (C) 2002-2023 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -2022,7 +2022,7 @@ static Fits_Header_Table_Type Obs_Info_Component [] =
    {1,"GEOMFILE",       H_PSTR, &Geom_File, NULL},
    {1,"SKYFILE",       H_STR, "/dev/null", NULL},
    {1,"TDETFILE",       H_STR, "/dev/null", NULL},
-   {1,"SHELLFIL",       H_STR, "mirror.dat (MARX)", NULL}, 
+   {1,"SHELLFIL",       H_STR, "mirror.dat (MARX)", NULL},
      {1,"RAND_PI",      H_STR, "1.0000000000000E+00", NULL},
      {1,"RUN_ID",       H_STR, "1", "Science run index"},
      {0,NULL, 0, NULL, NULL}
@@ -2090,9 +2090,9 @@ static Fits_Header_Table_Type Acis_S_Obs_Info_Component [] =
    {1,"4DSREF3",	H_STR,	":GTI6",	NULL},
    {1,"5DSREF3",	H_STR,	":GTI8",	NULL},
    {1,"6DSREF3",	H_STR,	":GTI9",	NULL},
-   /* added in CIAO 4.6. Used to be part of asol file. 
+   /* added in CIAO 4.6. Used to be part of asol file.
     * Used for dead area calibration, so technically this shoul not be used
-    * because MARX does not simulate the dead area, but it is required for 
+    * because MARX does not simulate the dead area, but it is required for
     * many CIAO tools.
     */
    {1,"FEP_CCD",        H_STR,   "475689", "CCD to FEPID mapping, fep0 is left most digit"},
@@ -2128,9 +2128,9 @@ static Fits_Header_Table_Type Acis_I_Obs_Info_Component [] =
    {1,"2DSREF3",	H_STR,	":GTI0",	NULL},
    {1,"3DSREF3",	H_STR,	":GTI1",	NULL},
    {1,"4DSREF3",	H_STR,	":GTI2",	NULL},
-   /* added in CIAO 4.6. Used to be part of asol file. 
+   /* added in CIAO 4.6. Used to be part of asol file.
     * Used for dead area calibration, so technically this should not be used
-    * because MARX does not simulate the dead area, but it is required for 
+    * because MARX does not simulate the dead area, but it is required for
     * many CIAO tools.
     */
    {1,"FEP_CCD",        H_STR,   "0123xx", "CCD to FEPID mapping, fep0 is left most digit"},

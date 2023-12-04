@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2022 Massachusetts Institute of Technology
+    Copyright (C) 2002-2023 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -312,7 +312,7 @@ int _marx_check_monotonicity_d (double *p, unsigned int n)
  *      2:)    ==> 2 <= x
  *      (2)    ==> 2 < x < 2 (not 2)
  *
- *  Note: Infinity is NOT handled.  
+ *  Note: Infinity is NOT handled.
  */
 
 struct _Marx_Range_Type

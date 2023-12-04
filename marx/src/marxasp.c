@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2022 Massachusetts Institute of Technology
+    Copyright (C) 2002-2023 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -640,7 +640,7 @@ static int write_parfile_value (JDFits_Type *f, Param_File_Type *p,
    return ret;
 }
 
-/** Write some keywords in h to fitsfile ft 
+/** Write some keywords in h to fitsfile ft
  *  The mask integer selects which keywords are written.
  *  It is combined with the location as the keywords as defined in h; only
  *  keywords where location & mask are true will be written.
