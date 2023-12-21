@@ -240,18 +240,26 @@ static void compute_tau_values (Single_Component_Contam_Type *contam,
    double t = _Marx_TStart_MJDsecs;
    double t0, t1;
 
-   n0 = JDMbinary_search_d (t, times, ntimes);
-   n1 = n0+1;
+   n1 = JDMbinary_search_d (t, times, ntimes);
+   n0 = n1 - 1;
 
-   if (n1 == ntimes)
-     {
-	if (n0 == 0)
+   if (ntimes == 1)
 	  {
 	     contam->tau_0s[layer] = tau0s[0];
 	     contam->tau_1s[layer] = tau1s[0];
 	     return;
 	  }
-	n1 = n0-1;
+
+  /* Out of range. Extrapolate. */
+  if (n1 == ntimes)
+     {
+      n1--;
+      n0--;
+     }
+  if (n1 == 0)
+     {
+      n1 = 1;
+      n0 = 0;
      }
 
    t0 = times[n0];
@@ -317,7 +325,7 @@ static int find_binary_table_callback (void *cd, JDFits_Type *ft)
 }
 
 
-static int read_contam_file_for_ccd (char *file, int ccd)
+static int read_contam_file_for_ccd (char *file, int ccd, int verbose)
 {
    JDFits_Type *f;
    JDFits_Row_Type *r;
@@ -330,8 +338,8 @@ static int read_contam_file_for_ccd (char *file, int ccd)
 
    contam = Single_Component_Contam_Table+ccd;
 
-   marx_message ("Reading ACIS%d Contamination File\n", ccd);
-   marx_message ("\t%s\n", file);
+   if (verbose > 0) marx_message ("Reading ACIS%d Contamination File\n", ccd);
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    if (NULL == (f = jdfits_find_binary_table (file, find_binary_table_callback, (void *)&ccd)))
      {
@@ -492,7 +500,7 @@ return_error_bad_row:
    return -1;
 }
 
-int _marx_acis_contam_init (Param_File_Type *p, _Marx_Acis_Chip_Type *ccd)
+int _marx_acis_contam_init (Param_File_Type *p, _Marx_Acis_Chip_Type *ccd, int verbose)
 {
    char *file;
 
@@ -501,7 +509,7 @@ int _marx_acis_contam_init (Param_File_Type *p, _Marx_Acis_Chip_Type *ccd)
    if (NULL == (file = _marx_caldb_get_file ("ACISCONTAM")))
      return -1;
 
-   if (-1 == read_contam_file_for_ccd (file, ccd->ccd_id))
+   if (-1 == read_contam_file_for_ccd (file, ccd->ccd_id, verbose))
      {
 	marx_free (file);
 	return -1;

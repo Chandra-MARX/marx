@@ -41,8 +41,8 @@ PFILEDIR	= $(datarootdir)/marx/pfiles
 #----------------------------------------------------------------------------
 @SET_MAKE@
 SHELL = /bin/sh
-PROGRAMS = marx marx2fits marx2img marxcat marxpileup detinfo \
-  marx2dpde rfl geff bestfocus dumpwfold acis-qe geffdump sky2chip \
+PROGRAMS = marx marx2fits marxcat marxpileup detinfo \
+  rfl geff bestfocus dumpwfold acis-qe geffdump sky2chip \
   marxasp
 CONFIG_H = config.h
 
@@ -61,7 +61,6 @@ marx_O_DEP = marx-feat.h Makefile
 marx_INC = -I$(JDFITSINC) -DMARX -DMARX_HOSTNAME='"$(HOSTNAME)"' -DMARX_PFILE_DIR='"$(MARX_PFILE_DIR)"'
 marx2fits_INC = -I$(JDFITSINC)
 marxasp_INC = -I$(JDFITSINC)
-marx2img_INC = -I$(JDFITSINC)
 
 
 marxpileup_DEPS = # $(OBJDIR)/acissim.o $(OBJDIR)/henke.o

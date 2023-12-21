@@ -122,14 +122,14 @@ static void free_optical_constants (void) /*{{{*/
 
 static int read_opt_constants (char *file,
 			       float **en, float **betas, float **deltas,
-			       unsigned int *num_energies)
+			       unsigned int *num_energies, int verbose)
 {
    unsigned int nread;
 
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
 
-   marx_message ("\t%s\n", file);
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    /* The optical constant file consists of:
     *   energy (KeV), beta, delta
@@ -147,18 +147,18 @@ static int read_opt_constants (char *file,
    return 0;
 }
 
-static int read_drake_opt_constants (void)
+static int read_drake_opt_constants (int verbose)
 {
    free_optical_constants ();
 
-   marx_message ("Reading Drake QE binary data files:\n");
+   if (verbose > 0) marx_message ("Reading Drake QE binary data files:\n");
 
    if ((Drake_C_Opt_File != NULL)
        && (*Drake_C_Opt_File != 0))
      {
 	if (-1 == read_opt_constants (Drake_C_Opt_File,
 				      &Energies_C, &Betas_C, &Deltas_C,
-				      &Num_Energies_C))
+				      &Num_Energies_C, verbose))
 	  return -1;
      }
 
@@ -167,7 +167,7 @@ static int read_drake_opt_constants (void)
      {
 	if (-1 == read_opt_constants (Drake_Cr_Opt_File,
 				      &Energies_Cr, &Betas_Cr, &Deltas_Cr,
-				      &Num_Energies_Cr))
+				      &Num_Energies_Cr, verbose))
 	  return -1;
      }
 
@@ -179,6 +179,7 @@ int _marx_drake_flat_init (Param_File_Type *p) /*{{{*/
    char name[80];
    int i;
    double corner_x, corner_z;
+   int verbose;
 
    if ((-1 == pf_get_parameters (p, Drake_Parm_Table))
        || (Drake_C_Opt_File == NULL)
@@ -202,17 +203,20 @@ int _marx_drake_flat_init (Param_File_Type *p) /*{{{*/
 	/* Convert to radians */
      }
 
-   if (-1 == read_drake_opt_constants ())
-     return -1;
+     if (-1 == pf_get_integer(p, "Verbose", &verbose))
+       return -1;
 
-   /* Now massage the geometric information into normals and rectangular
-    * regions.
-    */
+     if (-1 == read_drake_opt_constants(verbose))
+       return -1;
 
-   corner_x = Drake_X_Offset;
-   corner_z = Drake_Z_Offset;
+     /* Now massage the geometric information into normals and rectangular
+      * regions.
+      */
 
-   for (i = 0; i < Drake_N_Plates; i++)
+     corner_x = Drake_X_Offset;
+     corner_z = Drake_Z_Offset;
+
+     for (i = 0; i < Drake_N_Plates; i++)
      {
 	Rectangle_Type *rect;
 	double h, h_tan_theta;

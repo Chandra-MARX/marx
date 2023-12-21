@@ -59,7 +59,7 @@ int main (int argc, char **argv)
    ra = PI/(180.0 * 60) * ra;
    dec = PI/(180.0 * 60) * dec;
 
-   if (NULL == (det = marx_get_detector_info (name)))
+   if (NULL == (det = marx_get_detector_info (name, 2)))
      usage ();
 
    mnc.x = -cos (dec) * cos (ra);

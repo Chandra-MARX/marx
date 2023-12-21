@@ -436,7 +436,7 @@ static int read_gain_map (char *file, int min_ccdid, int max_ccdid)
    return -1;
 }
 
-static int read_acis_gain_map (Param_File_Type *p, int min_ccdid, int max_ccdid)
+static int read_acis_gain_map (Param_File_Type *p, int min_ccdid, int max_ccdid, int verbose)
 {
    char buf [PF_MAX_LINE_LEN];
    char *file;
@@ -452,8 +452,8 @@ static int read_acis_gain_map (Param_File_Type *p, int min_ccdid, int max_ccdid)
    if (file == NULL)
      return -1;
 
-   marx_message ("Reading ACIS-I/S Gain File\n");
-   marx_message ("\t%s\n", file);
+   (if verbose > 0) marx_message ("Reading ACIS-I/S Gain File\n");
+   (if verbose > 1) marx_message ("\t%s\n", file);
    status = read_gain_map (file, min_ccdid, max_ccdid);
    marx_free (file);
    return status;

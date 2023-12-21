@@ -142,7 +142,7 @@ acis_i_to_tiled (Marx_Detector_Type *det,
    return 0;
 }
 
-Marx_Detector_Type *_marx_get_acis_i_detector (void)
+Marx_Detector_Type *_marx_get_acis_i_detector (int verbose)
 {
    Marx_Detector_Type *d;
    Marx_Detector_Geometry_Type *g;
@@ -201,7 +201,7 @@ static int acis_s_to_tiled (Marx_Detector_Type *det,
    return 0;
 }
 
-Marx_Detector_Type *_marx_get_acis_s_detector (void)
+Marx_Detector_Type *_marx_get_acis_s_detector (int verbose)
 {
    int ccd_id;
    Marx_Detector_Type *d;

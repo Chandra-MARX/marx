@@ -88,7 +88,7 @@ typedef struct
 }
 _Marx_HRC_QE_Type;
 
-extern int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *);
+extern int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *, int);
 extern int _marx_hrc_s_geom_init (Param_File_Type *);
 extern int _marx_hrc_i_geom_init (Param_File_Type *);
 extern int _marx_hrc_i_get_pixel_size (double *dx, double *dy);
@@ -103,7 +103,7 @@ extern short _marx_hrc_compute_pha (double);
 
 extern int _marx_acis_apply_qe_and_pha (_Marx_Acis_Chip_Type *, Marx_Photon_Attr_Type *);
 extern void _marx_free_acis_chip_type (_Marx_Acis_Chip_Type *);
-extern int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *);
+extern int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *, int);
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
 extern short _marx_acis_compute_fs_pha (_Marx_Acis_Chip_Type *, float, float, double, float *);
 extern short _marx_acis_compute_bs_pha (_Marx_Acis_Chip_Type *, float, float, double, float *);
@@ -118,7 +118,7 @@ extern int _marx_apply_acis_rmf (_Marx_Acis_Chip_Type *c, float x, float y,
 
 extern void _marx_acis_apply_streak (double, Marx_Photon_Attr_Type *, Marx_Detector_Geometry_Type *);
 extern int _marx_acis_get_generic_parms (Param_File_Type *);
-extern int _marx_acis_contam_init (Param_File_Type *, _Marx_Acis_Chip_Type *);
+extern int _marx_acis_contam_init (Param_File_Type *, _Marx_Acis_Chip_Type *, int);
 
 extern int _Marx_Det_Ideal_Flag;
 extern int _marx_set_detector_angle (double);
@@ -156,23 +156,14 @@ void _marx_dither_detector (Marx_Dither_Type *);
 void _marx_dither_set_ray_tstart (double);
 #endif
 
-extern int _marx_init_mirror_blur (Param_File_Type *);
-extern int _marx_mirror_blur (Marx_Photon_Type *);
-
 extern int _marx_hrc_s_detect (Marx_Photon_Type *);
 extern int _marx_hrc_i_detect (Marx_Photon_Type *);
 extern int _marx_acis_s_detect (Marx_Photon_Type *);
 extern int _marx_acis_i_detect (Marx_Photon_Type *);
 extern int _marx_hrc_s_init (Param_File_Type *);
-extern int _marx_hrc_i_init (Param_File_Type *);
-extern int _marx_acis_s_init (Param_File_Type *);
-extern int _marx_acis_i_init (Param_File_Type *);
-
-#if MARX_HAS_IXO_SUPPORT
-extern int _marx_ixoccd_init (Param_File_Type *);
-extern int _marx_ixoccd_detect (Marx_Photon_Type *);
-extern int _marx_ixoxms_detect (Marx_Photon_Type *);
-#endif
+extern int _marx_hrc_i_init(Param_File_Type *);
+extern int _marx_acis_s_init(Param_File_Type *);
+extern int _marx_acis_i_init(Param_File_Type *);
 
 extern int _marx_hrc_s_compute_pixel (int id, double, double,
 				      double *, double *, double *, double *);
@@ -188,8 +179,6 @@ extern int _marx_drake_flat_init (Param_File_Type *);
 
 extern int _marx_hrma_mirror_init (Param_File_Type *);
 extern int _marx_hrma_mirror_reflect (Marx_Photon_Type *);
-extern int _marx_ea_mirror_init (Param_File_Type *);
-extern int _marx_ea_mirror_reflect (Marx_Photon_Type *);
 extern int _marx_ff_mirror_init (Param_File_Type *);
 extern int _marx_ff_mirror_reflect (Marx_Photon_Type *);
 
@@ -197,14 +186,6 @@ extern int _marx_hetg_init (Param_File_Type *);
 extern int _marx_letg_init (Param_File_Type *);
 extern int _marx_letg_diffract (Marx_Photon_Type *);
 extern int _marx_hetg_diffract (Marx_Photon_Type *);
-
-#if MARX_HAS_IXO_SUPPORT
-extern int _marx_ixo_mirror_init (Param_File_Type *);
-extern int _marx_ixo_mirror_reflect (Marx_Photon_Type *);
-extern int _marx_catgs_init (Param_File_Type *);
-extern int _marx_catgs_diffract (Marx_Photon_Type *);
-extern int _marx_ixoxms_init (Param_File_Type *p);
-#endif
 
 extern int _marx_init_acis_i_gain_map (Param_File_Type *);
 extern int _marx_init_acis_s_gain_map (Param_File_Type *);
@@ -214,7 +195,7 @@ extern char *_marx_caldb_get_file (char *object);
 extern int _marx_caldb_patch_acis_geom (Marx_Detector_Type *d);
 extern int _marx_caldb_patch_aimpoint (Marx_Detector_Type *d);
 extern int _marx_caldb_patch_hrc_s_geom (Marx_Detector_Type *d);
-extern int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np);
+extern int _marx_read_acis_qe (int ccdid, float **enp, float **qep, unsigned int *np, int);
 extern JDFits_Type *_marx_open_binary_hdu (char *file, char *hduname);
 
 typedef struct
@@ -243,14 +224,10 @@ extern int _marx_compute_detector_basis (Marx_Detector_Type *);
 extern Marx_Detector_Geometry_Type *_marx_find_detector_facet (Marx_Detector_Type *, int);
 extern Marx_Detector_Geometry_Type *_marx_link_detector_facet_list (Marx_Detector_Geometry_Type *, unsigned int, unsigned int);
 
-extern Marx_Detector_Type *_marx_get_acis_s_detector (void);
-extern Marx_Detector_Type *_marx_get_acis_i_detector (void);
-extern Marx_Detector_Type *_marx_get_hrc_s_detector (void);
-extern Marx_Detector_Type *_marx_get_hrc_i_detector (void);
-#if MARX_HAS_IXO_SUPPORT
-extern Marx_Detector_Type *_marx_get_ixo_ccd_detector (void);
-extern Marx_Detector_Type *_marx_get_ixo_xms_detector (void);
-#endif
+extern Marx_Detector_Type *_marx_get_acis_s_detector (int);
+extern Marx_Detector_Type *_marx_get_acis_i_detector (int);
+extern Marx_Detector_Type *_marx_get_hrc_s_detector (int);
+extern Marx_Detector_Type *_marx_get_hrc_i_detector (int);
 
 typedef struct _Marx_QE_Type Marx_QE_Type;
 extern void _marx_qe_free (Marx_QE_Type *);

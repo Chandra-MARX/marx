@@ -138,10 +138,6 @@ marx/data/caldb/hetgD1996-11-01greffpr001N0007.fits
 marx/data/caldb/letgD1996-11-01greffpr001N0007.fits
 marx/data/caldb/telD1999-07-23aimptsN0002.fits
 marx/data/caldb/telD1999-07-23geomN0006.fits
-marx/data/ea-mirror/Ae_s1346.dat
-marx/data/ea-mirror/mirr-ee.bin
-marx/data/ea-mirror/Mirror_EE.bin
-marx/data/ea-mirror/README
 marx/data/FORMAT.TXT
 marx/data/grating/hetgmp1D1996-11-01marxsectorN0002.tbl
 marx/data/grating/hetgmp3D1996-11-01marxsectorN0002.tbl
@@ -268,10 +264,7 @@ marx/libsrc/diffract.c
 marx/libsrc/disperse.c
 marx/libsrc/dither.c
 marx/libsrc/drake.c
-marx/libsrc/dump_ee.c
-marx/libsrc/eamirror.c
 marx/libsrc/ffield.c
-marx/libsrc/fix_ee.c
 marx/libsrc/grating.c
 marx/libsrc/hrc.h
 marx/libsrc/hrc-i.c
@@ -287,7 +280,6 @@ marx/libsrc/marx-feat.h
 marx/libsrc/_marx.h
 marx/libsrc/marx.h
 marx/libsrc/marxio.c
-marx/libsrc/mblur.c
 marx/libsrc/mirror.c
 marx/libsrc/modules.lis
 marx/libsrc/parm.c
@@ -332,7 +324,6 @@ marxrsp/marx2fits.c
 marxrsp/marxrsp.c
 marxrsp/marxrsp.lis
 marxrsp/rsp.c
-marxrsp/rspdump.c
 marx/src/acis-qe.c
 marx/src/acissim.c
 marx/src/acissim.h
@@ -344,9 +335,7 @@ marx/src/geffdump.c
 marx/src/henke.c
 marx/src/henke.h
 marx/src/Makefile.in
-marx/src/marx2dpde.c
 marx/src/marx2fits.c
-marx/src/marx2img.c
 marx/src/marxasp.c
 marx/src/marx.c
 marx/src/marxcat.c
@@ -388,10 +377,6 @@ pfile/src/pset.c
 pfile/src/pwhich.c
 pfile/src/test.c
 README
-tools/idl/get_hetg_spect.pro
-tools/idl/get_letg_spect.pro
-tools/idl/make_image.pro
 tools/idl/read_marx_file.pro
-tools/idl/tg_extract.pro
 tools/scripts/marxflux
 tools/scripts/xspec2marx

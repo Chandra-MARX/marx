@@ -366,14 +366,10 @@ extern int marx_grating_diffract (Marx_Photon_Type *, int);
 #define MARX_DETECTOR_ACIS_S	3
 #define MARX_DETECTOR_ACIS_I	4
 #define MARX_DETECTOR_PLANE	5
-#define MARX_DETECTOR_IXO_CATGS_CCD	6
-#define MARX_DETECTOR_IXO_XMS	7
 #define MARX_MAX_DETECTORS	10
 
-#define MARX_MIRROR_EA		1
 #define MARX_MIRROR_HRMA	2
 #define MARX_MIRROR_FFIELD	3
-#define MARX_MIRROR_IXO		4
 
 #define MARX_GRATING_HETG	1
 #define MARX_GRATING_LETG	2
@@ -459,7 +455,7 @@ typedef struct _Marx_Detector_Type
 }
 Marx_Detector_Type;
 
-extern Marx_Detector_Type *marx_get_detector_info (char *);
+extern Marx_Detector_Type *marx_get_detector_info (char *, int);
 extern int marx_compute_tiled_pixel (Marx_Detector_Type *,
 				     int, unsigned int, unsigned int,
 				     unsigned int *, unsigned int *);
@@ -578,7 +574,6 @@ extern int marx_map_energy_to_acis_pha (int ccd_id, int x, int y, double energy,
 
 extern int marx_init_acis_s_rmf (Param_File_Type *p);
 extern int marx_init_acis_i_rmf (Param_File_Type *p);
-extern int marx_init_ixo_ccd_rmf (Param_File_Type *p);
 
 extern int marx_set_time (double, double);
 

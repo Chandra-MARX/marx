@@ -40,6 +40,8 @@
 
 #define NUM_FILTER_REGIONS	4
 
+static int verbose = 0;
+
 static _Marx_HRC_QE_Type MCP_QEs [_MARX_NUM_HRC_S_CHIPS];
 static _Marx_HRC_QE_Type Filter_QEs [NUM_FILTER_REGIONS];
 
@@ -311,7 +313,7 @@ int _marx_hrc_s_detect (Marx_Photon_Type *pt) /*{{{*/
 
 /*}}}*/
 
-int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
+int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt, int verbose)
 {
    char *file;
 #if 0
@@ -334,7 +336,7 @@ int _marx_hrc_read_efficiencies (_Marx_HRC_QE_Type *dt)
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
 
-   marx_message ("\t%s\n", file);
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    if (-1 == marx_f_read_bdat (file, &dt->num_energies, 2, &dt->energies, &dt->eff))
      {
@@ -368,7 +370,7 @@ static _Marx_Simple_Data_Type IonShield_Data_Table [] =
    {NULL, 0, NULL, 0.0, 0}
 };
 
-int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
+int _marx_hrc_s_init(Param_File_Type *p) /*{{{*/
 {
    unsigned int i;
    Marx_Detector_Type *hrc;
@@ -376,6 +378,9 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
    char *file;
 
    if (-1 == pf_get_parameters (p, HRC_Parm_Table))
+     return -1;
+
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
      return -1;
 
    if (-1 == _marx_hrc_s_geom_init (p))
@@ -386,7 +391,7 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
    if (NULL == (file = marx_make_data_file_name (file)))
      return -1;
 
-   marx_message ("\t%s\n", file);
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    if (-1 == _marx_read_simple_data_file (file, IonShield_Data_Table))
      {
@@ -399,7 +404,7 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
    if (-1 == read_hrc_s_blur_parms (p))
      return -1;
 
-   if (NULL == (hrc = marx_get_detector_info ("HRC-S")))
+   if (NULL == (hrc = marx_get_detector_info ("HRC-S", verbose)))
      return -1;
 
    HRC_S_MCPs= hrc->facet_list;
@@ -412,17 +417,17 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
    while ((middle_mcp != NULL) && (middle_mcp->id != 2))
      middle_mcp = middle_mcp->next;
 
-   marx_message ("Reading binary HRC-S QE/UVIS data files:\n");
+   if (verbose > 0) marx_message ("Reading binary HRC-S QE/UVIS data files:\n");
 
    for (i = 0; i < _MARX_NUM_HRC_S_CHIPS; i++)
      {
-	if (-1 == _marx_hrc_read_efficiencies (MCP_QEs + i))
+	if (-1 == _marx_hrc_read_efficiencies (MCP_QEs + i, verbose))
 	  return -1;
      }
 
    for (i = 0; i < NUM_FILTER_REGIONS; i++)
      {
-	if (-1 == _marx_hrc_read_efficiencies (Filter_QEs + i))
+	if (-1 == _marx_hrc_read_efficiencies (Filter_QEs + i, verbose))
 	  return -1;
      }
 
@@ -447,7 +452,7 @@ int _marx_hrc_s_init (Param_File_Type *p) /*{{{*/
 #if MARX_HAS_DRAKE_FLAT
    if (Use_Drake_Flat)
      {
-	marx_message ("Initializing Drake flat...\n");
+	if (verbose > 0) marx_message ("Initializing Drake flat...\n");
 	if (-1 == _marx_drake_flat_init (p))
 	  return -1;
      }

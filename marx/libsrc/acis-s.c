@@ -44,6 +44,8 @@
 
 #define USE_CALDB_FILES
 
+static int verbose = 0;
+
 static _Marx_Acis_Chip_Type Acis_CCDS [_MARX_NUM_ACIS_S_CHIPS];
 static Marx_Detector_Geometry_Type *ACIS_S_Chips;
 #if !MARX_HAS_ACIS_GAIN_MAP && !MARX_HAS_ACIS_FEF
@@ -294,12 +296,12 @@ static int read_efficiency_file (char *file,
 }
 #endif
 
-int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *chip)
+int _marx_acis_read_chip_efficiencies (_Marx_Acis_Chip_Type *chip, int verbose)
 {
    if (chip == NULL)
      return 0;
 #ifdef USE_CALDB_FILES
-   return _marx_read_acis_qe (chip->ccd_id, &chip->qe_energies, &chip->qe, &chip->qe_num_energies);
+   return _marx_read_acis_qe (chip->ccd_id, &chip->qe_energies, &chip->qe, &chip->qe_num_energies, verbose);
 #else
    if (-1 == read_efficiency_file (chip->qe_file,
 				   &chip->qe_energies,
@@ -417,6 +419,9 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
    unsigned int i;
    Marx_Detector_Type *acis_s;
 
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+     return -1;
+
 #if MARX_HAS_ACIS_FEF
    if (-1 == marx_init_acis_s_rmf (p))
      return -1;
@@ -428,7 +433,7 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
    if (-1 == get_acis_parms (p))
      return -1;
 
-   if (NULL == (acis_s = marx_get_detector_info ("ACIS-S")))
+   if (NULL == (acis_s = marx_get_detector_info ("ACIS-S", verbose)))
      return -1;
 
    ACIS_S_Chips = acis_s->facet_list;
@@ -446,7 +451,7 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
      return -1;
 #endif
    if (_Marx_Det_Ideal_Flag == 0)
-     marx_message ("Reading ACIS-S QE/Filter Files\n");
+     if (verbose > 0) marx_message ("Reading ACIS-S QE/Filter Files\n");
 
    for (i = 0; i < _MARX_NUM_ACIS_S_CHIPS; i++)
      {
@@ -478,10 +483,10 @@ int _marx_acis_s_init (Param_File_Type *p) /*{{{*/
 #endif				       /* MARX_HAS_ACIS_FEF */
 	if (_Marx_Det_Ideal_Flag == 0)
 	  {
-	     if (-1 == _marx_acis_contam_init (p, ccd))
+	     if (-1 == _marx_acis_contam_init (p, ccd, verbose))
 	       return -1;
 
-	     if (-1 == _marx_acis_read_chip_efficiencies (ccd))
+	     if (-1 == _marx_acis_read_chip_efficiencies (ccd, verbose))
 	       return -1;
 	  }
      }

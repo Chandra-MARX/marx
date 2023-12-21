@@ -316,12 +316,12 @@ static int get_rdb_value (Marx_RDB_File_Type *rdb, int row,
    return 0;
 }
 
-static int read_hrma_geometry_file (char *file)
+static int read_hrma_geometry_file (char *file, int verbose)
 {
    Marx_RDB_File_Type *rdb;
    HRMA_Type *h, *hmax;
 
-   marx_message ("\t%s\n", file);
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    if (NULL == (rdb = marx_open_rdb_file (file)))
      return -1;
@@ -609,6 +609,7 @@ static Marx_WFold_Table_Type *get_fold_table (Param_File_Type *pf, /*{{{*/
    char pname[80];
    char *file, filebuf[PF_MAX_LINE_LEN];
    Marx_WFold_Table_Type *t;
+   int verbose;
 
    sprintf (pname, fmt, id);
    if (-1 == pf_get_file (pf, pname, filebuf, sizeof (filebuf)))
@@ -617,7 +618,10 @@ static Marx_WFold_Table_Type *get_fold_table (Param_File_Type *pf, /*{{{*/
    if (NULL == (file = marx_make_data_file_name (filebuf)))
      return NULL;
 
-   marx_message ("\t%s\n", file);
+   if (-1 == pf_get_integer(pf, "Verbose", &verbose))
+	   verbose = 0;
+
+   if (verbose > 1) marx_message ("\t%s\n", file);
 
    t = marx_read_wfold_file (file);
 
@@ -648,10 +652,10 @@ static int get_shell_wfold_tables (Param_File_Type *pf, unsigned int shell) /*{{
 	h->h_wfold_table = NULL;
      }
 
-   if (NULL == (h->p_wfold_table = get_fold_table (pf, "WFold_P%d_File", id)))
-     return -1;
+	 if (NULL == (h->p_wfold_table = get_fold_table(pf, "WFold_P%d_File", id)))
+		 return -1;
 
-   if (NULL == (h->h_wfold_table = get_fold_table (pf, "WFold_H%d_File", id)))
+	 if (NULL == (h->h_wfold_table = get_fold_table(pf, "WFold_H%d_File", id)))
      {
 	marx_free_wfold_table (h->p_wfold_table);
 	h->p_wfold_table = NULL;
@@ -672,9 +676,14 @@ static int init_hrma_shells (Param_File_Type *pf) /*{{{*/
 
    /* Note: the area_fraction is really the cumulative area fraction. */
 
+   int verbose;
+
+   if (-1 == pf_get_integer(pf, "Verbose", &verbose))
+	   return -1;
+
 #if MARX_HAS_WFOLD
    if (Use_Wfold_Tables)
-     marx_message ("Reading scattering tables\n");
+     if (verbose >= 1) marx_message ("Reading scattering tables\n");
 #endif
 
    total_area = 0.0;
@@ -751,7 +760,7 @@ static void free_optical_constants (void)
    Num_Energies = 0;
 }
 
-static int read_hrma_opt_constants (void)
+static int read_hrma_opt_constants (int verbose)
 {
    unsigned int nread;
    char *file;
@@ -768,7 +777,8 @@ static int read_hrma_opt_constants (void)
    /* The optical constant file consists of:
     *   energy (KeV), beta, delta
     */
-   marx_message ("Reading binary HRMA optical constants:\n\t%s\n", file);
+   if (verbose == 1) marx_message("Reading binary HRMA optical constants\n");
+   if (verbose > 1) marx_message ("Reading binary HRMA optical constants:\n\t%s\n", file);
 
    if (-1 == marx_f_read_bdat (file, &nread, 3, &Energies, &Betas, &Deltas))
      {
@@ -791,7 +801,7 @@ static void free_correction_factors (HRMA_Type *h)
    h->num_correction_factors = 0;
 }
 
-static int read_hrma_correction_factors (void)
+static int read_hrma_correction_factors (int verbose)
 {
    char *file;
    char filebuf[32];
@@ -808,7 +818,7 @@ static int read_hrma_correction_factors (void)
 	if (NULL == (file = marx_make_data_file_name (filebuf)))
 	  return -1;
 
-	marx_message ("\t%s\n", file);
+	if (verbose > 1) marx_message ("\t%s\n", file);
 
 	if (-1 == marx_f_read_bdat (file, &h->num_correction_factors, 2,
 				    &h->correction_energies,
@@ -1088,6 +1098,7 @@ int _marx_hrma_mirror_init (Param_File_Type *p) /*{{{*/
 {
    unsigned int j;
    char *file;
+   int verbose;
 
    if (-1 == pf_get_parameters (p, HRMA_Parm_Table))
      return -1;
@@ -1101,7 +1112,10 @@ int _marx_hrma_mirror_init (Param_File_Type *p) /*{{{*/
    if (NULL == (file = marx_make_data_file_name (Geometry_File)))
      return -1;
 
-   if (-1 == read_hrma_geometry_file (file))
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+	   return -1;
+
+   if (-1 == read_hrma_geometry_file (file, verbose))
      {
 	marx_free (file);
 	return -1;
@@ -1118,12 +1132,12 @@ int _marx_hrma_mirror_init (Param_File_Type *p) /*{{{*/
 
    if (HRMA_Is_Ideal == 0)
      {
-	if (-1 == read_hrma_opt_constants ())
+	if (-1 == read_hrma_opt_constants (verbose))
 	  return -1;
 
 	if (Use_Scale_Factors)
 	  {
-	     if (-1 == read_hrma_correction_factors ())
+	     if (-1 == read_hrma_correction_factors (verbose))
 	       return -1;
 	  }
      }

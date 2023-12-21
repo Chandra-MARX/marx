@@ -417,6 +417,15 @@ static int get_marx_pfile_info (Param_File_Type *pf)
    if (-1 == pf_get_parameters (pf, Parm_Table))
      return -1;
 
+   if (0 == strcmp(Dither_Model, "FILE"))
+   {
+     marx_error("\
+*** This simulation used an input FILE for dither.\n\
+    There is no need to run marxasp to generate a new ASPSOL file.\n\
+    Instead, use the dither file that was used in the marx simulation for the analysis.\n");
+   return -1;
+   }
+
    if (0 == strcmp (Dither_Model, "INTERNAL"))
      used_dither = 1;
    else
@@ -424,8 +433,7 @@ static int get_marx_pfile_info (Param_File_Type *pf)
 	if (0 != strcmp (Dither_Model, "NONE"))
 	  {
 	     marx_error ("\
-*** This simulation did not use the INTERNAL dither model.  Re-run the\n\
-    simulation with DitherModel=INTERNAL.\n");
+*** Unknown dither model %s\n", Dither_Model);
 	     return -1;
 	  }
      }
@@ -465,7 +473,7 @@ static int get_marx_pfile_info (Param_File_Type *pf)
      Simulation_Grating_Type = 2;
    else Simulation_Grating_Type = 0;
 
-   if (NULL == (dt = marx_get_detector_info (DetectorType)))
+   if (NULL == (dt = marx_get_detector_info (DetectorType, 2)))
      {
 	pf_close_parameter_file (pf);
 	marx_error ("*** DetectorType %s not supported.\n", DetectorType);

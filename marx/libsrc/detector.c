@@ -41,6 +41,8 @@ _Marx_Coord_Transform_Type _Marx_Det_XForm_Matrix;
 int _Marx_Det_Ideal_Flag;
 int _Marx_Det_Extend_Flag;
 
+static int verbose = 0;
+
 static Param_Table_Type Det_Parm_Table [] =
 {
    {"DetOffsetX",	PF_REAL_TYPE,		&_Marx_Det_XForm_Matrix.dx},
@@ -235,14 +237,6 @@ static Detector_Cap_Type Detector_Caps [] =
    {"HRC-S", _marx_hrc_s_init, _marx_hrc_s_detect, MARX_DETECTOR_HRC_S},
    {"HRC-I", _marx_hrc_i_init, _marx_hrc_i_detect, MARX_DETECTOR_HRC_I},
    {"PLANE", plane_init, plane_detect, MARX_DETECTOR_PLANE},
-#if MARX_HAS_IXO_SUPPORT
-# ifdef MARX_DETECTOR_IXO_CATGS_CCD
-   {"IXOCCD", _marx_ixoccd_init, _marx_ixoccd_detect, MARX_DETECTOR_IXO_CATGS_CCD},
-# endif
-# ifdef MARX_DETECTOR_IXO_XMS
-   {"IXOXMS", _marx_ixoxms_init, _marx_ixoxms_detect, MARX_DETECTOR_IXO_XMS},
-# endif
-#endif
    {"NONE", NULL, NULL, 0},
    {NULL, NULL, NULL, 0}
 };
@@ -374,7 +368,7 @@ int marx_detect (Marx_Photon_Type *pt, int verbose) /*{{{*/
 
    if (Detector->detect != NULL)
      {
-	if (verbose)
+	if (verbose > 0)
 	  {
 	     marx_message ("Detecting with %s\n", Detector->name);
 	  }

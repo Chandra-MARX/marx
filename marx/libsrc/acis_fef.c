@@ -82,6 +82,8 @@
 
 #define FIRST_CHAN 1
 
+static int verbose = 0;
+
 typedef struct
 {
    float amp;
@@ -551,19 +553,20 @@ static int normalize_gaussians (Gauss_Parm_Type *gaussians, unsigned int num,
 	/* return 0; */
      }
 
-   if (total_neg_area != 0.0)
-     flags |= HAS_NEG_AMP_GAUSSIANS;
+     if (total_neg_area != 0.0)
+       flags |= HAS_NEG_AMP_GAUSSIANS;
 
-   g = gaussians;
-   if (total_pos_area > 0) while (g < gmax)
-     {
-	/* Since we interpolate over pairs of gaussians, do not normalize
-	 * each member of the pair separately.
-	 */
-	/* g->amp /= total_pos_area; */
-	g->cum_area /= total_pos_area;
-	g++;
-     }
+     g = gaussians;
+     if (total_pos_area > 0)
+       while (g < gmax)
+       {
+         /* Since we interpolate over pairs of gaussians, do not normalize
+          * each member of the pair separately.
+          */
+         /* g->amp /= total_pos_area; */
+         g->cum_area /= total_pos_area;
+         g++;
+       }
 
    total_area = total_pos_area - total_neg_area;
    if (total_area != 0)
@@ -881,8 +884,11 @@ static int read_acis_fef (Param_File_Type *p, int min_ccdid, int max_ccdid)
    if (file == NULL)
      return -1;
 
-   marx_message ("Reading ACIS-I/S FEF File\n");
-   marx_message ("\t%s\n", file);
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+     return -1;
+
+   if (verbose > 0) marx_message("Reading ACIS-I/S FEF File\n");
+   if (verbose > 1) marx_message("\t%s\n", file);
    status = read_fef_file (file, min_ccdid, max_ccdid);
    marx_free (file);
    return status;
@@ -897,13 +903,6 @@ int marx_init_acis_s_rmf (Param_File_Type *p)
 {
    return read_acis_fef (p, 4, 9);
 }
-
-#if MARX_HAS_IXO_SUPPORT
-int marx_init_ixo_ccd_rmf (Param_File_Type *p)
-{
-   return read_acis_fef (p, 0, 0);
-}
-#endif
 
 static unsigned int Num_Gaussians;
 static Gauss_Parm_Type *Gaussians;
@@ -968,7 +967,7 @@ static Fef_Type *find_fef (int ccd_id, float x, float y)
 int marx_apply_acis_rmf (int ccd_id, float x, float y,
 			 double energy, float *pip, short *phap)
 {
-   unsigned int i, j;
+   unsigned int i;
    Fef_Type *f;
    double pha;
    unsigned int num_energies, num_gaussians;
@@ -993,17 +992,21 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
 
    num_energies = f->num_energies;
    i = JDMbinary_search_f (energy, f->energies, num_energies);
-   j = i + 1;
-   if (j == num_energies)
-     {
-	/* extrapolate */
-	i--;
-	j--;
-     }
+   if (i == 0)
+   {
+     /* extrapolate */
+     i++;
+   }
+   if (i == num_energies)
+   {
+	   /* extrapolate */
+     i--;
+   }
 
-   t = (energy - f->energies[i])/(f->energies[j] - f->energies[i]);
-   g0 = f->gaussians + i * num_gaussians;
+   t = (energy - f->energies[i - 1])/(f->energies[i] - f->energies[i - 1]);
+   g0 = f->gaussians + (i - 1) * num_gaussians;
    g1 = g0 + num_gaussians;
+   //marx_message("acis_fef: t = %f, energy= %f, f->energies[j-1] = %f, f->energies[j] = %f \n", t, energy, f->energies[j-1], f->energies[j]);
 
    for (i = 0; i < num_gaussians; i++)
      {
@@ -1026,17 +1029,17 @@ int marx_apply_acis_rmf (int ccd_id, float x, float y,
 
 	g0++;
 	g1++;
-     }
+       }
 
    if (-1 == normalize_gaussians (Gaussians, num_gaussians, &flags, &mean))
      return -1;
 
    if (flags & HAS_TOTAL_NEG_AREA)
      {
-	marx_message ("Warning occurred for ccdid=%d,chipx=%f,chipy=%f,energy=%f\n",
-		      ccd_id, x, y, energy);
-	return -1;
-	/* flags &= ~HAS_TOTAL_NEG_AREA; */
+       marx_message("Warning occurred for ccdid=%d,chipx=%f,chipy=%f,energy=%f,flags=%d,flagsandneg=%d\n",
+                    ccd_id, x, y, energy, flags, flags & HAS_TOTAL_NEG_AREA);
+       return -1;
+       /* flags &= ~HAS_TOTAL_NEG_AREA; */
      }
 
    if (flags == 0)

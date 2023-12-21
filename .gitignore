@@ -4,13 +4,22 @@
 
 # autoconf / automake
 /Makefile
+*/*/Makefile
 /Makefile.in
 /aclocal.m4
 /autom4te.cache/
+*/autom4te.cache/
+*/*/autom4te.cache/
 /config.*
+*/config.*
+*/*/config.*
 /configure
+*/configure
+*/*/configure
 /depcomp
 /install-sh
+*/install-sh
+*/*/install-sh
 /libtool
 /ltmain.sh
 /m4/
@@ -20,6 +29,12 @@
 .dirstamp
 .libs/
 
+*/*/config.h
+*/*/sysconf.h
+confdefs.h
+
+
+
 # shared libraries
 *.l[ao]
 
@@ -28,3 +43,9 @@
 
 # executables
 *.o
+
+# compiled programs
+*/*/objs/
+
+# This marx-feat.h is generated from /marx/libsrc/marx-feat.h
+marx/src/marx-feat.h

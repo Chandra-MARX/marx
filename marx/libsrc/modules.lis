@@ -22,9 +22,7 @@ reflect
 util
 hrma
 mirror
-eamirror
 grating
-mblur
 wfold
 pixlib
 rdb
@@ -46,6 +44,3 @@ aciscontam
 qefuns
 acis_subpix
 hrcblur
-ixocatgs
-ixomirror
-ixoxms

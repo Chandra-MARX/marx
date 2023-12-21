@@ -258,7 +258,7 @@ static void close_aspsol (void)
 }
 
 /** Read the next point in the asol fits file and set variable Aspsol to it.
-  * There is no randomn access, this will always read exactly the next line
+  * There is no random access, this will always read exactly the next line
   * in the fits file.
   * Aspsol is a module level variable that is defined when the FILE dither
   * model is in use.
@@ -279,6 +279,7 @@ static int get_single_aspsol_point (void)
    if (-1 == jdfits_simple_d_read_btable (Aspsol.bt, buf))
      {
 	close_aspsol ();
+  marx_message("Simulation stopped early because end of ASPSOL file was reached at time %f.\n", Aspsol.t1);
 	return -1;
      }
 

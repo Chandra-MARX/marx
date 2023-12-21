@@ -44,32 +44,38 @@ unsigned int JDMbinary_search_d (double x, double *xp, unsigned int n)
 	  }
 	else n0 = n2;
      }
+   if (x >= xp[n0]) return n1;
    return n0;
 }
 
 double JDMinterpolate_d (double x, double *xp, double *yp, unsigned int n)
 {
-   unsigned int n0, n1;
-   double x0, x1;
+	unsigned int n0, n1;
+	double x0, x1;
 
-   n0 = JDMbinary_search_d (x, xp, n);
+	if (n == 1)
+		return yp[0];
+	n1 = JDMbinary_search_d(x, xp, n);
+	n0 = n1 - 1;
 
-   x0 = xp[n0];
-   n1 = n0 + 1;
+	if (x == xp[n1])
+		return yp[n1];
+	if (n1 == n)
+	{
+		n1--;
+		n0--;
+	}
+	if (n1 == 0)
+	{
+		n0 = 1;
+	}
 
-   if (x == x0)
-     return yp[n0];
-   if (n1 == n)
-     {
-	if (n0 == 0)
-	  return yp[n0];
-	n1 = n0 - 1;
-     }
+	x0 = xp[n0];
+	x1 = xp[n1];
+	if (x1 == x0)
+		return yp[n1];
 
-   x1 = xp[n1];
-   if (x1 == x0) return yp[n0];
-
-   return yp[n0] + (yp[n1] - yp[n0]) / (x1 - x0) * (x - x0);
+	return yp[n0] + (yp[n1] - yp[n0]) / (x1 - x0) * (x - x0);
 }
 
 int JDMinterpolate_dvector (double *xp, double *yp, unsigned int n,

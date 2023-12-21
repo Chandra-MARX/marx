@@ -46,6 +46,8 @@ static _Marx_HRC_QE_Type Filter_QEs [NUM_FILTER_REGIONS];
 static Marx_HRC_Blur_Parm_Type *HRC_I_Blur_Parms;
 static Marx_Detector_Geometry_Type *HRC_I_MCP;
 
+static int verbose = 0;
+
 static Param_Table_Type Parm_Table [] =
 {
    {"HRC-I-QEFile",	PF_FILE_TYPE,		&MCP_QEs[0].file},
@@ -184,8 +186,7 @@ _marx_hrc_i_detect (Marx_Photon_Type *pt) /*{{{*/
 
 /*}}}*/
 
-int
-_marx_hrc_i_init (Param_File_Type *p) /*{{{*/
+int _marx_hrc_i_init(Param_File_Type *p) /*{{{*/
 {
    unsigned int i;
    Marx_Detector_Type *hrc;
@@ -200,7 +201,10 @@ _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
    if (-1 == read_hrc_i_blur_parms (p))
      return -1;
 
-   if (NULL == (hrc = marx_get_detector_info ("HRC-I")))
+   if (-1 == pf_get_integer(p, "Verbose", &verbose))
+     return -1;
+
+   if (NULL == (hrc = marx_get_detector_info ("HRC-I", verbose)))
      return -1;
 
    HRC_I_MCP = hrc->facet_list;
@@ -209,13 +213,13 @@ _marx_hrc_i_init (Param_File_Type *p) /*{{{*/
 
    for (i = 0; i < _MARX_NUM_HRC_I_CHIPS; i++)
      {
-	if (-1 == _marx_hrc_read_efficiencies (MCP_QEs + i))
+	if (-1 == _marx_hrc_read_efficiencies (MCP_QEs + i, verbose))
 	  return -1;
      }
 
    for (i = 0; i < NUM_FILTER_REGIONS; i++)
      {
-	if (-1 == _marx_hrc_read_efficiencies (Filter_QEs + i))
+	if (-1 == _marx_hrc_read_efficiencies (Filter_QEs + i, verbose))
 	  return -1;
      }
 

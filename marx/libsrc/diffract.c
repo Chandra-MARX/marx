@@ -40,6 +40,8 @@
 #include "marx.h"
 #include "_marx.h"
 
+static int verbose = 0;
+
 /*}}}*/
 
 #define USE_GEFF_CALDB_FILE	1
@@ -335,9 +337,15 @@ double marx_compute_grating_efficiency (double energy, int order,
      }
 
    /* Find where energy lies on the Energies grid. */
-   n0 = JDMbinary_search_f (energy, Energies, Num_Energies);
-   n1 = n0 + 1;
-
+   n1 = JDMbinary_search_f (energy, Energies, Num_Energies);
+   n0 = n1 - 1;
+   if (n1 == 0)
+  {
+    /* Oops.  energy is out of range.
+     * Use last first points to extrapolate. */
+    n0++;
+    n1++;
+  }
    if (n1 == Num_Energies)
      {
 	/* Oops.  energy is out of range.
@@ -354,7 +362,7 @@ double marx_compute_grating_efficiency (double energy, int order,
 
    e1 = Energies[n1];
    eff1 = compute_efficiency (order, n1, geom);
-
+   marx_message ("energy = %g, e0 = %g, e1 = %g\n", energy, e0, e1);
    return eff0 + (eff1 - eff0)/(e1 - e0) * (energy - e0);
 }
 
@@ -731,6 +739,14 @@ static int diffract_photon (Grating_Type *g, double theta,
    d = JDMv_cross_prod (n, l);
 
    if (gs != NULL)
+     /* HMG 11/17/2023:
+      * As far as I can tell, this code is not used at the moment.
+      * It's implemented here so that we can switch it on with detailed
+      * sector information, however, that information has never been obtained
+      * in calibration and thus is not available in MARX/CALDB.
+      * So, gs (the variable holding the grating sector information) is always NULL
+      * and the first branch of the if is never used.
+      */
      {
 	unsigned int sector_num;
 	double sector;
@@ -740,7 +756,8 @@ static int diffract_photon (Grating_Type *g, double theta,
 	if (sector < 0) sector = 2*PI + sector;
 
 	sector_num = JDMbinary_search_d (sector, gs->min_angle, gs->num_sectors);
-	if ((gs->max_angle[sector_num] <= sector)
+  sector_num = sector_num - 1;
+  if ((gs->max_angle[sector_num] <= sector)
 	    || (gs->min_angle[sector_num] > sector))
 	  return -1;
 
@@ -1327,7 +1344,8 @@ static int read_geff_caldb_file (char *file, int shell,
 				 float ***efficiencies_p,
 				 float **energies_p,
 				 unsigned int *num_energies_p,
-				 int *max_order_p)
+				 int *max_order_p,
+         int verbose)
 {
    int max_order;
    unsigned int num_energies, num_orders = 0;
@@ -1340,7 +1358,7 @@ static int read_geff_caldb_file (char *file, int shell,
    unsigned int i;
 
    sprintf (hduname, "AXAF_GREFF%d", shell+1);
-   marx_message ("\t%s[%s]\n", file, hduname);
+   if (verbose > 1) marx_message ("\t%s[%s]\n", file, hduname);
 
    if (NULL == (f = _marx_open_binary_hdu (file, hduname)))
      return -1;
@@ -1483,7 +1501,7 @@ static int read_geff_bdat_file (char *file, int shell,
 }
 #endif				       /* USE_GEFF_CALDB_FILE */
 
-static Grating_Type *init_one_file_grating (char *file, int shell, double scale)
+static Grating_Type *init_one_file_grating (char *file, int shell, double scale, int verbose)
 {
    int max_order;
    unsigned int num_energies;
@@ -1502,7 +1520,7 @@ static Grating_Type *init_one_file_grating (char *file, int shell, double scale)
    if (NULL == (file = _marx_caldb_get_file (file)))
      goto return_error;
    status = read_geff_caldb_file (file, shell, &efficiencies, &energies,
-				  &num_energies, &max_order);
+				  &num_energies, &max_order, verbose);
 #else
    if (NULL == (file = marx_make_data_file_name (file)))
      goto return_error;
@@ -1562,31 +1580,34 @@ static int init_file_efficiencies (Param_File_Type *pf, char *prefix_name, doubl
 
 	shell = shells[i] - '0';
 #if !USE_GEFF_CALDB_FILE
-	sprintf (pname, "%s_Shell%d_File", prefix_name, shell);
-	if (-1 == pf_get_file (pf, pname, file, sizeof (file)))
+  sprintf(pname, "%s_Shell%d_File", prefix_name, shell);
+  if (-1 == pf_get_file (pf, pname, file, sizeof (file)))
 	  return -1;
 #endif
 	sprintf (pname, "%s_Shell%d_Vig", prefix_name, shell);
 	if (-1 == pf_get_double (pf, pname, &vig))
 	  return -1;
 
-	sprintf (pname, "%s_Shell%d_Theta", prefix_name, shell);
-	if (-1 == pf_get_double (pf, pname, &theta))
+  sprintf(pname, "%s_Shell%d_Theta", prefix_name, shell);
+  if (-1 == pf_get_double (pf, pname, &theta))
 	  return -1;
 
 	sprintf (pname, "%s_Shell%d_dTheta", prefix_name, shell);
 	if (-1 == pf_get_double (pf, pname, &dtheta))
 	  return -1;
 
-	sprintf (pname, "%s_Shell%d_Period", prefix_name, shell);
-	if (-1 == pf_get_double (pf, pname, &period))
+  sprintf(pname, "%s_Shell%d_Period", prefix_name, shell);
+  if (-1 == pf_get_double (pf, pname, &period))
 	  return -1;
 
-	sprintf (pname, "%s_Shell%d_dPoverP", prefix_name, shell);
-	if (-1 == pf_get_double (pf, pname, &dp_over_p))
+  sprintf(pname, "%s_Shell%d_dPoverP", prefix_name, shell);
+  if (-1 == pf_get_double (pf, pname, &dp_over_p))
 	  return -1;
 
-	g = init_one_file_grating (file, i, scale);
+  if (-1 == pf_get_integer(pf, "Verbose", &verbose))
+    return -1;
+
+  g = init_one_file_grating (file, i, scale, verbose);
 
 	if (g == NULL)
 	  return -1;
@@ -1646,7 +1667,7 @@ static int read_sector_files (Param_File_Type *pf, char *name)
 	     return -1;
 	  }
 
-	marx_message ("\t%s\n", file);
+	if (verbose > 1) marx_message ("\t%s\n", file);
 
 	if (NULL == (gs = read_sector_info (file)))
 	  {
@@ -1669,7 +1690,7 @@ int _marx_hetg_init (Param_File_Type *pf)
 
    Sim_Use_LETG = 0;
 
-   marx_message ("Initializing HETG...\n");
+   if (verbose > 0) marx_message ("Initializing HETG...\n");
 
    if (-1 == grating_pre_init (pf))
      return -1;

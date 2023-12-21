@@ -73,9 +73,6 @@ fi
 AC_CONFIG_FILES([$CF_Output_Files data/Makefile doc/Makefile])
 AC_OUTPUT
 
-JD_CREATE_EXEC_RULE(fix_ee)
-JD_CREATE_EXEC_RULE(dump_ee)
-
 JD_APPEND_RULES(libsrc/Makefile)
 
 dnl We may be configuring just marxlib and the src directory may not be
@@ -84,9 +81,9 @@ dnl part of the distribution
 if test -d src
 then
 
-dnl 
+dnl
 dnl  Now do src subdir
-dnl  Note that AC_OUTPUT can only be called once.  For that reason, 
+dnl  Note that AC_OUTPUT can only be called once.  For that reason,
 dnl  src/Makefile was created above
 dnl
 echo "Creating Makefile in src"
@@ -97,9 +94,7 @@ JD_CREATE_EXEC_RULE(bestfocus)
 JD_CREATE_EXEC_RULE(rfl)
 JD_CREATE_EXEC_RULE(geff)
 JD_CREATE_EXEC_RULE(geffdump)
-JD_CREATE_EXEC_RULE(marx2dpde)
 JD_CREATE_EXEC_RULE(dumpwfold)
-JD_CREATE_EXEC_RULE(marx2img)
 JD_CREATE_EXEC_RULE(marxcat)
 JD_CREATE_EXEC_RULE(marx2fits)
 JD_CREATE_EXEC_RULE(marxpileup)
