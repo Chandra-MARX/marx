@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2022 Massachusetts Institute of Technology
+    Copyright (C) 2002-2023 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -157,7 +157,7 @@ int simput_open_source (Marx_Source_Type *st)
     marx_error ("SIMPUT could not set ARF.");
     return -1;
   }
-  
+
   next_photons = startSimputPhotonAnySource(cat, mjdref, &status);
   if (status!=0){
     marx_error ("SIMPUT photons could not be initialized.");
@@ -204,12 +204,12 @@ static int simput_generate_ray (Marx_Photon_Attr_Type *at)
   double az, el;
   JDMVector_Type p = {.x = -1., .y = 0., .z = 0};
 
-  lightcurve_status = getSimputPhotonAnySource(cat, next_photons, 
+  lightcurve_status = getSimputPhotonAnySource(cat, next_photons,
 					       mjdref, &time,
 					       &energy, &ra, &dec,
 					       &polarization,
 					       &source_index,
-					       &status);  
+					       &status);
   if (lightcurve_status != 0){
     marx_error("No lightcurve defined for sources in the SIMPUT catalog at this time.");
     return -1;

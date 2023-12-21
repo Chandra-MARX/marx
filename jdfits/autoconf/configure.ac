@@ -1,4 +1,5 @@
-AC_INIT(src/jdfits.h)
+AC_INIT
+AC_CONFIG_SRCDIR([src/jdfits.h])
 JD_INIT
 
 JD_ANSI_CC
@@ -25,8 +26,9 @@ JD_GCC_WARNINGS
 JD_GET_MODULES(src/modules.lis)
 JD_CREATE_MODULE_ORULES
 
-AC_CONFIG_HEADER(src/sysconf.h:src/config.hin)
-AC_OUTPUT(Makefile:autoconf/Makefile.in src/Makefile)
+AC_CONFIG_HEADERS([src/sysconf.h:src/config.hin])
+AC_CONFIG_FILES([Makefile:autoconf/Makefile.in src/Makefile])
+AC_OUTPUT
 
 JD_CREATE_EXEC_RULE(fitsdump)
 JD_CREATE_EXEC_RULE(copyfits)

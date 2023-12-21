@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2022 Massachusetts Institute of Technology
+    Copyright (C) 2002-2023 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -187,7 +187,7 @@ static int create_photons (Marx_Source_Type *st, Marx_Photon_Type *pt, /*{{{*/
 
 	if (-1 == (*efun) (&st->spectrum, &energy_drawn))
 	  return -1;
-	
+
 	energy = energy_drawn;
 
 	if (-1 == (*User_Generate_Ray) (&t, &energy, &p1, &p2, &p3))

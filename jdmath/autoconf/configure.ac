@@ -1,4 +1,5 @@
-AC_INIT(src/vector.c)
+AC_INIT
+AC_CONFIG_SRCDIR([src/vector.c])
 AC_PREFIX_DEFAULT(/usr/local)
 JD_INIT
 
@@ -37,8 +38,9 @@ JD_GCC_WARNINGS
 JD_GET_MODULES(src/modules.lis)
 JD_CREATE_MODULE_ORULES
 
-AC_CONFIG_HEADER(src/sysconf.h:src/config.hin)
-AC_OUTPUT(Makefile:autoconf/Makefile.in src/Makefile demo/Makefile)
+AC_CONFIG_HEADERS([src/sysconf.h:src/config.hin])
+AC_CONFIG_FILES([Makefile:autoconf/Makefile.in src/Makefile demo/Makefile])
+AC_OUTPUT
 
 JD_APPEND_RULES(src/Makefile)
 JD_APPEND_ELFRULES(src/Makefile)

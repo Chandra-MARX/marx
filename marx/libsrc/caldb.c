@@ -1,7 +1,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2022 Massachusetts Institute of Technology
+    Copyright (C) 2002-2023 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -98,7 +98,7 @@ static int init_caldb (void)
 }
 
 /** Return the filename and path of a caldb data product from marxcaldb.par
-  * MARX includes a few CalDB files. The filename to be used is defined 
+  * MARX includes a few CalDB files. The filename to be used is defined
   * in marxcaldb.par. This function looks for a key in that parameter file
   * and returns the filename (e.g. _marx_caldb_get_file("GEOM")
   * The return value includes the full, absolute path to the file.
@@ -133,7 +133,7 @@ char *_marx_caldb_get_file (char *object)
 }
 
 /** Return the filename of a caldb data product from marxcaldb.par
-  * MARX includes a few CalDB files. The filename to be used is defined 
+  * MARX includes a few CalDB files. The filename to be used is defined
   * in marxcaldb.par. This function looks for a key in that parameter file
   * and returns the filename, e.g. marx_caldb_get_filename("GEOM") .
   */
