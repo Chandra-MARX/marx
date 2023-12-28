@@ -342,24 +342,6 @@ fi
 
 dnl#}}}
 
-IEEE_CFLAGS=""
-AC_DEFUN([JD_IEEE_CFLAGS], dnl#{{{
-[
-case "$host_cpu" in
-  *alpha* )
-    if test "$GCC" = yes
-    then
-      IEEE_CFLAGS="-mieee"
-    else
-      IEEE_CFLAGS="-ieee_with_no_inexact"
-    fi
-    ;;
-  * )
-    IEEE_CFLAGS=""
-esac
-])
-
-dnl#}}}
 
 AC_DEFUN([JD_CREATE_ORULE], dnl#{{{
 [

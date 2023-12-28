@@ -31,7 +31,6 @@
 @src/julian.c
 @src/btread.c
 @src/makefits.c
-@src/ieee.c
 @src/copyfits.c
 @src/modules.lis
 @src/_jdfits.h

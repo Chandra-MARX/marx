@@ -40,7 +40,6 @@ jdfits/src/fitsmisc.c
 jdfits/src/fitsuser.c
 jdfits/src/fitswbin.c
 jdfits/src/fitswrite.c
-jdfits/src/ieee.c
 jdfits/src/_jdfits.h
 jdfits/src/jdfits.h
 jdfits/src/julian.c
