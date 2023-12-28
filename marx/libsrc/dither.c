@@ -181,6 +181,25 @@ static int get_internal_dither (double t, Marx_Dither_Type *d,
    return 1;
 }
 
+/* Record the dither state but do not actually dither the rays, which are
+ * already assumed to be dithered a;ready in the input file.
+ */
+static int get_internal_dither_record_only(double t, Marx_Dither_Type *d,
+                                         double *rap, double *decp, double *rollp)
+{
+  int status;
+
+  if (1 != (status = get_internal_dither(t, d, rap, decp, rollp)))
+    return status;
+
+  *rap = 0;
+  *decp = 0;
+  *rollp = 0;
+
+  return 1;
+}
+
+
 static int get_zeroamp_internal_dither (double t, Marx_Dither_Type *d,
 					double *rap, double *decp, double *rollp)
 {
@@ -209,7 +228,10 @@ static int init_internal_dither (int dither_flag)
 	Ra_Amp = Ra_Amp * (PI/(180.0 * 3600));
 	Dec_Amp = Dec_Amp * (PI/(180.0 * 3600));
 	Roll_Amp = Roll_Amp * (PI/(180.0 * 3600));
-	Get_Dither_Function = get_internal_dither;
+  if (dither_flag & _MARX_DITHER_RECORD_ONLY)
+    Get_Dither_Function = get_internal_dither_record_only;
+  else
+    Get_Dither_Function = get_internal_dither;
 	marx_message ("[Using INTERNAL dither model]\n");
      }
    Get_Dither_Par_Means = get_dither_par_means_0;

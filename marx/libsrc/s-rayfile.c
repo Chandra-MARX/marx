@@ -97,11 +97,6 @@ int marx_dump_rayfile (char *file) /*{{{*/
 	fprintf (stdout, "%d\t%u\t%d\t%d",
 		 at.order, at.mirror_shell, at.ccd_num, at.detector_region);
 
-#if MARX_HAS_DITHER
-  fprintf(stdout, "%f\t%f\t%f\t", at.dither_state.ra, at.dither_state.dec, at.dither_state.roll);
-  fprintf(stdout, "%f\t%f\t%f\t", at.dither_state.dy, at.dither_state.dz, at.dither_state.dtheta);
-#endif
-
   putc ('\n', stdout);
      }
 
