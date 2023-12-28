@@ -81,7 +81,10 @@ int marx_dump_rayfile (char *file) /*{{{*/
    fprintf (stdout, "\t\tPX\t\tPY\t\tPZ");
    fprintf (stdout, "\tY-Pixel\tZ-Pixel");
    fprintf (stdout, "\tOrder\tMirrorShell\tCCD_Num\tHRC_Region");
-
+#if MARX_HAS_DITHER
+    fprintf(stdout, "\tRA\tDEC\tROLL");
+    fprintf(stdout, "\tDY\tDZ\tDTHETA");
+#endif
    putc ('\n', stdout);
 
    while (1 == fread (&at, sizeof (Marx_Photon_Attr_Type), 1, fp))
@@ -94,7 +97,7 @@ int marx_dump_rayfile (char *file) /*{{{*/
 	fprintf (stdout, "%d\t%u\t%d\t%d",
 		 at.order, at.mirror_shell, at.ccd_num, at.detector_region);
 
-	putc ('\n', stdout);
+  putc ('\n', stdout);
      }
 
    fclose (fp);

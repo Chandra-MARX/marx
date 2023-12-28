@@ -579,31 +579,33 @@ int main (int argc, char **argv) /*{{{*/
 
 	total_num_collected += num_collected;
 
-	if (-1 == process_photons (pt))
-	  goto return_error;
+  if (!Dump_To_Rayfile)
+  {
+    if (-1 == process_photons(pt))
+      goto return_error;
+  }
+    if (-1 == (*write_function)(pt, num_collected, open_mode, write_mask, total_time, pt->total_time))
+      goto return_error;
 
-	if (-1 == (*write_function) (pt, num_collected, open_mode, write_mask, total_time, pt->total_time))
-	  goto return_error;
+    open_mode = 0;
+    marx_message("\n");
 
-	open_mode = 0;
-	marx_message ("\n");
+    marx_prune_photons(pt);
+    total_num_detected += pt->num_sorted;
+    total_time += pt->total_time;
 
-	marx_prune_photons (pt);
-	total_num_detected += pt->num_sorted;
-	total_time += pt->total_time;
+    marx_message("Total photons: %lu, Total Photons detected: %lu, (efficiency: %f)\n",
+                 total_num_collected, total_num_detected, (double)total_num_detected / total_num_collected);
 
- 	marx_message ("Total photons: %lu, Total Photons detected: %lu, (efficiency: %f)\n",
-		      total_num_collected, total_num_detected, (double)total_num_detected / total_num_collected);
+    marx_message("  (efficiency this iteration  %f)  Total time: %f\n",
+                 (double)pt->num_sorted / num_collected,
+                 total_time);
 
- 	marx_message ("  (efficiency this iteration  %f)  Total time: %f\n",
-		      (double)pt->num_sorted / num_collected,
-		      total_time);
+    marx_message("\n");
 
-	marx_message ("\n");
-
-	if ((unsigned long)Num_Rays_Per_Iteration != num_collected)
-	  break;
-     }
+    if ((unsigned long)Num_Rays_Per_Iteration != num_collected)
+      break;
+  }
 
    /* drop */
    status = 0;
