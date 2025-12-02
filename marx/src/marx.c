@@ -2,7 +2,7 @@
 /*
     This file is part of MARX
 
-    Copyright (C) 2002-2023 Massachusetts Institute of Technology
+    Copyright (C) 2002-2025 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research
     under contract SV1-61010 from the Smithsonian Institution.
@@ -118,7 +118,7 @@ static void message_copyright (FILE *fp)
    if (Marx_Verbose == 0)
      return;
 
-   fprintf (fp, "MARX version %s, Copyright (C) 2002-2023 Massachusetts Institute of Technology\n\n",
+   fprintf (fp, "MARX version %s, Copyright (C) 2002-2025 Massachusetts Institute of Technology\n\n",
 	    MARX_VERSION_STRING);
 }
 
@@ -991,7 +991,7 @@ static double normalize_angle (double theta)
 /** Write a set of observation parameters to file obs.par
  *  These parameters will later be used to populate the fits
  *  header keywords when marx2fits is called.
- *  Some keywords have constant values and are just selected based on the 
+ *  Some keywords have constant values and are just selected based on the
  *  detector and grating used. Those are loaded from mode dependent parameter
  *  files that are part of marx (e.g. acis_s_obs_par). Others are taken from
  *  global parameters that are set elsewhere (e.g. the nominal pointing).
@@ -1204,7 +1204,7 @@ static int write_fits_info (double total_time)
   int iret;
 
   iret = write_obs_par (total_time);
-  
+
   if (iret == -1)
      return -1;
 
