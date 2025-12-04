@@ -44,6 +44,8 @@
 #include "marx.h"
 #include "_marx.h"
 
+#define MAX_ANGLE_BETWEEN_SOURCE_AND_POINTING 0.1745 /* 10 deg in radians */
+
 static double normalize_angle(double theta)
 {
   theta = fmod(theta, 360.0);
@@ -152,11 +154,10 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
 
    if (-1 == marx_compute_elaz (Source_Ra, Source_Dec, &Source_Azimuth, &Source_Elevation))
      return -1;
-
    p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
 
    // SIMPUT gives absolute RA, DEC
-   // IMAGE is alwys relative to nominal pointing
+   // IMAGE is always relative to nominal pointing
    // RAYFILE has already put photons in the marx coordinate system
    // SAOSAC has already run photons through the mirrors
    // other MARX sources give relative to source position
@@ -185,7 +186,7 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
       * With this requirement, a normal in the x-y plane is trivial to construct.
       */
 
-     if (p.x <= 0.0)
+     if (acos(p.x) >= MAX_ANGLE_BETWEEN_SOURCE_AND_POINTING)
          {
            /* Convert to evil degrees */
            ra_nom *= 180.0 / PI;
