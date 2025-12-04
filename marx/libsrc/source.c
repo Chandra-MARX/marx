@@ -155,9 +155,13 @@ static int select_source (Marx_Source_Type *st, Param_File_Type *pf, char *name)
 
    p = JDMv_spherical_to_vector (1.0, 0.5*PI-zoff, yoff);
 
-   // SIMPUT and IAMGE source gives absolute RA, DEC
+   // SIMPUT gives absolute RA, DEC
+   // IMAGE is alwys relative to nominal pointing
+   // RAYFILE has already put photons in the marx coordinate system
+   // SAOSAC has already run photons through the mirrors
    // other MARX sources give relative to source position
-   if (!((strcmp(name, "SIMPUT") == 0) || (strcmp(name, "IMAGE") == 0))){
+   if (!((strcmp(name, "SIMPUT") == 0) || (strcmp(name, "IMAGE") == 0) ||
+        (strcmp(name, "RAYFILE") == 0) || (strcmp(name, "SAOSAC") == 0))) {
      /* Now add offsets via the proper rotations */
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, -1, 0), Source_Elevation);
      p = JDMv_rotate_unit_vector (p, JDMv_vector (0, 0, 1), Source_Azimuth);
