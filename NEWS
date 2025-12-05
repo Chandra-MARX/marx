@@ -1,3 +1,15 @@
+Marx 6.0.1 (Dec 2025)
+=====================
+This is a minor release that fixes a bug in the previous 6.0.0 release and tightens
+a warning that catches common typos in the marx.par setup:
+
+- IMAGE source were flipped on the sky in 6.0.0 compared to version 5.3.3
+  for some WCS orientations.
+- All sources with the exception of RAYFILE, SAOSAC, and SIMPUT now need
+  to specify SourceRA and SourceDec within 10 deg of the nominal pointing direction.
+  (Before: 180 deg).
+
+
 Marx 6.0.0 (Dec 2025)
 =====================
 This is a major release with non-backwards compatible changes and a number of
